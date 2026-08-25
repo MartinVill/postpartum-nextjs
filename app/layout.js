@@ -3,13 +3,18 @@ import './globals.css';
 export const metadata = {
   title: 'Postpartum Fitness',
   description: 'MVP para mujeres postparto',
-  manifest: '/manifest.json',
-  viewport: 'width=device-width, initial-scale=1, viewport-fit=cover'
+  manifest: '/manifest.json'
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover'
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
