@@ -2,21 +2,113 @@
 import { useState, useEffect } from 'react';
 
 const BASE_ACTIVITIES = [
-  { id: 'cinema', title: 'Ir al cine', emoji: '🍿' },
-  { id: 'scrapbook', title: 'Hacer scrapbook', emoji: '✂️' },
-  { id: 'cook', title: 'Cocinar algo rico', emoji: '🧁' },
+  { id: 'cinema', title: 'Ir al cine', emoji: '🎬' },
+  { id: 'scrapbook', title: 'Hacer scrapbook', emoji: '📐' },
+  { id: 'cook', title: 'Cocinar algo rico', emoji: '👨‍🍳' },
   { id: 'cafe', title: 'Ir a tu cafetería favorita', emoji: '☕' },
-  { id: 'candy', title: 'Comer tu dulce favorito', emoji: '🍫' },
-  { id: 'skincare', title: 'Rutina de skincare', emoji: '💄' },
+  { id: 'candy', title: 'Comer tu dulce favorito', emoji: '🍭' },
+  { id: 'skincare', title: 'Rutina de skincare', emoji: '💆‍♀️' },
   { id: 'icecream', title: 'Ir a comer helado', emoji: '🍦' },
   { id: 'nails', title: 'Pintarte las uñas', emoji: '💅' },
   { id: 'outfit', title: 'Ponerte tu mejor ropa', emoji: '👗' },
-  { id: 'friend', title: 'Invitar a tu mejor amiga', emoji: '👯‍♀️' },
-  { id: 'series', title: 'Ver tu serie favorita', emoji: '🎬' },
+  { id: 'friend', title: 'Invitar a tu mejor amiga', emoji: '👭' },
+  { id: 'series', title: 'Ver tu serie favorita', emoji: '📺' },
   { id: 'music', title: 'Escuchar tu música favorita', emoji: '🎵' },
-  { id: 'shower', title: 'Tomar una ducha caliente', emoji: '🚿' },
+  { id: 'shower', title: 'Tomar una ducha caliente', emoji: '🛁' },
   { id: 'mall', title: 'Ir al centro comercial', emoji: '🛍️' }
 ];
+
+// Sistema inteligente para asignar emojis a hobbies personalizados
+function getEmojiForHobby(hobbyTitle) {
+  const title = hobbyTitle.toLowerCase();
+
+  const emojiMap = {
+    // Artes y manualidades
+    'scrapbook': '📐',
+    'arte': '🎨',
+    'dibujo': '🎨',
+    'pintura': '🖼️',
+    'ceramica': '🏺',
+    'artesania': '🧵',
+    'manualidades': '🧵',
+
+    // Deportes y movimiento
+    'yoga': '🧘‍♀️',
+    'pilates': '🧘‍♀️',
+    'gym': '💪',
+    'correr': '🏃‍♀️',
+    'caminar': '🚶‍♀️',
+    'ciclismo': '🚴‍♀️',
+    'baile': '💃',
+    'danza': '💃',
+    'ejercicio': '🏋️‍♀️',
+
+    // Entretenimiento
+    'netflix': '📺',
+    'pelicula': '🎬',
+    'cine': '🎬',
+    'series': '📺',
+    'television': '📺',
+    'musica': '🎵',
+    'lectura': '📚',
+    'leer': '📚',
+    'libros': '📚',
+
+    // Creatividad
+    'atrapasol': '☀️',
+    'mandalas': '✨',
+    'origami': '📄',
+    'tejido': '🧶',
+    'crochet': '🧶',
+    'costura': '🧵',
+
+    // Bienestar
+    'meditacion': '🧘‍♀️',
+    'relajacion': '😌',
+    'spa': '💆‍♀️',
+    'masaje': '💆‍♀️',
+
+    // Socializar
+    'amigas': '👭',
+    'amiga': '👭',
+    'amigos': '👫',
+    'familia': '👨‍👩‍👧',
+    'cafe': '☕',
+    'vino': '🍷',
+  };
+
+  // Buscar coincidencia exacta o parcial
+  for (const [key, emoji] of Object.entries(emojiMap)) {
+    if (title.includes(key) || key.includes(title)) {
+      return emoji;
+    }
+  }
+
+  // Si no hay coincidencia, seleccionar emoji por defecto basado en palabras clave
+  if (title.includes('yoga') || title.includes('deporte') || title.includes('ejercicio')) return '🧘‍♀️';
+  if (title.includes('arte') || title.includes('dibujo') || title.includes('pintura')) return '🎨';
+  if (title.includes('lectura') || title.includes('libro')) return '📚';
+  if (title.includes('musica') || title.includes('cancion')) return '🎵';
+
+  // Default: emoji neutro
+  return '✨';
+}
+
+// Componente Netflix (N roja)
+function NetflixIcon() {
+  return (
+    <span style={{
+      display: 'inline-block',
+      fontSize: '24px',
+      fontWeight: 'bold',
+      color: '#E50914',
+      fontFamily: 'Arial, sans-serif',
+      letterSpacing: '-2px'
+    }}>
+      N
+    </span>
+  );
+}
 
 // Componente de confeti simple
 function Confetti() {
@@ -79,23 +171,36 @@ export default function DailyChallenge({ energy, userProfile }) {
     let baseActivitiesFiltered = [...BASE_ACTIVITIES];
 
     if (userProfile?.hobbies && Array.isArray(userProfile.hobbies)) {
-      const hobbyActivities = userProfile.hobbies.slice(0, 3).map((hobby, idx) => ({
-        id: `hobby-${idx}`,
-        title: hobby,
-        emoji: ['🎨', '🎭', '🎪'][idx],
-        isHobby: true
-      }));
+      const hobbyActivities = userProfile.hobbies.slice(0, 3).map((hobby, idx) => {
+        // Determinar si es Netflix o usar emoji inteligente
+        let emoji;
+        if (hobby.toLowerCase().includes('netflix') || hobby.toLowerCase().includes('serie')) {
+          emoji = <NetflixIcon />;
+        } else {
+          emoji = getEmojiForHobby(hobby);
+        }
 
-      // Filtrar BASE_ACTIVITIES para no repetir hobbies (con detección de similitud)
-      const hobbyTitlesLower = hobbyActivities.map(h => h.title.toLowerCase().trim());
+        return {
+          id: `hobby-${idx}`,
+          title: hobby,
+          emoji: emoji,
+          isHobby: true
+        };
+      });
+
+      // Filtrar BASE_ACTIVITIES para no repetir hobbies (búsqueda más robusta)
       baseActivitiesFiltered = BASE_ACTIVITIES.filter(activity => {
-        const activityLower = activity.title.toLowerCase().trim();
-        return !hobbyTitlesLower.some(hobby => {
-          // Búsqueda exacta o palabras clave coincidentes
+        const activityLower = activity.title.toLowerCase();
+        return !userProfile.hobbies.some(hobby => {
+          const hobbyLower = hobby.toLowerCase();
+          // Evitar duplicados con búsqueda por palabras clave
           return (
-            hobby === activityLower ||
-            activityLower.includes(hobby) ||
-            hobby.includes(activityLower)
+            hobbyLower === activityLower ||
+            activityLower.includes(hobbyLower) ||
+            hobbyLower.includes(activityLower) ||
+            // Casos especiales
+            (hobbyLower.includes('scrapbook') && activityLower.includes('scrapbook')) ||
+            (hobbyLower.includes('yoga') && activityLower.includes('yoga'))
           );
         });
       });
@@ -304,8 +409,8 @@ export default function DailyChallenge({ energy, userProfile }) {
                 ⭐ PARA TI
               </div>
             )}
-            <div style={{ fontSize: '32px', marginBottom: '6px', marginTop: activity.isHobby ? '12px' : '0' }}>
-              {activity.emoji}
+            <div style={{ fontSize: '32px', marginBottom: '6px', marginTop: activity.isHobby ? '12px' : '0', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '40px' }}>
+              {typeof activity.emoji === 'string' ? activity.emoji : activity.emoji}
             </div>
             <div style={{
               fontSize: '13px',
@@ -347,8 +452,8 @@ export default function DailyChallenge({ energy, userProfile }) {
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <div style={{ fontSize: '48px', marginBottom: '12px' }}>
-                {selectedActivity.emoji}
+              <div style={{ fontSize: '48px', marginBottom: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60px' }}>
+                {typeof selectedActivity.emoji === 'string' ? selectedActivity.emoji : selectedActivity.emoji}
               </div>
               <h3 style={{
                 fontSize: '20px',
