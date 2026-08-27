@@ -62,7 +62,16 @@ OPENAI_API_KEY=sk-[TU-CLAVE-AQUI]
 ```
 **Sin esto:** El chat NO funciona. Crear archivo si no existe.
 
-## 🚀 Comandos Esenciales
+## 🚀 Deployment
+
+**App en vivo:** https://postpartum-nextjs-martinvill.vercel.app (Vercel - Producción)
+
+La app está deployada automáticamente en Vercel. Cada push a `main` en GitHub dispara un redeploy.
+
+### Variables de Entorno en Vercel
+- `OPENAI_API_KEY` = sk-[clave-openai]
+
+## 🚀 Comandos Esenciales (Desarrollo Local)
 
 ```bash
 npm install --legacy-peer-deps  # Install dependencies (REQUERIDO)
@@ -71,9 +80,9 @@ npm run build                    # Production build
 npm start                        # Serve production
 ```
 
-**Verificar post-startup:**
+**Verificar post-startup local:**
 1. Terminal dice: `✓ Ready in Xs`
-2. App carga: `http://192.168.1.34:3000` (desde teléfono)
+2. App carga: `http://localhost:3000` (desktop) o `http://192.168.1.X:3000` (teléfono mismo WiFi)
 3. Chat responde
 4. Calendario visible
 

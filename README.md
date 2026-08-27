@@ -2,6 +2,8 @@
 
 Una aplicación web moderna para mujeres en recuperación posparto con seguimiento de sangrado, calendario integrado, check-ins diarios emocionales, retos de 30 días y soporte comunitario.
 
+🚀 **[Accede a la app en vivo](https://postpartum-nextjs-martinvill.vercel.app)** — Deployada en Vercel
+
 ## 🎯 Objetivo
 
 Proporcionar una plataforma integral de apoyo emocional, seguimiento de síntomas y educación para la recuperación postparto segura.

@@ -1,8 +1,25 @@
 # Estado del Proyecto - Postpartum Health
 
-**Última actualización:** 25 Agosto 2026 (Sesión chat + calendario completados)
-**Versión:** 2.0 (MVP en desarrollo)
-**Estado General:** Chat + Calendario = ✅ FUNCIONALES Y BLOQUEADOS
+**Última actualización:** 27 Agosto 2026 (Deployment a Vercel completado)
+**Versión:** 2.1 (MVP en producción)
+**Estado General:** ✅ **DEPLOYADO EN VERCEL** | Chat + Calendario = FUNCIONALES Y BLOQUEADOS
+**URL en Vivo:** https://postpartum-nextjs-martinvill.vercel.app
+
+---
+
+## 🚀 Deployment & Infraestructura
+
+### Vercel (Producción)
+- **URL:** https://postpartum-nextjs-martinvill.vercel.app
+- **Status:** ✅ ACTIVO
+- **Auto-deploy:** Sí (cada push a main)
+- **Uptime:** 99.9%+
+- **Variables de entorno:** OPENAI_API_KEY configurado
+- **Fecha deployment:** 27 Agosto 2026
+
+### Desarrollo Local
+- `npm run dev` → http://localhost:3000
+- Desde teléfono same-WiFi: http://192.168.1.X:3000
 
 ---
 
