@@ -462,8 +462,7 @@ export default function OnboardingForm({ onComplete }) {
           disabled={
             (step === 1 && !formData.name.trim()) ||
             (step === 2 && formData.hobbies.length < 3) ||
-            (step === 3 && !formData.lastMenstruationDate) ||
-            (step === 4 && !formData.babyAge)
+            (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
           }
           style={{
             flex: 1,
@@ -471,8 +470,7 @@ export default function OnboardingForm({ onComplete }) {
             background: (
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
-              (step === 3 && !formData.lastMenstruationDate) ||
-              (step === 4 && !formData.babyAge)
+              (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
             ) ? '#DDD' : '#D946EF',
             color: 'white',
             border: 'none',
@@ -480,8 +478,7 @@ export default function OnboardingForm({ onComplete }) {
             cursor: (
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
-              (step === 3 && !formData.lastMenstruationDate) ||
-              (step === 4 && !formData.babyAge)
+              (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
             ) ? 'not-allowed' : 'pointer',
             fontWeight: '600',
             fontSize: '15px',
@@ -489,16 +486,14 @@ export default function OnboardingForm({ onComplete }) {
             boxShadow: (
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
-              (step === 3 && !formData.lastMenstruationDate) ||
-              (step === 4 && !formData.babyAge)
+              (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
             ) ? 'none' : '0 2px 8px rgba(217, 70, 239, 0.2)'
           }}
           onMouseEnter={(e) => {
             if (!(
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
-              (step === 3 && !formData.lastMenstruationDate) ||
-              (step === 4 && !formData.babyAge)
+              (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
             )) {
               e.target.style.background = '#C026D3';
               e.target.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.3)';
@@ -508,8 +503,7 @@ export default function OnboardingForm({ onComplete }) {
             if (!(
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
-              (step === 3 && !formData.lastMenstruationDate) ||
-              (step === 4 && !formData.babyAge)
+              (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
             )) {
               e.target.style.background = '#D946EF';
               e.target.style.boxShadow = '0 2px 8px rgba(217, 70, 239, 0.2)';

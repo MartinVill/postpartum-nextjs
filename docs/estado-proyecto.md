@@ -1,7 +1,8 @@
 # Estado del Proyecto - Postpartum Health
 
-**Última actualización:** 25 Agosto 2026  
+**Última actualización:** 25 Agosto 2026 (Sesión chat + calendario completados)
 **Versión:** 2.0 (MVP en desarrollo)
+**Estado General:** Chat + Calendario = ✅ FUNCIONALES Y BLOQUEADOS
 
 ---
 
@@ -55,10 +56,16 @@
 - **Estado:** BÁSICO
 
 ### 3. **Chat Emocional**
-- ⏳ Integración OpenAI mejorada
-- ⏳ Validación de emergencias
-- **Archivo:** `app/components/ChatSection.jsx`
-- **Estado:** BÁSICO
+- ✅ Integración OpenAI (gpt-4o-mini)
+- ✅ FAQ integrado con 10 preguntas frecuentes
+- ✅ Rating de respuestas (👍 / 👎)
+- ✅ Historial persistente
+- ✅ Slider de estado emocional (1-10)
+- ✅ Menu desplegable (⋮) con opciones
+- ✅ Limpiar historial del chat
+- **Archivo:** `app/components/ChatSection.jsx` (400+ líneas)
+- **API:** `app/api/chat/route.js`
+- **Estado:** ✅ ESTABLE - BLOQUEADO (no tocar)
 
 ---
 
@@ -75,9 +82,30 @@
 
 ---
 
-## 🔧 Cambios Recientes (Últimos 7 Días)
+## 🔧 Cambios Recientes
 
-**Commit:** 5b589c6 (25 Agosto 2026)
+### Sesión 25 Agosto 2026 (ESTA SESIÓN)
+**Estado del chat y calendario: ✅ COMPLETAMENTE FUNCIONALES Y BLOQUEADOS**
+
+Cambios realizados:
+- ✅ **Chat completado:** OpenAI API integrado, FAQ implementado, historial persistente, menu (⋮) funcional
+- ✅ **Turbopack deshabilitado:** next.config.ts modificado (webpack más estable)
+- ✅ **.env.local configurado:** OPENAI_API_KEY requerida
+- ✅ **UI ajustes:** Mensaje "Escribiendo..." sin corte, padding dinámico en contenedor
+- ✅ **Menu implementado:** Click outside detection, Preguntas frecuentes + Borrar historial
+- ✅ **README.md mejorado:** Sección "BLOQUEADOS", verificaciones post-startup, .env.local instructions
+- ✅ **docs/estado-proyecto.md actualizado:** Refleja status actual
+
+**Problemas resueltos esta sesión:**
+- Turbopack colgaba compilando → Deshabilitado
+- Chat no enviaba mensajes → Implementado handleSend en page.js + ChatSection.jsx
+- OPENAI_API_KEY no configurada → Agregada a .env.local y documentada
+- Menú de 3 puntitos no funcionaba → Conectado onClick con setIsMenuOpen
+- Mensaje "Escribiendo..." cortado → Padding dinámico en contenedor
+- FAQ no desplegaba → Implementado renderizado completo con onClick handlers
+
+### Antes (Sesión 24 Agosto 2026)
+**Commit:** 5b589c6
 - ✅ Subido código completo a GitHub
 - ✅ README.md actualizado
 - ✅ Calendar.jsx: Fixed event date editing (timezone issues)
@@ -88,6 +116,21 @@
 - Calendar: date editing con native HTML input → cambiado a calendar picker
 - Sangrado tracking: color-progresión implementada
 - Event persistence: localStorage working
+
+---
+
+## 🚫 BLOQUEADOS - NO TOCAR
+
+Estas features fueron completadas y estabilizadas esta sesión. **NO modificar:**
+
+```
+❌ app/components/ChatSection.jsx     — Chat con OpenAI (400+ líneas)
+❌ app/components/Calendar.jsx        — Sangrado + eventos (1000+ líneas)
+❌ app/api/chat/route.js              — OpenAI endpoint (completo)
+❌ next.config.ts                     — Turbopack deshabilitado
+```
+
+**Por qué?** Estas features tardaron HORAS en estabilizar. Cambiarlas ahora rompe todo lo que funciona.
 
 ---
 
@@ -135,10 +178,10 @@
 | Archivo | Líneas | Propósito | Estado |
 |---------|--------|----------|--------|
 | OnboardingForm.jsx | ~400 | Setup inicial | ✅ ESTABLE |
-| Calendar.jsx | ~1000 | Sangrado + eventos | ✅ ESTABLE |
+| Calendar.jsx | ~1000 | Sangrado + eventos | ✅ ESTABLE - BLOQUEADO |
 | DailyCheckIn.jsx | ~300 | Energy tracking | ✅ ESTABLE |
+| ChatSection.jsx | ~400 | Chat con OpenAI | ✅ ESTABLE - BLOQUEADO |
 | DailyChallenge.jsx | ~200 | Retos diarios | 🔨 EN PROGRESO |
-| ChatSection.jsx | ~250 | Chat emocional | 🔨 BÁSICO |
 | NightReflection.jsx | ~200 | Reflexiones | 🔨 BÁSICO |
 | DynamicFeed.jsx | ~150 | Feed de contenido | 🔨 BÁSICO |
 

@@ -63,16 +63,13 @@ Build:        npm / Node.js
 ### Instalación
 
 ```bash
-# Clonar repositorio
-git clone https://github.com/MartinVill/postpartum-nextjs.git
-cd postpartum-nextjs
+# Instalar dependencias (REQUERIDO con legacy-peer-deps)
+npm install --legacy-peer-deps
 
-# Instalar dependencias
-npm install
-
-# Configurar variables de entorno (opcional - para OpenAI)
-cp .env.example .env.local
-# Editar .env.local con tu OPENAI_API_KEY
+# Configurar OpenAI (REQUERIDO para que el chat funcione)
+# Crear archivo: .env.local
+# Contenido:
+# OPENAI_API_KEY=sk-[tu-clave-openai-aqui]
 ```
 
 ### Desarrollo Local
@@ -80,10 +77,20 @@ cp .env.example .env.local
 ```bash
 # Iniciar servidor dev
 npm run dev
+# Esperar: ✓ Ready in Xs
 
-# Abrir en navegador
-http://localhost:3000
+# En teléfono o navegador:
+# http://localhost:3000 (desktop)
+# http://192.168.1.34:3000 (desde móvil en la misma red)
 ```
+
+**Verificación post-startup (ANTES de hacer cambios):**
+1. Servidor dice "Ready in Xs" (no cuelga compilando)
+2. App carga en teléfono: slider de energía visible
+3. Chat responde cuando escribes algo
+4. Calendario muestra días con color
+
+Si algo falla aquí: **arregla el servidor ANTES de tocar código**
 
 ### Build para Producción
 
@@ -125,10 +132,10 @@ postpartum-nextjs/
 
 ## 🎨 Diseño
 
-### Paleta de Colores
-- **Primario**: Amarillo (#FFD700) - Felicidad/Bienvenida
-- **Secundario**: Rosa (#E91E63) - Femenino/Poder
-- **Tercero**: Púrpura (#9C27B0) - Calma/Introspección
+### Paleta de Colores (NO CAMBIAR)
+- **Primario**: Magenta (#D946EF) - Botones, interacción
+- **Fondo Gradiente**: #FFF8DC → #FFF5E1 (crema claro → oscuro)
+- **Chat Primario**: Blanco con sombras suaves
 - **Sangrado**: Rojo → Rosa → Marrón → Amarillo (progresión de lochia)
 
 ### Componentes Clave
@@ -149,6 +156,21 @@ sangradoLogs        // Array de registros de sangrado
 dailyChallengeData  // { currentChallenge, completed, streak, points }
 nightReflections    // Historial de reflexiones
 ```
+
+## 🚫 BLOQUEADOS - NO TOCAR
+
+Estas features funcionan perfectamente y han sido estabilizadas. **No modificar:**
+
+```
+❌ app/components/ChatSection.jsx     — Chat con OpenAI funciona
+❌ app/components/Calendar.jsx        — Sangrado postparto estable
+❌ app/api/chat/route.js              — OpenAI integration completa
+❌ next.config.ts                     — Turbopack deshabilitado (correcto)
+```
+
+**Tocar estos archivos = romper features que funcionan.**
+
+---
 
 ## 🔧 Para Otra IA (Codex, Gemini, etc.)
 
@@ -203,5 +225,12 @@ Privado - Para uso personal
 ---
 
 **Versión**: 2.0 (En desarrollo)  
-**Última actualización**: Agosto 24, 2026  
-**Estado**: MVP en desarrollo - Calendario y dailies funcionales
+**Última actualización**: Agosto 25, 2026  
+**Estado**: 
+- ✅ Onboarding: Funcional
+- ✅ Calendario: Sangrado + eventos funcionales
+- ✅ Chat: OpenAI integration estable
+- ✅ Check-in emocional: Funcional
+- 🔄 Retos de 30 días: En desarrollo
+- ⏳ Reflexión nocturna: Pendiente
+- ⏳ Feed dinámico: Pendiente

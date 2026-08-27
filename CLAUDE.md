@@ -47,33 +47,49 @@ dailyChallengeData      // { currentChallenge, completed, streak, points }
 nightReflections        // Array: { date, reflection, gratitude }
 ```
 
-## 🎨 Colores Críticos
+## 🎨 Colores Críticos (NO CAMBIAR)
 
+- **Primario:** Magenta (#D946EF) — Botones, interacción
+- **Fondo Gradiente:** #FFF8DC → #FFF5E1 (crema)
+- **Chat:** Blanco con sombras suaves
 - **Sangrado:** Rojo → Rosa → Marrón → Amarillo (lochia progression)
-- **Eventos:** Verde (#4CAF50)
-- **Síntomas:** Amarillo (#FFC107)
-- **Primario:** Amarillo (#FFD700)
-- **Secundario:** Rosa (#E91E63)
+
+## ⚙️ Configuración REQUERIDA
+
+**Archivo:** `.env.local`
+```
+OPENAI_API_KEY=sk-[TU-CLAVE-AQUI]
+```
+**Sin esto:** El chat NO funciona. Crear archivo si no existe.
 
 ## 🚀 Comandos Esenciales
 
 ```bash
-npm install              # Install dependencies
-npm run dev             # Start dev server (localhost:3000)
-npm run build           # Production build
-npm start               # Serve production
+npm install --legacy-peer-deps  # Install dependencies (REQUERIDO)
+npm run dev                      # Start dev server (localhost:3000)
+npm run build                    # Production build
+npm start                        # Serve production
 ```
+
+**Verificar post-startup:**
+1. Terminal dice: `✓ Ready in Xs`
+2. App carga: `http://192.168.1.34:3000` (desde teléfono)
+3. Chat responde
+4. Calendario visible
 
 ## 📋 Archivo Principal Que Leer Primero
 
 - **ARQUITECTURA_V2.md** — Especificación completa (solo abre si la feature lo requiere)
 - **README.md** — Visión general y setup
 
-## 🚫 No Tocar (Salvo Spec Explícita)
+## 🚫 BLOQUEADOS - NO TOCAR (Por ningún motivo)
 
-- `app/page.js` — Onboarding principal (estable)
-- `lib/` — Utilidades compartidas (coordinar cambios)
-- `node_modules/`, `.next/`, `build/` — Nunca
+- ❌ `app/components/ChatSection.jsx` — Chat con OpenAI (ESTABLE, tardó horas)
+- ❌ `app/components/Calendar.jsx` — Sangrado + eventos (ESTABLE, 1000 líneas)
+- ❌ `app/api/chat/route.js` — OpenAI endpoint (COMPLETO)
+- ❌ `next.config.ts` — Turbopack deshabilitado (correcto así)
+
+**Por qué?** Estas features fueron completadas y estabilizadas. Cambiarlas rompe todo.
 
 ## ✅ Convenciones
 

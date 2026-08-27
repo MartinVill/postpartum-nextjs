@@ -1,11 +1,44 @@
 'use client';
 import { useState } from 'react';
+import DailyChallenge from './DailyChallenge';
 
 export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, onReflection }) {
   const [showMoreOptions, setShowMoreOptions] = useState(false);
+  const [showChallenge, setShowChallenge] = useState(false);
 
   // Rango 1-5: Crisis
   if (energy <= 5) {
+    if (showChallenge) {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
+          padding: '20px 16px 100px',
+          maxWidth: '600px',
+          margin: '0 auto'
+        }}>
+          <button
+            onClick={() => setShowChallenge(false)}
+            style={{
+              background: 'white',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '50px',
+              cursor: 'pointer',
+              color: '#D946EF',
+              fontWeight: '600',
+              fontSize: '14px',
+              marginBottom: '16px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+            }}
+          >
+            ← Volver
+          </button>
+          <DailyChallenge energy={energy} userProfile={userProfile} />
+        </div>
+      );
+    }
+
     return (
       <div style={{
         minHeight: '100vh',
@@ -86,7 +119,7 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
 
           {/* Reto 30 días */}
           <button
-            onClick={() => {}}
+            onClick={() => setShowChallenge(true)}
             style={{
               padding: '20px 16px',
               background: 'white',
@@ -278,6 +311,37 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
 
   // Rango 6-7: Estable
   if (energy <= 7) {
+    if (showChallenge) {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
+          padding: '20px 16px 100px',
+          maxWidth: '600px',
+          margin: '0 auto'
+        }}>
+          <button
+            onClick={() => setShowChallenge(false)}
+            style={{
+              background: 'white',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '50px',
+              cursor: 'pointer',
+              color: '#2563EB',
+              fontWeight: '600',
+              fontSize: '14px',
+              marginBottom: '16px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+            }}
+          >
+            ← Volver
+          </button>
+          <DailyChallenge energy={energy} userProfile={userProfile} />
+        </div>
+      );
+    }
+
     return (
       <div style={{
         minHeight: '100vh',
@@ -345,14 +409,29 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
         </button>
 
         {/* Reto diario */}
-        <div style={{
-          padding: '16px',
-          background: '#F8F5FF',
-          border: 'none',
-          borderRadius: '20px',
-          marginBottom: '20px',
-          boxShadow: '0 2px 12px rgba(217, 70, 239, 0.1)'
-        }}>
+        <button
+          onClick={() => setShowChallenge(true)}
+          style={{
+            padding: '16px',
+            background: '#F8F5FF',
+            border: 'none',
+            borderRadius: '20px',
+            marginBottom: '20px',
+            boxShadow: '0 2px 12px rgba(217, 70, 239, 0.1)',
+            cursor: 'pointer',
+            width: '100%',
+            textAlign: 'left',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = '#F0E7FF';
+            e.target.style.boxShadow = '0 4px 16px rgba(217, 70, 239, 0.15)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = '#F8F5FF';
+            e.target.style.boxShadow = '0 2px 12px rgba(217, 70, 239, 0.1)';
+          }}
+        >
           <p style={{
             fontSize: '14px',
             color: '#A855F7',
@@ -366,9 +445,9 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
             color: '#9333EA',
             margin: '0'
           }}>
-            Camina 15 minutos. Puede ser con el bebé, sola, como sea. El movimiento te va a sacar de la cabeza.
+            Toca aquí para ver las actividades disponibles →
           </p>
-        </div>
+        </button>
 
         {/* Calendario */}
         <button
@@ -420,6 +499,37 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
   }
 
   // Rango 8-10: Genial
+  if (showChallenge) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
+        padding: '20px 16px 100px',
+        maxWidth: '600px',
+        margin: '0 auto'
+      }}>
+        <button
+          onClick={() => setShowChallenge(false)}
+          style={{
+            background: 'white',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '50px',
+            cursor: 'pointer',
+            color: '#84CC16',
+            fontWeight: '600',
+            fontSize: '14px',
+            marginBottom: '16px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+          }}
+        >
+          ← Volver
+        </button>
+        <DailyChallenge energy={energy} userProfile={userProfile} />
+      </div>
+    );
+  }
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -459,14 +569,29 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
       </div>
 
       {/* Reto desafiante */}
-      <div style={{
-        padding: '16px',
-        background: '#FFFAEB',
-        border: 'none',
-        borderRadius: '20px',
-        marginBottom: '20px',
-        boxShadow: '0 2px 12px rgba(132, 204, 22, 0.15)'
-      }}>
+      <button
+        onClick={() => setShowChallenge(true)}
+        style={{
+          padding: '16px',
+          background: '#FFFAEB',
+          border: 'none',
+          borderRadius: '20px',
+          marginBottom: '20px',
+          boxShadow: '0 2px 12px rgba(132, 204, 22, 0.15)',
+          cursor: 'pointer',
+          width: '100%',
+          textAlign: 'left',
+          transition: 'all 0.2s'
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.background = '#FFF6D1';
+          e.target.style.boxShadow = '0 4px 16px rgba(132, 204, 22, 0.25)';
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.background = '#FFFAEB';
+          e.target.style.boxShadow = '0 2px 12px rgba(132, 204, 22, 0.15)';
+        }}
+      >
         <p style={{
           fontSize: '14px',
           color: '#84CC16',
@@ -482,9 +607,9 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
           lineHeight: '1.5',
           fontWeight: '500'
         }}>
-          20 minutos de movimiento. Yoga, caminar, bailar, lo que te encienda. Vos sabes.
+          Toca aquí para ver las actividades disponibles →
         </p>
-      </div>
+      </button>
 
       {/* Botones */}
       <button

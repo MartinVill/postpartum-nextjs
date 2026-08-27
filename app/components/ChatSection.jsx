@@ -62,6 +62,19 @@ export default function ChatSection({ userId, initialProfile }) {
     }
   }, [messages, userId]);
 
+  // Cerrar menú al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [isMenuOpen]);
+
   const getContextMessages = () => {
     // Enviar últimos 50 mensajes para contexto (no todo)
     return messages.slice(-50).map(msg => ({
@@ -272,12 +285,29 @@ export default function ChatSection({ userId, initialProfile }) {
       <div style={{
         background: 'white',
         padding: '16px',
+        paddingBottom: loading ? '80px' : '16px',
         borderRadius: '20px',
         boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
         flex: 1,
         overflow: 'auto',
-        minHeight: '0'
+        minHeight: '0',
+        position: 'relative'
       }}>
+        {messages.length === 0 && !loading && (
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            fontSize: '18px',
+            color: '#9CA3AF',
+            textAlign: 'center',
+            fontWeight: '500',
+            whiteSpace: 'nowrap'
+          }}>
+            Escribe algo abajo...
+          </div>
+        )}
         {messages.map(msg => (
           <div key={msg.id} style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
@@ -361,20 +391,303 @@ export default function ChatSection({ userId, initialProfile }) {
           </div>
         ))}
         {loading && (
-          <div style={{ marginBottom: '12px', textAlign: 'left' }}>
-            <div style={{
-              display: 'inline-block',
-              background: '#F0F0F0',
-              color: '#999',
-              padding: '10px 12px',
-              borderRadius: '8px',
-              fontSize: '13px'
-            }}>
-              ✨ Escribiendo...
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <div style={{
+                background: '#F0F0F0',
+                color: '#999',
+                padding: '10px 14px',
+                borderRadius: '16px',
+                fontSize: '14px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}>
+                ✨ Escribiendo...
+              </div>
             </div>
+            <div ref={messagesEndRef} />
           </div>
         )}
-        <div ref={messagesEndRef} />
+        {!loading && <div ref={messagesEndRef} />}
+      </div>
+
+      {/* Emotional Score Slider */}
+      <div style={{
+        padding: '16px',
+        borderRadius: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px'
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '140px' }}>
+          <label style={{ fontSize: '11.5px', color: '#666', display: 'block', fontWeight: '600' }}>
+            ¿Cómo estás de ánimo?
+          </label>
+          <span style={{ fontSize: '11px', color: '#999' }}>
+            Así sé cómo responderte
+          </span>
+        </div>
+        <input
+          type="range"
+          min="1"
+          max="10"
+          value={emotionalScore}
+          onChange={(e) => setEmotionalScore(parseInt(e.target.value))}
+          style={{
+            flex: 0.9,
+            height: '4px',
+            cursor: 'pointer',
+            accentColor: '#D946EF',
+            background: 'linear-gradient(to right, #FEE2E2, #D946EF, #84CC16)',
+            borderRadius: '2px',
+            WebkitAppearance: 'none',
+            appearance: 'none'
+          }}
+        />
+        <span style={{ fontSize: '12px', color: '#BBB', minWidth: '10px', textAlign: 'right', fontWeight: '500' }}>
+          {emotionalScore}
+        </span>
+        <style>{`
+          input[type='range']::-webkit-slider-thumb {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #D946EF;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(217, 70, 239, 0.25);
+          }
+          input[type='range']::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #D946EF;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(217, 70, 239, 0.25);
+          }
+        `}</style>
+      </div>
+
+      {/* Input Section */}
+      <div
+        ref={menuRef}
+        style={{
+          padding: '16px',
+          borderRadius: '20px',
+          display: 'flex',
+          gap: '8px',
+          position: 'relative',
+          width: '100%',
+          boxSizing: 'border-box'
+        }}
+      >
+        <input
+          type="text"
+          placeholder="Cuéntame qué sientes..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          style={{
+            flex: 1,
+            padding: '12px 16px',
+            paddingRight: '110px',
+            border: 'none',
+            borderRadius: '20px',
+            fontSize: '15px',
+            fontFamily: 'inherit',
+            background: '#EFEFEF',
+            transition: 'background 0.2s',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+          }}
+          onFocus={(e) => {
+            e.target.style.background = '#E5E5E5';
+            e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+          }}
+          onBlur={(e) => {
+            e.target.style.background = '#EFEFEF';
+            e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
+          }}
+        />
+        <button
+          onClick={handleSend}
+          disabled={loading}
+          style={{
+            position: 'absolute',
+            right: '56px',
+            width: '44px',
+            height: '44px',
+            padding: '0',
+            background: '#D946EF',
+            color: 'white',
+            border: 'none',
+            borderRadius: '50%',
+            fontWeight: '600',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: '0 2px 8px rgba(217, 70, 239, 0.2)',
+            fontSize: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            lineHeight: '1',
+            opacity: loading ? 0.6 : 1
+          }}
+          onMouseEnter={(e) => {
+            if (!loading) {
+              e.target.style.background = '#C026D3';
+              e.target.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.3)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!loading) {
+              e.target.style.background = '#D946EF';
+              e.target.style.boxShadow = '0 2px 8px rgba(217, 70, 239, 0.2)';
+            }
+          }}
+        >
+          &gt;
+        </button>
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          style={{
+            position: 'absolute',
+            right: '8px',
+            width: '44px',
+            height: '44px',
+            padding: '0',
+            background: 'transparent',
+            border: 'none',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            color: '#999',
+            fontSize: '16px',
+            lineHeight: '1',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          title="Más opciones"
+        >
+          ⋮
+        </button>
+
+        {isFaqOpen && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: '0',
+              right: '0',
+              background: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              marginBottom: '8px',
+              maxHeight: '300px',
+              overflowY: 'auto',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+              zIndex: 1001
+            }}
+          >
+            {faqQuestions.map((q, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSelectFaqQuestion(q)}
+                style={{
+                  width: '100%',
+                  padding: '12px 14px',
+                  border: idx < faqQuestions.length - 1 ? '1px solid #F0F0F0' : 'none',
+                  borderRight: 'none',
+                  borderLeft: 'none',
+                  background: 'white',
+                  fontSize: '13px',
+                  color: '#333',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'background 0.15s',
+                  fontWeight: '500'
+                }}
+                onMouseEnter={(e) => e.target.style.background = '#F8F8F8'}
+                onMouseLeave={(e) => e.target.style.background = 'white'}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {isMenuOpen && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '100%',
+              right: '0',
+              background: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              marginBottom: '8px',
+              minWidth: '180px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+              zIndex: 1001,
+              overflow: 'hidden'
+            }}
+          >
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                setIsFaqOpen(!isFaqOpen);
+              }}
+              style={{
+                width: '100%',
+                padding: '12px 14px',
+                border: 'none',
+                background: 'white',
+                fontSize: '13px',
+                color: '#333',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'background 0.15s',
+                fontWeight: '500',
+                borderBottom: '1px solid #F0F0F0'
+              }}
+              onMouseEnter={(e) => e.target.style.background = '#F8F8F8'}
+              onMouseLeave={(e) => e.target.style.background = 'white'}
+            >
+              ❓ Preguntas frecuentes
+            </button>
+
+            <button
+              onClick={() => {
+                if (window.confirm('¿Estás segura de que querés borrar todo el historial de esta conversación?')) {
+                  setMessages([]);
+                  if (userId) {
+                    localStorage.removeItem(`chat_history_${userId}`);
+                  }
+                  setIsMenuOpen(false);
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '12px 14px',
+                border: 'none',
+                background: 'white',
+                fontSize: '13px',
+                color: '#333',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'background 0.15s',
+                fontWeight: '500',
+                borderTop: '1px solid #F0F0F0'
+              }}
+              onMouseEnter={(e) => e.target.style.background = '#F8F8F8'}
+              onMouseLeave={(e) => e.target.style.background = 'white'}
+            >
+              🗑️ Borrar historial
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
