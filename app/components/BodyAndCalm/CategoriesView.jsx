@@ -44,22 +44,32 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
         <button
           onClick={onBack}
           style={{
+            position: 'relative',
+            left: '0',
             background: 'white',
             border: 'none',
-            padding: '8px 16px',
-            borderRadius: '50px',
+            padding: '8px',
+            borderRadius: '50%',
             cursor: 'pointer',
-            color: '#C8956D',
-            fontWeight: '600',
-            fontSize: '14px',
-            marginBottom: '16px',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
+            marginBottom: '16px'
           }}
-          onMouseEnter={(e) => e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'}
-          onMouseLeave={(e) => e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'}
+          onMouseEnter={(e) => {
+            e.target.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.15)';
+            e.target.style.background = '#FFF8FE';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+            e.target.style.background = 'white';
+          }}
         >
-          ← Volver
+          <span style={{ fontSize: '24px', color: '#D946EF', fontWeight: 'bold' }}>&lt;</span>
         </button>
 
         <h1 style={{
