@@ -77,21 +77,6 @@ function getEmojiForHobby(hobbyTitle) {
   return '✨';
 }
 
-function NetflixIcon() {
-  return (
-    <span style={{
-      display: 'inline-block',
-      fontSize: '24px',
-      fontWeight: 'bold',
-      color: '#E50914',
-      fontFamily: 'Arial, sans-serif',
-      letterSpacing: '-2px'
-    }}>
-      N
-    </span>
-  );
-}
-
 function normalizeForComparison(str) {
   return str.toLowerCase().replace(/^(hacer|ir a|tomar|ir al)\s+/, '').trim();
 }
@@ -106,6 +91,21 @@ const HOBBY_CORRECTION_MAP = {
 function sanitizeHobby(hobby) {
   const lowerHobby = hobby.toLowerCase().trim();
   return HOBBY_CORRECTION_MAP[lowerHobby] || hobby;
+}
+
+function NetflixIcon() {
+  return (
+    <span style={{
+      display: 'inline-block',
+      fontSize: '24px',
+      fontWeight: 'bold',
+      color: '#E50914',
+      fontFamily: 'Arial, sans-serif',
+      letterSpacing: '-2px'
+    }}>
+      N
+    </span>
+  );
 }
 
 function Confetti() {
@@ -206,14 +206,26 @@ export default function DailyChallenge({ energy, userProfile }) {
 
     setActivities(dedupedActivities);
 
+    // Lógica de racha suave: no penalizar si faltan 1-2 días
+    let currentStreak = stored?.streak || 0;
+    if (stored && stored.date !== today) {
+      const lastDate = new Date(stored.date);
+      const currentDate = new Date(today);
+      const daysDiff = Math.floor((currentDate - lastDate) / (1000 * 60 * 60 * 24));
+
+      // Solo resetear si pasan más de 7 días
+      if (daysDiff > 7) {
+        currentStreak = 0;
+      }
+    }
+
     if (stored && stored.date === today) {
       setChallengeData(stored);
     } else {
       const newData = {
         date: today,
         completed: [],
-        streak: stored?.streak || 0,
-        points: stored?.points || 0,
+        streak: currentStreak,
         userPreferences: stored?.userPreferences || { accepted: [], rejected: [], feedback: [] }
       };
       localStorage.setItem('dailyChallengeData', JSON.stringify(newData));
@@ -227,46 +239,63 @@ export default function DailyChallenge({ energy, userProfile }) {
     setShowModal(true);
   };
 
-  const handleAcceptChallenge = () => {
-    if (!currentActivityId) return;
+  const handleStartChallenge = () => {
+    if (!currentActivityId || !selectedActivity) return;
 
-    const updated = {
-      ...challengeData,
-      completed: [...(challengeData?.completed || []), currentActivityId],
-      points: (challengeData?.points || 0) + 10,
-      streak: (challengeData?.streak || 0) + 1,
-      userPreferences: {
-        ...challengeData?.userPreferences,
-        accepted: [...(challengeData?.userPreferences?.accepted || []), currentActivityId]
-      }
+    // Guardar actividad como in_progress
+    const inProgressData = {
+      id: currentActivityId,
+      title: selectedActivity.title,
+      emoji: selectedActivity.emoji,
+      startTime: new Date().toISOString(),
+      status: 'in_progress'
     };
 
-    setChallengeData(updated);
-    localStorage.setItem('dailyChallengeData', JSON.stringify(updated));
+    localStorage.setItem('inProgressChallenge', JSON.stringify(inProgressData));
     setShowModal(false);
-    setShowFeedback(true);
-    setShowConfetti(true);
-    setTimeout(() => setShowConfetti(false), 2000);
-  };
-
-  const handleFeedback = (emoji) => {
-    const updated = {
-      ...challengeData,
-      userPreferences: {
-        ...challengeData?.userPreferences,
-        feedback: [
-          ...(challengeData?.userPreferences?.feedback || []),
-          { activityId: currentActivityId, emoji, date: new Date().toDateString() }
-        ]
-      }
-    };
-    setChallengeData(updated);
-    localStorage.setItem('dailyChallengeData', JSON.stringify(updated));
-    setShowFeedback(false);
+    setSelectedActivity(null);
     setCurrentActivityId(null);
   };
 
-  const isActivityCompleted = (id) => challengeData?.completed?.includes(id);
+  const handleCompleteChallenge = () => {
+    if (!currentActivityId) return;
+    setShowConfetti(true);
+    setShowFeedback(true);
+    setTimeout(() => setShowConfetti(false), 2000);
+  };
+
+  const handleFeedback = (mood) => {
+    const inProgressData = JSON.parse(localStorage.getItem('inProgressChallenge') || 'null');
+
+    if (inProgressData) {
+      const completedChallenge = {
+        date: new Date().toISOString(),
+        challengeTitle: inProgressData.title,
+        mood: mood,
+        emoji: inProgressData.emoji
+      };
+
+      // Guardar en historial
+      const history = JSON.parse(localStorage.getItem('completedChallengesHistory') || '[]');
+      history.push(completedChallenge);
+      localStorage.setItem('completedChallengesHistory', JSON.stringify(history));
+
+      // Incrementar racha
+      const updated = {
+        ...challengeData,
+        streak: (challengeData?.streak || 0) + 1,
+        date: new Date().toDateString()
+      };
+      setChallengeData(updated);
+      localStorage.setItem('dailyChallengeData', JSON.stringify(updated));
+
+      // Limpiar challenge en progreso
+      localStorage.removeItem('inProgressChallenge');
+    }
+
+    setShowFeedback(false);
+    setCurrentActivityId(null);
+  };
 
   const warmMessages = [
     'Te mereces disfrutar y celebrar este momento.',
@@ -309,38 +338,18 @@ export default function DailyChallenge({ energy, userProfile }) {
           🎯 Reto de Hoy
         </h2>
         <div style={{
-          display: 'flex',
-          gap: '12px',
-          flexWrap: 'wrap'
+          background: '#FFF5E6',
+          border: '1.5px solid #F59E0B',
+          borderRadius: '20px',
+          padding: '8px 14px',
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#D97706',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px'
         }}>
-          <div style={{
-            background: '#FFF0FF',
-            border: '1.5px solid #D946EF',
-            borderRadius: '20px',
-            padding: '6px 12px',
-            fontSize: '13px',
-            fontWeight: '600',
-            color: '#D946EF',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}>
-            ⭐ <span>{challengeData?.points || 0}</span> pts
-          </div>
-          <div style={{
-            background: '#FFF5E6',
-            border: '1.5px solid #F59E0B',
-            borderRadius: '20px',
-            padding: '6px 12px',
-            fontSize: '13px',
-            fontWeight: '600',
-            color: '#D97706',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}>
-            🔥 <span>{challengeData?.streak || 0}</span> días
-          </div>
+          🔥 <span>{challengeData?.streak || 0}</span> días de racha
         </div>
       </div>
 
@@ -353,33 +362,28 @@ export default function DailyChallenge({ energy, userProfile }) {
         {activities.map((activity, index) => (
           <button
             key={activity.id}
-            onClick={() => !isActivityCompleted(activity.id) && handleSelectActivity(activity)}
+            onClick={() => handleSelectActivity(activity)}
             className="activity-card"
             style={{
               padding: '14px',
-              background: isActivityCompleted(activity.id) ? '#F0FDF4' : '#FFFFFF',
+              background: '#FFFFFF',
               border: activity.isHobby && index < 3 ? '2.5px solid #D946EF' : '1px solid #E5E7EB',
               borderRadius: '14px',
-              cursor: isActivityCompleted(activity.id) ? 'default' : 'pointer',
+              cursor: 'pointer',
               textAlign: 'center',
               transition: 'all 0.2s ease-out',
-              opacity: isActivityCompleted(activity.id) ? 0.6 : 1,
               position: 'relative',
               overflow: 'hidden'
             }}
             onMouseEnter={(e) => {
-              if (!isActivityCompleted(activity.id)) {
-                e.currentTarget.style.background = (activity.isHobby && index < 3) ? '#FFF8FE' : '#F9F9F9';
-                e.currentTarget.style.boxShadow = (activity.isHobby && index < 3)
-                  ? '0 6px 16px rgba(217, 70, 239, 0.15)'
-                  : '0 4px 12px rgba(0, 0, 0, 0.08)';
-              }
+              e.currentTarget.style.background = (activity.isHobby && index < 3) ? '#FFF8FE' : '#F9F9F9';
+              e.currentTarget.style.boxShadow = (activity.isHobby && index < 3)
+                ? '0 6px 16px rgba(217, 70, 239, 0.15)'
+                : '0 4px 12px rgba(0, 0, 0, 0.08)';
             }}
             onMouseLeave={(e) => {
-              if (!isActivityCompleted(activity.id)) {
-                e.currentTarget.style.background = '#FFFFFF';
-                e.currentTarget.style.boxShadow = 'none';
-              }
+              e.currentTarget.style.background = '#FFFFFF';
+              e.currentTarget.style.boxShadow = 'none';
             }}
           >
             {activity.isHobby && index < 3 && (
@@ -409,9 +413,6 @@ export default function DailyChallenge({ energy, userProfile }) {
             }}>
               {activity.title}
             </div>
-            {isActivityCompleted(activity.id) && (
-              <div style={{ fontSize: '16px', marginTop: '6px' }}>✅</div>
-            )}
           </button>
         ))}
       </div>
@@ -459,17 +460,10 @@ export default function DailyChallenge({ energy, userProfile }) {
               }}>
                 {randomMessage}
               </p>
-              <p style={{
-                fontSize: '12px',
-                color: '#9CA3AF',
-                margin: 0
-              }}>
-                Ganas: +10 puntos ⭐
-              </p>
             </div>
 
             <button
-              onClick={handleAcceptChallenge}
+              onClick={handleStartChallenge}
               style={{
                 width: '100%',
                 padding: '14px',
@@ -485,7 +479,7 @@ export default function DailyChallenge({ energy, userProfile }) {
               onMouseEnter={(e) => e.target.style.background = '#C72BD9'}
               onMouseLeave={(e) => e.target.style.background = '#D946EF'}
             >
-              ¡Acepto el reto de hoy!
+              ¡Entendido, voy a hacerlo!
             </button>
             <button
               onClick={() => setShowModal(false)}
@@ -525,7 +519,7 @@ export default function DailyChallenge({ energy, userProfile }) {
               borderRadius: '16px',
               padding: '24px',
               textAlign: 'center',
-              maxWidth: '280px',
+              maxWidth: '320px',
               boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)'
             }}
             onClick={(e) => e.stopPropagation()}
@@ -534,41 +528,96 @@ export default function DailyChallenge({ energy, userProfile }) {
               fontSize: '18px',
               fontWeight: '700',
               color: '#1F2937',
+              margin: '0 0 8px 0'
+            }}>
+              ✨ Te diste un momento para ti, ¡te felicito!
+            </h3>
+            <p style={{
+              fontSize: '14px',
+              color: '#6B7280',
               margin: '0 0 16px 0'
             }}>
-              ¿Cómo te sientes?
-            </h3>
+              ¿Cómo te sientes ahora?
+            </p>
             <div style={{
               display: 'flex',
-              gap: '16px',
+              gap: '12px',
               justifyContent: 'center',
-              marginBottom: '16px'
+              marginBottom: '16px',
+              flexWrap: 'wrap'
             }}>
-              {['😴', '😊', '⚡'].map((emoji) => (
-                <button
-                  key={emoji}
-                  onClick={() => handleFeedback(emoji)}
-                  style={{
-                    fontSize: '32px',
-                    background: 'none',
-                    border: '2px solid #E5E7EB',
-                    borderRadius: '12px',
-                    padding: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.borderColor = '#D946EF';
-                    e.target.style.transform = 'scale(1.1)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.borderColor = '#E5E7EB';
-                    e.target.style.transform = 'scale(1)';
-                  }}
-                >
-                  {emoji}
-                </button>
-              ))}
+              <button
+                onClick={() => handleFeedback('😴')}
+                style={{
+                  fontSize: '32px',
+                  background: 'none',
+                  border: '2px solid #E5E7EB',
+                  borderRadius: '12px',
+                  padding: '12px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  flex: '1',
+                  minWidth: '80px'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.borderColor = '#D946EF';
+                  e.target.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.borderColor = '#E5E7EB';
+                  e.target.style.transform = 'scale(1)';
+                }}
+              >
+                😴
+              </button>
+              <button
+                onClick={() => handleFeedback('😊')}
+                style={{
+                  fontSize: '32px',
+                  background: 'none',
+                  border: '2px solid #E5E7EB',
+                  borderRadius: '12px',
+                  padding: '12px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  flex: '1',
+                  minWidth: '80px'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.borderColor = '#D946EF';
+                  e.target.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.borderColor = '#E5E7EB';
+                  e.target.style.transform = 'scale(1)';
+                }}
+              >
+                😊
+              </button>
+              <button
+                onClick={() => handleFeedback('⚡')}
+                style={{
+                  fontSize: '32px',
+                  background: 'none',
+                  border: '2px solid #E5E7EB',
+                  borderRadius: '12px',
+                  padding: '12px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  flex: '1',
+                  minWidth: '80px'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.borderColor = '#D946EF';
+                  e.target.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.borderColor = '#E5E7EB';
+                  e.target.style.transform = 'scale(1)';
+                }}
+              >
+                ⚡
+              </button>
             </div>
             <p style={{
               fontSize: '12px',

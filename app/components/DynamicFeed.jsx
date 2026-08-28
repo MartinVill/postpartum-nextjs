@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import DailyChallenge from './DailyChallenge';
+import InProgressChallenge from './InProgressChallenge';
 
 export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, onReflection }) {
   const [showMoreOptions, setShowMoreOptions] = useState(false);
@@ -47,6 +48,7 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
         maxWidth: '600px',
         margin: '0 auto'
       }}>
+        <InProgressChallenge />
         {/* Header */}
         <div style={{
           paddingBottom: '24px',
@@ -350,6 +352,7 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
         maxWidth: '600px',
         margin: '0 auto'
       }}>
+        <InProgressChallenge />
         {/* Mensaje motivador */}
         <div style={{
           padding: '24px',
@@ -499,21 +502,22 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
   }
 
   // Rango 8-10: Genial
-  if (showChallenge) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
-        padding: '20px 16px 100px',
-        maxWidth: '600px',
-        margin: '0 auto'
-      }}>
-        <button
-          onClick={() => setShowChallenge(false)}
-          style={{
-            background: 'white',
-            border: 'none',
-            padding: '8px 16px',
+  if (energy > 7) {
+    if (showChallenge) {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
+          padding: '20px 16px 100px',
+          maxWidth: '600px',
+          margin: '0 auto'
+        }}>
+          <button
+            onClick={() => setShowChallenge(false)}
+            style={{
+              background: 'white',
+              border: 'none',
+              padding: '8px 16px',
             borderRadius: '50px',
             cursor: 'pointer',
             color: '#84CC16',
@@ -527,18 +531,19 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
         </button>
         <DailyChallenge energy={energy} userProfile={userProfile} />
       </div>
-    );
-  }
+      );
+    }
 
-  return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
-      padding: '20px 16px 100px',
-      maxWidth: '600px',
-      margin: '0 auto'
-    }}>
-      {/* Mensaje empoderador */}
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
+        padding: '20px 16px 100px',
+        maxWidth: '600px',
+        margin: '0 auto'
+      }}>
+        <InProgressChallenge />
+        {/* Mensaje empoderador */}
       <div style={{
         padding: '24px',
         background: 'linear-gradient(135deg, #CCFF00 0%, #84DD20 100%)',
@@ -684,6 +689,7 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
         </div>
         No todos los días te sentís así. Cuando lleguen los días duros, acordate de esta sensación. Vos podés.
       </div>
-    </div>
-  );
+      </div>
+    );
+  }
 }
