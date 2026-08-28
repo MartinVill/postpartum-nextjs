@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import Lottie from 'lottie-react';
 
 export default function ChatSection({ userId, initialProfile }) {
   const [messages, setMessages] = useState([]);
@@ -299,13 +300,44 @@ export default function ChatSection({ userId, initialProfile }) {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            fontSize: '18px',
-            color: '#9CA3AF',
-            textAlign: 'center',
-            fontWeight: '500',
-            whiteSpace: 'nowrap'
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '16px',
+            width: '100%',
+            maxWidth: '280px'
           }}>
-            Escribe algo abajo...
+            {/* Animación Lottie */}
+            <div style={{ width: '180px', height: '180px' }}>
+              <Lottie
+                animationData={require('/public/chat-animation.lottie')}
+                loop={true}
+                autoplay={true}
+                style={{ width: '100%', height: '100%' }}
+              />
+            </div>
+
+            {/* Textos */}
+            <div style={{ textAlign: 'center' }}>
+              <h3 style={{
+                fontSize: '16px',
+                fontWeight: '700',
+                color: '#1F2937',
+                margin: '0 0 8px 0',
+                lineHeight: '1.4'
+              }}>
+                Este es tu espacio seguro
+              </h3>
+              <p style={{
+                fontSize: '13px',
+                color: '#6B7280',
+                margin: '0',
+                lineHeight: '1.5',
+                fontWeight: '400'
+              }}>
+                Escribe lo que sientes, desahógate o pregunta lo que necesites sin filtros ni juicios.
+              </p>
+            </div>
           </div>
         )}
         {messages.map(msg => (
