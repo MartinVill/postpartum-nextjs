@@ -39,8 +39,96 @@ function Confetti() {
   );
 }
 
+function StreakWidget({ streak }) {
+  const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  const today = new Date().getDay();
+  const todayIndex = (today + 6) % 7; // Ajustar domingo a fin de semana
+
+  // Obtener historial de días completados
+  const completedHistory = JSON.parse(localStorage.getItem('completedChallengesHistory') || '[]');
+  const completedDates = new Set(
+    completedHistory.map(entry => new Date(entry.date).toDateString())
+  );
+
+  // Mapear cada día a si fue completado
+  const daysOfWeek = days.map((day, index) => {
+    const dayDate = new Date();
+    dayDate.setDate(dayDate.getDate() - (todayIndex - index));
+    const dateString = dayDate.toDateString();
+    return {
+      label: day,
+      completed: completedDates.has(dateString)
+    };
+  });
+
+  return (
+    <div style={{
+      background: '#FFF5E6',
+      border: '1px solid #FED7AA',
+      borderRadius: '12px',
+      padding: '12px 14px',
+      marginBottom: '16px'
+    }}>
+      <p style={{
+        fontSize: '13px',
+        fontWeight: '600',
+        color: '#D97706',
+        margin: '0 0 10px 0'
+      }}>
+        🔥 {streak} días seguidos cuidando de ti
+      </p>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(7, 1fr)',
+        gap: '6px'
+      }}>
+        {daysOfWeek.map((day, idx) => (
+          <div
+            key={idx}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                background: day.completed ? '#FCD34D' : '#FEF3C7',
+                border: '1px solid ' + (day.completed ? '#F59E0B' : '#FBBF24'),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: day.completed ? '#92400E' : '#B45309'
+              }}
+            >
+              {day.completed ? '✓' : ''}
+            </div>
+            <span
+              style={{
+                fontSize: '10px',
+                fontWeight: '500',
+                color: '#92400E',
+                textAlign: 'center'
+              }}
+            >
+              {day.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function InProgressChallenge() {
   const [inProgress, setInProgress] = useState(null);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -49,8 +137,13 @@ export default function InProgressChallenge() {
 
   useEffect(() => {
     const data = localStorage.getItem('inProgressChallenge');
+    const completedToday = localStorage.getItem('completedChallengeToday');
+
     if (data) {
       setInProgress(JSON.parse(data));
+      if (completedToday) {
+        setIsCompleted(true);
+      }
     }
 
     const challengeData = localStorage.getItem('dailyChallengeData');
@@ -92,15 +185,15 @@ export default function InProgressChallenge() {
       setCurrentStreak(updated.streak);
       localStorage.setItem('dailyChallengeData', JSON.stringify(updated));
 
-      // Limpiar challenge en progreso
-      localStorage.removeItem('inProgressChallenge');
+      // Marcar como completado hoy (NO limpiar inProgressChallenge)
+      localStorage.setItem('completedChallengeToday', 'true');
+      setIsCompleted(true);
 
       // Mostrar confirmación
       setShowConfirmation(true);
       setTimeout(() => {
         setShowConfirmation(false);
         setShowFeedback(false);
-        setInProgress(null);
       }, 1800);
     }
   };
@@ -122,32 +215,38 @@ export default function InProgressChallenge() {
         }
       `}</style>
 
+      {/* Widget de Racha */}
+      {isCompleted && <StreakWidget streak={currentStreak} />}
+
+      {/* Tarjeta del Reto - Estados: En Progreso o Completado */}
       <div style={{
         padding: '16px',
-        background: 'white',
-        border: '2.5px solid #D946EF',
+        background: isCompleted ? '#ECFDF5' : 'white',
+        border: isCompleted ? '2px solid #10B981' : '2.5px solid #D946EF',
         borderRadius: '16px',
         marginBottom: '20px',
         position: 'relative',
         overflow: 'hidden',
-        boxShadow: '0 8px 24px rgba(217, 70, 239, 0.15)'
+        boxShadow: isCompleted
+          ? '0 8px 24px rgba(16, 185, 129, 0.12)'
+          : '0 8px 24px rgba(217, 70, 239, 0.15)'
       }}>
-        {/* Badge "✨ Tu reto de hoy" - Rediseño */}
+        {/* Badge - Estado */}
         <div style={{
           position: 'absolute',
           top: '12px',
           left: '50%',
           transform: 'translateX(-50%)',
-          background: '#FAF5FF',
-          color: '#A21CAF',
+          background: isCompleted ? '#DBEAFE' : '#FAF5FF',
+          color: isCompleted ? '#0369A1' : '#A21CAF',
           fontSize: '13px',
           fontWeight: '500',
           padding: '6px 14px',
           borderRadius: '9999px',
-          border: '1px solid #E9D5FF',
+          border: isCompleted ? '1px solid #BAE6FD' : '1px solid #E9D5FF',
           whiteSpace: 'nowrap'
         }}>
-          ✨ Tu reto de hoy
+          {isCompleted ? '✓ Completado por hoy' : '✨ Tu reto de hoy'}
         </div>
 
         {/* Contenido */}
@@ -165,41 +264,49 @@ export default function InProgressChallenge() {
           <h3 style={{
             fontSize: '18px',
             fontWeight: '700',
-            color: '#1F2937',
+            color: isCompleted ? '#059669' : '#1F2937',
             margin: '0 0 12px 0'
           }}>
             {inProgress.title}
           </h3>
           <p style={{
             fontSize: '14px',
-            color: '#6B7280',
+            color: isCompleted ? '#059669' : '#6B7280',
             fontStyle: 'italic',
             margin: '8px 0 0 0',
             lineHeight: '1.5'
           }}>
-            Bloquea tu teléfono y disfruta tu momento.
+            {isCompleted
+              ? '¡Excelente trabajo! Tómate el resto del día para descansar. Próximo reto disponible mañana.'
+              : 'Bloquea tu teléfono y disfruta tu momento.'}
           </p>
         </div>
 
-        {/* Botón completar */}
+        {/* Botón - Deshabilitado si ya está completado */}
         <button
           onClick={handleComplete}
+          disabled={isCompleted}
           style={{
             width: '100%',
             padding: '12px',
-            background: '#D946EF',
-            color: 'white',
+            background: isCompleted ? '#D1D5DB' : '#D946EF',
+            color: isCompleted ? '#6B7280' : 'white',
             border: 'none',
             borderRadius: '10px',
             fontWeight: '700',
             fontSize: '16px',
-            cursor: 'pointer',
+            cursor: isCompleted ? 'default' : 'pointer',
+            opacity: isCompleted ? 0.6 : 1,
             transition: 'all 0.2s'
           }}
-          onMouseEnter={(e) => e.target.style.background = '#C72BD9'}
-          onMouseLeave={(e) => e.target.style.background = '#D946EF'}
+          onMouseEnter={(e) => {
+            if (!isCompleted) e.target.style.background = '#C72BD9';
+          }}
+          onMouseLeave={(e) => {
+            if (!isCompleted) e.target.style.background = '#D946EF';
+          }}
         >
-          ¡Lo completé!
+          {isCompleted ? 'Completado' : '¡Lo completé!'}
         </button>
       </div>
 
@@ -333,10 +440,10 @@ export default function InProgressChallenge() {
             <h3 style={{
               fontSize: '20px',
               fontWeight: '700',
-              color: '#D946EF',
+              color: '#10B981',
               margin: '0 0 12px 0'
             }}>
-              💜 ¡Momento registrado!
+              💚 ¡Momento registrado!
             </h3>
             <p style={{
               fontSize: '14px',
@@ -347,13 +454,13 @@ export default function InProgressChallenge() {
               Nos vemos mañana para tu próximo momento de autocuidado.
             </p>
             <div style={{
-              background: '#FFF5E6',
-              border: '1.5px solid #F59E0B',
+              background: '#ECFDF5',
+              border: '1.5px solid #10B981',
               borderRadius: '12px',
               padding: '10px 14px',
               fontSize: '14px',
               fontWeight: '600',
-              color: '#D97706',
+              color: '#059669',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px'

@@ -7,12 +7,18 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
   const [showMoreOptions, setShowMoreOptions] = useState(false);
   const [showChallenge, setShowChallenge] = useState(false);
   const [hasInProgress, setHasInProgress] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
     // Detectar si hay desafío en progreso
     const inProgress = localStorage.getItem('inProgressChallenge');
+    const completed = localStorage.getItem('completedChallengeToday');
     setHasInProgress(!!inProgress);
+    setIsCompleted(!!completed);
   }, []);
+
+  // Solo ocultar UI si hay reto EN PROGRESO (no completado)
+  const shouldHideUIForReto = hasInProgress && !isCompleted;
 
   // Rango 1-5: Crisis
   if (energy <= 5) {
@@ -56,8 +62,8 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
         margin: '0 auto'
       }}>
         <InProgressChallenge />
-        {/* Header - Oculto si hay reto en progreso */}
-        {!hasInProgress && (
+        {/* Header - Oculto solo si hay reto EN PROGRESO (no completado) */}
+        {!shouldHideUIForReto && (
           <div style={{
             paddingBottom: '24px',
             textAlign: 'center',
@@ -88,12 +94,12 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
         {/* Contenedor de opciones */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: hasInProgress ? '1fr' : '1fr 1fr',
+          gridTemplateColumns: shouldHideUIForReto ? '1fr' : '1fr 1fr',
           gap: '16px',
-          marginTop: hasInProgress ? '16px' : '24px',
+          marginTop: shouldHideUIForReto ? '16px' : '24px',
           marginBottom: '24px',
-          maxWidth: hasInProgress ? '300px' : '100%',
-          margin: hasInProgress ? '16px auto 24px' : '24px auto 24px'
+          maxWidth: shouldHideUIForReto ? '300px' : '100%',
+          margin: shouldHideUIForReto ? '16px auto 24px' : '24px auto 24px'
         }}>
           {/* Chat principal */}
           <button
@@ -130,8 +136,8 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
             </div>
           </button>
 
-          {/* Reto 30 días - Oculto si hay desafío en progreso */}
-          {!hasInProgress && (
+          {/* Reto 30 días - Oculto solo si hay desafío EN PROGRESO (no completado) */}
+          {!shouldHideUIForReto && (
             <button
               onClick={() => setShowChallenge(true)}
               style={{
@@ -366,8 +372,8 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
         margin: '0 auto'
       }}>
         <InProgressChallenge />
-        {/* Mensaje motivador - Oculto si hay reto en progreso */}
-        {!hasInProgress && (
+        {/* Mensaje motivador - Oculto solo si hay reto EN PROGRESO (no completado) */}
+        {!shouldHideUIForReto && (
           <div style={{
             padding: '24px',
             background: 'white',
@@ -401,7 +407,7 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
         <button
           onClick={onChat}
           style={{
-            width: hasInProgress ? '300px' : '100%',
+            width: shouldHideUIForReto ? '300px' : '100%',
             padding: '16px',
             background: 'white',
             border: 'none',
@@ -411,8 +417,8 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
             color: '#D946EF',
             cursor: 'pointer',
             marginBottom: '20px',
-            marginLeft: hasInProgress ? 'auto' : '0',
-            marginRight: hasInProgress ? 'auto' : '0',
+            marginLeft: shouldHideUIForReto ? 'auto' : '0',
+            marginRight: shouldHideUIForReto ? 'auto' : '0',
             boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
             transition: 'all 0.2s'
           }}
@@ -560,8 +566,8 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
         margin: '0 auto'
       }}>
         <InProgressChallenge />
-        {/* Mensaje empoderador - Oculto si hay reto en progreso */}
-        {!hasInProgress && (
+        {/* Mensaje empoderador - Oculto solo si hay reto EN PROGRESO (no completado) */}
+        {!shouldHideUIForReto && (
       <div style={{
         padding: '24px',
         background: 'linear-gradient(135deg, #CCFF00 0%, #84DD20 100%)',
