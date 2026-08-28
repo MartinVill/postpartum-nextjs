@@ -132,51 +132,26 @@ export default function InProgressChallenge() {
         overflow: 'hidden',
         boxShadow: '0 8px 24px rgba(217, 70, 239, 0.15)'
       }}>
-        {/* Badge "EN PROGRESO" con ping animation */}
+        {/* Badge "✨ Tu reto de hoy" - Rediseño */}
         <div style={{
           position: 'absolute',
           top: '12px',
-          left: '12px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px'
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#FAF5FF',
+          color: '#A21CAF',
+          fontSize: '13px',
+          fontWeight: '500',
+          padding: '6px 14px',
+          borderRadius: '9999px',
+          border: '1px solid #E9D5FF',
+          whiteSpace: 'nowrap'
         }}>
-          {/* Ping circle */}
-          <div style={{
-            position: 'relative',
-            width: '12px',
-            height: '12px'
-          }}>
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundColor: '#FBBF24',
-              borderRadius: '50%',
-              opacity: 0.75
-            }} />
-            <div style={{
-              position: 'absolute',
-              inset: '-4px',
-              backgroundColor: '#FBBF24',
-              borderRadius: '50%',
-              opacity: 0,
-              animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite'
-            }} />
-          </div>
-          <div style={{
-            background: '#FEF3C7',
-            color: '#92400E',
-            fontSize: '10px',
-            fontWeight: '700',
-            padding: '3px 8px',
-            borderRadius: '12px'
-          }}>
-            EN PROGRESO
-          </div>
+          ✨ Tu reto de hoy
         </div>
 
         {/* Contenido */}
-        <div style={{ textAlign: 'center', marginTop: '36px', marginBottom: '16px' }}>
+        <div style={{ textAlign: 'center', marginTop: '48px', marginBottom: '16px' }}>
           <div style={{
             fontSize: '48px',
             marginBottom: '12px',
