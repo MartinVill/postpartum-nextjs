@@ -125,7 +125,7 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
           >
             <span style={{ fontSize: '28px' }}>💬</span>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontWeight: '700', marginBottom: '4px' }}>Cuéntame</div>
+              <div style={{ fontWeight: '700', marginBottom: '4px' }}>Chat de apoyo</div>
               <div style={{ fontSize: '12px', color: '#999', fontWeight: '400' }}>sin filtros por chat</div>
             </div>
           </button>
