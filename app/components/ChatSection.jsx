@@ -16,21 +16,39 @@ export default function ChatSection({ userId, initialProfile }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
-  // Cargar historial del localStorage al montar
+  // Cargar perfil del usuario e historial del chat al montar
   useEffect(() => {
-    if (userId) {
-      const savedMessages = localStorage.getItem(`chat_history_${userId}`);
-      if (savedMessages) {
-        try {
-          setMessages(JSON.parse(savedMessages));
-        } catch (error) {
-          console.error('Error cargando historial:', error);
-          setMessages([]);
+    try {
+      // 1. Cargar perfil: prop initialProfile > localStorage > null
+      if (initialProfile) {
+        setUserProfile(initialProfile);
+        console.log('[CHAT] Using initialProfile:', initialProfile.name);
+      } else if (typeof window !== 'undefined') {
+        const savedProfile = localStorage.getItem('userProfile');
+        if (savedProfile) {
+          const profile = JSON.parse(savedProfile);
+          setUserProfile(profile);
+          console.log('[CHAT] Loaded profile from localStorage:', profile.name);
+        } else {
+          console.warn('[CHAT] No profile found in localStorage');
         }
       }
-    }
-    if (userId && initialProfile) {
-      setUserProfile(initialProfile);
+
+      // 2. Cargar historial de mensajes
+      if (userId) {
+        const savedMessages = localStorage.getItem(`chat_history_${userId}`);
+        if (savedMessages) {
+          try {
+            setMessages(JSON.parse(savedMessages));
+            console.log('[CHAT] Loaded message history');
+          } catch (error) {
+            console.error('Error cargando historial:', error);
+            setMessages([]);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[CHAT] Error in initialization:', error);
     }
   }, [userId, initialProfile]);
 
@@ -112,13 +130,36 @@ export default function ChatSection({ userId, initialProfile }) {
   const handleSend = async () => {
     console.log('[SEND] Init:', { hasInput: !!input.trim(), userId, hasProfile: !!userProfile });
 
-    if (!input.trim() || !userId || !userProfile) {
-      console.warn('[SEND] EARLY EXIT - missing data', { input: input.trim(), userId, userProfile: !!userProfile });
+    // Verificar que tenemos datos necesarios
+    if (!input.trim()) {
+      console.warn('[SEND] Empty message');
+      return;
+    }
+
+    if (!userId) {
+      console.warn('[SEND] No userId');
+      return;
+    }
+
+    // Si no hay userProfile, intentar cargarlo del localStorage
+    let profile = userProfile;
+    if (!profile && typeof window !== 'undefined') {
+      const savedProfile = localStorage.getItem('userProfile');
+      if (savedProfile) {
+        profile = JSON.parse(savedProfile);
+        setUserProfile(profile);
+        console.log('[SEND] Loaded missing profile from localStorage:', profile.name);
+      }
+    }
+
+    if (!profile) {
+      console.error('[SEND] NO PROFILE AVAILABLE');
       return;
     }
 
     const userMessage = input.trim();
     console.log('[SEND] Message:', userMessage.substring(0, 50));
+    console.log('[SEND] Using profile:', { name: profile.name, babyAge: profile.babyAge });
 
     setInput('');
     const messageId = Date.now();
@@ -129,23 +170,22 @@ export default function ChatSection({ userId, initialProfile }) {
 
     try {
       console.log('[FETCH] Starting request...');
-      console.log('[FETCH] UserProfile type:', typeof userProfile);
-      console.log('[FETCH] UserProfile keys:', Object.keys(userProfile || {}));
+      console.log('[FETCH] UserProfile:', { name: profile.name, hasBabyAge: !!profile.babyAge });
 
       const payload = {
         message: userMessage,
         emotionalContext: { todayScore: emotionalScore },
         userProfile: {
-          name: userProfile?.name || 'Hermosa',
-          hobbies: userProfile?.hobbies || [],
-          cyclePhase: userProfile?.cyclePhase || 'unknown',
-          babyAge: userProfile?.babyAge || 0,
-          favoriteTermsOfEndearment: userProfile?.favoriteTermsOfEndearment || []
+          name: profile.name || 'Hermosa',
+          hobbies: profile.hobbies || [],
+          cyclePhase: profile.cyclePhase || 'unknown',
+          babyAge: profile.babyAge || 0,
+          favoriteTermsOfEndearment: profile.favoriteTermsOfEndearment || []
         },
         conversationHistory: getContextMessages()
       };
 
-      console.log('[FETCH] Payload ready, sending...');
+      console.log('[FETCH] Payload ready:', { name: payload.userProfile.name, msgLen: userMessage.length });
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
