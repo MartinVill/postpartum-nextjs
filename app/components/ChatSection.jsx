@@ -1,7 +1,5 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import Lottie from 'lottie-react';
-import chatAnimation from '../../public/chat-animation.json';
 
 export default function ChatSection({ userId, initialProfile }) {
   const [messages, setMessages] = useState([]);
@@ -304,41 +302,59 @@ export default function ChatSection({ userId, initialProfile }) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '16px',
+            justifyContent: 'center',
             width: '100%',
-            maxWidth: '280px'
+            maxWidth: '300px',
+            padding: '24px',
+            textAlign: 'center'
           }}>
-            {/* Animación Lottie */}
-            <div style={{ width: '180px', height: '180px' }}>
-              <Lottie
-                animationData={chatAnimation}
-                loop={true}
-                autoplay={true}
-                style={{ width: '100%', height: '100%' }}
-              />
+            {/* Ícono con animación */}
+            <style>{`
+              @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.5; }
+              }
+              .pulse-icon {
+                animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+              }
+            `}</style>
+            <div className="pulse-icon" style={{
+              width: '96px',
+              height: '96px',
+              borderRadius: '50%',
+              background: '#F3E8FF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '16px',
+              boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.06)',
+              fontSize: '48px'
+            }}>
+              💬
             </div>
 
-            {/* Textos */}
-            <div style={{ textAlign: 'center' }}>
-              <h3 style={{
-                fontSize: '16px',
-                fontWeight: '700',
-                color: '#1F2937',
-                margin: '0 0 8px 0',
-                lineHeight: '1.4'
-              }}>
-                Este es tu espacio seguro
-              </h3>
-              <p style={{
-                fontSize: '13px',
-                color: '#6B7280',
-                margin: '0',
-                lineHeight: '1.5',
-                fontWeight: '400'
-              }}>
-                Escribe lo que sientes, desahógate o pregunta lo que necesites sin filtros ni juicios.
-              </p>
-            </div>
+            {/* Título */}
+            <h3 style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              color: '#1F2937',
+              margin: '0 0 8px 0',
+              lineHeight: '1.4'
+            }}>
+              Este es tu espacio seguro
+            </h3>
+
+            {/* Descripción */}
+            <p style={{
+              fontSize: '14px',
+              color: '#6B7280',
+              margin: '0',
+              lineHeight: '1.6',
+              fontWeight: '400',
+              maxWidth: '280px'
+            }}>
+              Escribe lo que sientes, desahógate o pregunta lo que necesites sin filtros ni juicios.
+            </p>
           </div>
         )}
         {messages.map(msg => (
