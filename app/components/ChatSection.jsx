@@ -22,8 +22,8 @@ export default function ChatSection({ userId, initialProfile }) {
   useEffect(() => {
     const loadAnimation = async () => {
       try {
-        const response = await fetch('/chat-animation.lottie');
-        if (!response.ok) throw new Error('No se pudo cargar la animación');
+        const response = await fetch('/chat-animation.json');
+        if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         setAnimationData(data);
       } catch (error) {
