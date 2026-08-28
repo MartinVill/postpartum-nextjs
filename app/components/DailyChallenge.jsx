@@ -146,7 +146,7 @@ function Confetti() {
   );
 }
 
-export default function DailyChallenge({ energy, userProfile }) {
+export default function DailyChallenge({ energy, userProfile, onChallengeStart }) {
   const [activities, setActivities] = useState([]);
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -255,6 +255,11 @@ export default function DailyChallenge({ energy, userProfile }) {
     setShowModal(false);
     setSelectedActivity(null);
     setCurrentActivityId(null);
+
+    // Redirigir automáticamente a HOME
+    if (onChallengeStart) {
+      onChallengeStart();
+    }
   };
 
   const handleCompleteChallenge = () => {

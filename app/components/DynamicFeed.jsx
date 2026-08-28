@@ -1,11 +1,18 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DailyChallenge from './DailyChallenge';
 import InProgressChallenge from './InProgressChallenge';
 
 export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, onReflection }) {
   const [showMoreOptions, setShowMoreOptions] = useState(false);
   const [showChallenge, setShowChallenge] = useState(false);
+  const [hasInProgress, setHasInProgress] = useState(false);
+
+  useEffect(() => {
+    // Detectar si hay desafío en progreso
+    const inProgress = localStorage.getItem('inProgressChallenge');
+    setHasInProgress(!!inProgress);
+  }, []);
 
   // Rango 1-5: Crisis
   if (energy <= 5) {
@@ -35,7 +42,7 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
           >
             ← Volver
           </button>
-          <DailyChallenge energy={energy} userProfile={userProfile} />
+          <DailyChallenge energy={energy} userProfile={userProfile} onChallengeStart={() => setShowChallenge(false)} />
         </div>
       );
     }
@@ -119,40 +126,42 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
             </div>
           </button>
 
-          {/* Reto 30 días */}
-          <button
-            onClick={() => setShowChallenge(true)}
-            style={{
-              padding: '20px 16px',
-              background: 'white',
-              border: 'none',
-              borderRadius: '20px',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: '#D946EF',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '12px'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.boxShadow = '0 4px 16px rgba(217, 70, 239, 0.15)';
-              e.target.style.background = '#FFF8FE';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)';
-              e.target.style.background = 'white';
-            }}
-          >
-            <span style={{ fontSize: '28px' }}>😊</span>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontWeight: '700', marginBottom: '4px' }}>Reto 30 días</div>
-              <div style={{ fontSize: '12px', color: '#999', fontWeight: '400' }}>para sentirte bien</div>
-            </div>
-          </button>
+          {/* Reto 30 días - Oculto si hay desafío en progreso */}
+          {!hasInProgress && (
+            <button
+              onClick={() => setShowChallenge(true)}
+              style={{
+                padding: '20px 16px',
+                background: 'white',
+                border: 'none',
+                borderRadius: '20px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#D946EF',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '12px'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.boxShadow = '0 4px 16px rgba(217, 70, 239, 0.15)';
+                e.target.style.background = '#FFF8FE';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)';
+                e.target.style.background = 'white';
+              }}
+            >
+              <span style={{ fontSize: '28px' }}>😊</span>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontWeight: '700', marginBottom: '4px' }}>Reto 30 días</div>
+                <div style={{ fontSize: '12px', color: '#999', fontWeight: '400' }}>para sentirte bien</div>
+              </div>
+            </button>
+          )}
         </div>
 
         {/* Ver más opciones */}
@@ -339,7 +348,7 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
           >
             ← Volver
           </button>
-          <DailyChallenge energy={energy} userProfile={userProfile} />
+          <DailyChallenge energy={energy} userProfile={userProfile} onChallengeStart={() => setShowChallenge(false)} />
         </div>
       );
     }

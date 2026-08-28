@@ -43,11 +43,20 @@ export default function InProgressChallenge() {
   const [inProgress, setInProgress] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [selectedMood, setSelectedMood] = useState(null);
+  const [currentStreak, setCurrentStreak] = useState(0);
 
   useEffect(() => {
     const data = localStorage.getItem('inProgressChallenge');
     if (data) {
       setInProgress(JSON.parse(data));
+    }
+
+    const challengeData = localStorage.getItem('dailyChallengeData');
+    if (challengeData) {
+      const parsed = JSON.parse(challengeData);
+      setCurrentStreak(parsed.streak || 0);
     }
   }, []);
 
@@ -58,6 +67,8 @@ export default function InProgressChallenge() {
   };
 
   const handleFeedback = (mood) => {
+    setSelectedMood(mood);
+
     if (inProgress) {
       const completedChallenge = {
         date: new Date().toISOString(),
@@ -78,20 +89,39 @@ export default function InProgressChallenge() {
         streak: (challengeData.streak || 0) + 1,
         date: new Date().toDateString()
       };
+      setCurrentStreak(updated.streak);
       localStorage.setItem('dailyChallengeData', JSON.stringify(updated));
 
       // Limpiar challenge en progreso
       localStorage.removeItem('inProgressChallenge');
-      setInProgress(null);
-    }
 
-    setShowFeedback(false);
+      // Mostrar confirmación
+      setShowConfirmation(true);
+      setTimeout(() => {
+        setShowConfirmation(false);
+        setShowFeedback(false);
+        setInProgress(null);
+      }, 1800);
+    }
   };
 
   if (!inProgress) return null;
 
   return (
     <>
+      {/* Estilos de animación */}
+      <style>{`
+        @keyframes ping {
+          75%, 100% {
+            transform: scale(2);
+            opacity: 0;
+          }
+        }
+        .ping-indicator {
+          animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+      `}</style>
+
       <div style={{
         padding: '16px',
         background: 'white',
@@ -99,28 +129,54 @@ export default function InProgressChallenge() {
         borderRadius: '16px',
         marginBottom: '20px',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        boxShadow: '0 8px 24px rgba(217, 70, 239, 0.15)'
       }}>
-        {/* Badge "EN PROGRESO" */}
+        {/* Badge "EN PROGRESO" con ping animation */}
         <div style={{
           position: 'absolute',
           top: '12px',
           left: '12px',
-          background: '#FEF3C7',
-          color: '#92400E',
-          fontSize: '11px',
-          fontWeight: '700',
-          padding: '4px 10px',
-          borderRadius: '12px',
           display: 'flex',
           alignItems: 'center',
-          gap: '4px'
+          gap: '6px'
         }}>
-          🟡 EN PROGRESO
+          {/* Ping circle */}
+          <div style={{
+            position: 'relative',
+            width: '12px',
+            height: '12px'
+          }}>
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: '#FBBF24',
+              borderRadius: '50%',
+              opacity: 0.75
+            }} />
+            <div style={{
+              position: 'absolute',
+              inset: '-4px',
+              backgroundColor: '#FBBF24',
+              borderRadius: '50%',
+              opacity: 0,
+              animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite'
+            }} />
+          </div>
+          <div style={{
+            background: '#FEF3C7',
+            color: '#92400E',
+            fontSize: '10px',
+            fontWeight: '700',
+            padding: '3px 8px',
+            borderRadius: '12px'
+          }}>
+            EN PROGRESO
+          </div>
         </div>
 
         {/* Contenido */}
-        <div style={{ textAlign: 'center', marginTop: '32px', marginBottom: '16px' }}>
+        <div style={{ textAlign: 'center', marginTop: '36px', marginBottom: '16px' }}>
           <div style={{
             fontSize: '48px',
             marginBottom: '12px',
@@ -135,7 +191,7 @@ export default function InProgressChallenge() {
             fontSize: '18px',
             fontWeight: '700',
             color: '#1F2937',
-            margin: '0 0 8px 0'
+            margin: '0 0 12px 0'
           }}>
             {inProgress.title}
           </h3>
@@ -143,7 +199,8 @@ export default function InProgressChallenge() {
             fontSize: '14px',
             color: '#6B7280',
             fontStyle: 'italic',
-            margin: '0'
+            margin: '8px 0 0 0',
+            lineHeight: '1.5'
           }}>
             Bloquea tu teléfono y disfruta tu momento.
           </p>
@@ -161,7 +218,8 @@ export default function InProgressChallenge() {
             borderRadius: '10px',
             fontWeight: '700',
             fontSize: '16px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            transition: 'all 0.2s'
           }}
           onMouseEnter={(e) => e.target.style.background = '#C72BD9'}
           onMouseLeave={(e) => e.target.style.background = '#D946EF'}
@@ -171,7 +229,7 @@ export default function InProgressChallenge() {
       </div>
 
       {/* Modal de feedback */}
-      {showFeedback && (
+      {showFeedback && !showConfirmation && (
         <div style={{
           position: 'fixed',
           top: 0,
@@ -204,8 +262,9 @@ export default function InProgressChallenge() {
               ✨ Te diste un momento para ti, ¡te felicito!
             </h3>
             <p style={{
-              fontSize: '14px',
-              color: '#6B7280',
+              fontSize: '15px',
+              color: '#1F2937',
+              fontWeight: '600',
               margin: '0 0 16px 0'
             }}>
               ¿Cómo te sientes ahora?
@@ -217,78 +276,40 @@ export default function InProgressChallenge() {
               marginBottom: '16px',
               flexWrap: 'wrap'
             }}>
-              <button
-                onClick={() => handleFeedback('😴')}
-                style={{
-                  fontSize: '32px',
-                  background: 'none',
-                  border: '2px solid #E5E7EB',
-                  borderRadius: '12px',
-                  padding: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  flex: '1',
-                  minWidth: '80px'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.borderColor = '#D946EF';
-                  e.target.style.transform = 'scale(1.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.borderColor = '#E5E7EB';
-                  e.target.style.transform = 'scale(1)';
-                }}
-              >
-                😴
-              </button>
-              <button
-                onClick={() => handleFeedback('😊')}
-                style={{
-                  fontSize: '32px',
-                  background: 'none',
-                  border: '2px solid #E5E7EB',
-                  borderRadius: '12px',
-                  padding: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  flex: '1',
-                  minWidth: '80px'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.borderColor = '#D946EF';
-                  e.target.style.transform = 'scale(1.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.borderColor = '#E5E7EB';
-                  e.target.style.transform = 'scale(1)';
-                }}
-              >
-                😊
-              </button>
-              <button
-                onClick={() => handleFeedback('⚡')}
-                style={{
-                  fontSize: '32px',
-                  background: 'none',
-                  border: '2px solid #E5E7EB',
-                  borderRadius: '12px',
-                  padding: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  flex: '1',
-                  minWidth: '80px'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.borderColor = '#D946EF';
-                  e.target.style.transform = 'scale(1.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.borderColor = '#E5E7EB';
-                  e.target.style.transform = 'scale(1)';
-                }}
-              >
-                ⚡
-              </button>
+              {['😴', '😊', '⚡'].map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => handleFeedback(emoji)}
+                  style={{
+                    fontSize: '32px',
+                    background: 'none',
+                    border: '2px solid #E5E7EB',
+                    borderRadius: '12px',
+                    padding: '12px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    flex: '1',
+                    minWidth: '80px',
+                    opacity: selectedMood && selectedMood !== emoji ? 0.5 : 1,
+                    transform: selectedMood === emoji ? 'scale(1.08)' : 'scale(1)',
+                    borderColor: selectedMood === emoji ? '#D946EF' : '#E5E7EB'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!selectedMood) {
+                      e.target.style.borderColor = '#D946EF';
+                      e.target.style.transform = 'scale(1.08)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!selectedMood) {
+                      e.target.style.borderColor = '#E5E7EB';
+                      e.target.style.transform = 'scale(1)';
+                    }
+                  }}
+                >
+                  {emoji}
+                </button>
+              ))}
             </div>
             <p style={{
               fontSize: '12px',
@@ -297,6 +318,73 @@ export default function InProgressChallenge() {
             }}>
               Esto nos ayuda a personalizar tus retos
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación */}
+      {showConfirmation && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          animation: 'fadeInOut 1.8s ease-in-out'
+        }}>
+          <style>{`
+            @keyframes fadeInOut {
+              0% { opacity: 0; }
+              10% { opacity: 1; }
+              90% { opacity: 1; }
+              100% { opacity: 0; }
+            }
+          `}</style>
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '16px',
+              padding: '32px 24px',
+              textAlign: 'center',
+              maxWidth: '320px',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)'
+            }}
+          >
+            <h3 style={{
+              fontSize: '20px',
+              fontWeight: '700',
+              color: '#D946EF',
+              margin: '0 0 12px 0'
+            }}>
+              💜 ¡Momento registrado!
+            </h3>
+            <p style={{
+              fontSize: '14px',
+              color: '#6B7280',
+              margin: '0 0 16px 0',
+              lineHeight: '1.6'
+            }}>
+              Nos vemos mañana para tu próximo momento de autocuidado.
+            </p>
+            <div style={{
+              background: '#FFF5E6',
+              border: '1.5px solid #F59E0B',
+              borderRadius: '12px',
+              padding: '10px 14px',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: '#D97706',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              🔥 <span>{currentStreak}</span> días de racha
+            </div>
           </div>
         </div>
       )}
