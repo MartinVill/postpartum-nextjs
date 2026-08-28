@@ -10,12 +10,28 @@ export default function ChatSection({ userId, initialProfile }) {
   const [isFaqOpen, setIsFaqOpen] = useState(false);
   const [userProfile, setUserProfile] = useState(initialProfile);
   const [userMessageCount, setUserMessageCount] = useState(0);
+  const [animationData, setAnimationData] = useState(null);
   const messagesEndRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
+
+  // Cargar animación Lottie
+  useEffect(() => {
+    const loadAnimation = async () => {
+      try {
+        const response = await fetch('/chat-animation.lottie');
+        if (!response.ok) throw new Error('No se pudo cargar la animación');
+        const data = await response.json();
+        setAnimationData(data);
+      } catch (error) {
+        console.error('Error cargando animación Lottie:', error);
+      }
+    };
+    loadAnimation();
+  }, []);
 
   // Cargar historial del localStorage al montar
   useEffect(() => {
@@ -308,14 +324,16 @@ export default function ChatSection({ userId, initialProfile }) {
             maxWidth: '280px'
           }}>
             {/* Animación Lottie */}
-            <div style={{ width: '180px', height: '180px' }}>
-              <Lottie
-                animationData={require('/public/chat-animation.lottie')}
-                loop={true}
-                autoplay={true}
-                style={{ width: '100%', height: '100%' }}
-              />
-            </div>
+            {animationData && (
+              <div style={{ width: '180px', height: '180px' }}>
+                <Lottie
+                  animationData={animationData}
+                  loop={true}
+                  autoplay={true}
+                  style={{ width: '100%', height: '100%' }}
+                />
+              </div>
+            )}
 
             {/* Textos */}
             <div style={{ textAlign: 'center' }}>
