@@ -3,11 +3,10 @@ import { useState, useEffect } from 'react';
 
 const BASE_ACTIVITIES = [
   { id: 'cinema', title: 'Ir al cine', emoji: '🎬' },
-  { id: 'scrapbook', title: 'Hacer scrapbook', emoji: '📐' },
   { id: 'cook', title: 'Cocinar algo rico', emoji: '👨‍🍳' },
   { id: 'cafe', title: 'Ir a tu cafetería favorita', emoji: '☕' },
   { id: 'candy', title: 'Comer tu dulce favorito', emoji: '🍭' },
-  { id: 'skincare', title: 'Rutina de skincare', emoji: '💆‍♀️' },
+  { id: 'skincare', title: 'Rutina de skincare', emoji: '💄' },
   { id: 'icecream', title: 'Ir a comer helado', emoji: '🍦' },
   { id: 'nails', title: 'Pintarte las uñas', emoji: '💅' },
   { id: 'outfit', title: 'Ponerte tu mejor ropa', emoji: '👗' },
@@ -18,12 +17,9 @@ const BASE_ACTIVITIES = [
   { id: 'mall', title: 'Ir al centro comercial', emoji: '🛍️' }
 ];
 
-// Sistema inteligente para asignar emojis a hobbies personalizados
 function getEmojiForHobby(hobbyTitle) {
   const title = hobbyTitle.toLowerCase();
-
   const emojiMap = {
-    // Artes y manualidades
     'scrapbook': '📐',
     'arte': '🎨',
     'dibujo': '🎨',
@@ -31,8 +27,6 @@ function getEmojiForHobby(hobbyTitle) {
     'ceramica': '🏺',
     'artesania': '🧵',
     'manualidades': '🧵',
-
-    // Deportes y movimiento
     'yoga': '🧘‍♀️',
     'pilates': '🧘‍♀️',
     'gym': '💪',
@@ -42,8 +36,6 @@ function getEmojiForHobby(hobbyTitle) {
     'baile': '💃',
     'danza': '💃',
     'ejercicio': '🏋️‍♀️',
-
-    // Entretenimiento
     'netflix': '📺',
     'pelicula': '🎬',
     'cine': '🎬',
@@ -53,22 +45,16 @@ function getEmojiForHobby(hobbyTitle) {
     'lectura': '📚',
     'leer': '📚',
     'libros': '📚',
-
-    // Creatividad
     'atrapasol': '☀️',
     'mandalas': '✨',
     'origami': '📄',
     'tejido': '🧶',
     'crochet': '🧶',
     'costura': '🧵',
-
-    // Bienestar
     'meditacion': '🧘‍♀️',
     'relajacion': '😌',
     'spa': '💆‍♀️',
     'masaje': '💆‍♀️',
-
-    // Socializar
     'amigas': '👭',
     'amiga': '👭',
     'amigos': '👫',
@@ -77,24 +63,20 @@ function getEmojiForHobby(hobbyTitle) {
     'vino': '🍷',
   };
 
-  // Buscar coincidencia exacta o parcial
   for (const [key, emoji] of Object.entries(emojiMap)) {
     if (title.includes(key) || key.includes(title)) {
       return emoji;
     }
   }
 
-  // Si no hay coincidencia, seleccionar emoji por defecto basado en palabras clave
   if (title.includes('yoga') || title.includes('deporte') || title.includes('ejercicio')) return '🧘‍♀️';
   if (title.includes('arte') || title.includes('dibujo') || title.includes('pintura')) return '🎨';
   if (title.includes('lectura') || title.includes('libro')) return '📚';
   if (title.includes('musica') || title.includes('cancion')) return '🎵';
 
-  // Default: emoji neutro
   return '✨';
 }
 
-// Componente Netflix (N roja)
 function NetflixIcon() {
   return (
     <span style={{
@@ -110,7 +92,22 @@ function NetflixIcon() {
   );
 }
 
-// Componente de confeti simple
+function normalizeForComparison(str) {
+  return str.toLowerCase().replace(/^(hacer|ir a|tomar|ir al)\s+/, '').trim();
+}
+
+const HOBBY_CORRECTION_MAP = {
+  'scraakbook': 'Hacer scrapbook',
+  'scrackbook': 'Hacer scrapbook',
+  'scrapbook': 'Hacer scrapbook',
+  'scraoboosk': 'Hacer scrapbook',
+};
+
+function sanitizeHobby(hobby) {
+  const lowerHobby = hobby.toLowerCase().trim();
+  return HOBBY_CORRECTION_MAP[lowerHobby] || hobby;
+}
+
 function Confetti() {
   return (
     <div style={{
@@ -134,9 +131,6 @@ function Confetti() {
             background: ['#D946EF', '#FFF8DC', '#10B981', '#FFA500'][Math.floor(Math.random() * 4)],
             borderRadius: '50%',
             animation: `fall ${2 + Math.random()}s linear forwards`,
-            '@keyframes fall': {
-              to: { transform: `translateY(${window.innerHeight + 10}px) rotate(360deg)` }
-            }
           }}
         />
       ))}
@@ -161,56 +155,56 @@ export default function DailyChallenge({ energy, userProfile }) {
   const [showConfetti, setShowConfetti] = useState(false);
   const [challengeData, setChallengeData] = useState(null);
 
-  // Inicializar actividades
   useEffect(() => {
     const data = localStorage.getItem('dailyChallengeData');
     const stored = data ? JSON.parse(data) : null;
     const today = new Date().toDateString();
 
-    let allActivities = [];
-    let baseActivitiesFiltered = [...BASE_ACTIVITIES];
+    // REGLA 1: FUENTE ÚNICA DE VERDAD - Leer hobbies desde localStorage
+    const userProfileData = localStorage.getItem('userProfile');
+    const parsedProfile = userProfileData ? JSON.parse(userProfileData) : null;
+    let hobbiesFromProfile = parsedProfile?.hobbies ? parsedProfile.hobbies.slice(0, 3) : [];
 
-    if (userProfile?.hobbies && Array.isArray(userProfile.hobbies)) {
-      const hobbyActivities = userProfile.hobbies.slice(0, 3).map((hobby, idx) => {
-        // Determinar si es Netflix o usar emoji inteligente
-        let emoji;
-        if (hobby.toLowerCase().includes('netflix') || hobby.toLowerCase().includes('serie')) {
-          emoji = <NetflixIcon />;
-        } else {
-          emoji = getEmojiForHobby(hobby);
-        }
+    // CORRECCIÓN: Sanitizar hobbies (corregir typos comunes)
+    hobbiesFromProfile = hobbiesFromProfile.map(sanitizeHobby);
 
-        return {
-          id: `hobby-${idx}`,
-          title: hobby,
-          emoji: emoji,
-          isHobby: true
-        };
-      });
+    // Crear actividades de hobbies (solo primeras 3)
+    const hobbyActivities = hobbiesFromProfile.map((hobby, idx) => {
+      let emoji = '📐';
+      if (hobby.includes('scrapbook') || hobby.includes('Scrapbook')) {
+        emoji = '📐';
+      } else if (hobby.toLowerCase().includes('netflix') || hobby.toLowerCase().includes('serie')) {
+        emoji = <NetflixIcon />;
+      } else {
+        emoji = getEmojiForHobby(hobby);
+      }
 
-      // Filtrar BASE_ACTIVITIES para no repetir hobbies (búsqueda más robusta)
-      baseActivitiesFiltered = BASE_ACTIVITIES.filter(activity => {
-        const activityLower = activity.title.toLowerCase();
-        return !userProfile.hobbies.some(hobby => {
-          const hobbyLower = hobby.toLowerCase();
-          // Evitar duplicados con búsqueda por palabras clave
-          return (
-            hobbyLower === activityLower ||
-            activityLower.includes(hobbyLower) ||
-            hobbyLower.includes(activityLower) ||
-            // Casos especiales
-            (hobbyLower.includes('scrapbook') && activityLower.includes('scrapbook')) ||
-            (hobbyLower.includes('yoga') && activityLower.includes('yoga'))
-          );
-        });
-      });
+      return {
+        id: `hobby-${idx}`,
+        title: hobby,
+        emoji: emoji,
+        isHobby: true
+      };
+    });
 
-      allActivities = [...hobbyActivities, ...baseActivitiesFiltered];
-    } else {
-      allActivities = baseActivitiesFiltered;
-    }
+    // REGLA 3 + SEGURIDAD: Deduplicación con normalización y Set
+    const normalizedHobbies = new Set(hobbiesFromProfile.map(h => normalizeForComparison(h)));
 
-    setActivities(allActivities);
+    const finalActivities = [
+      ...hobbyActivities,
+      ...BASE_ACTIVITIES.filter(base => !normalizedHobbies.has(normalizeForComparison(base.title)))
+    ];
+
+    // Deduplicación final: garantizar que no hay dos tarjetas con el mismo título
+    const uniqueTitles = new Set();
+    const dedupedActivities = finalActivities.filter(activity => {
+      const key = activity.title.toLowerCase();
+      if (uniqueTitles.has(key)) return false;
+      uniqueTitles.add(key);
+      return true;
+    });
+
+    setActivities(dedupedActivities);
 
     if (stored && stored.date === today) {
       setChallengeData(stored);
@@ -225,7 +219,7 @@ export default function DailyChallenge({ energy, userProfile }) {
       localStorage.setItem('dailyChallengeData', JSON.stringify(newData));
       setChallengeData(newData);
     }
-  }, [userProfile]);
+  }, []);
 
   const handleSelectActivity = (activity) => {
     setSelectedActivity(activity);
@@ -299,14 +293,12 @@ export default function DailyChallenge({ energy, userProfile }) {
         }
         .activity-card {
           animation: fadeInScale 0.3s ease-out;
-          active-state: active;
         }
         .activity-card:active {
           transform: scale(0.98);
         }
       `}</style>
 
-      {/* Header */}
       <div style={{ marginBottom: '20px' }}>
         <h2 style={{
           fontSize: '20px',
@@ -316,7 +308,6 @@ export default function DailyChallenge({ energy, userProfile }) {
         }}>
           🎯 Reto de Hoy
         </h2>
-        {/* Badges Gamificación */}
         <div style={{
           display: 'flex',
           gap: '12px',
@@ -353,14 +344,13 @@ export default function DailyChallenge({ energy, userProfile }) {
         </div>
       </div>
 
-      {/* Grilla 2 columnas */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gap: '12px',
         marginBottom: '16px'
       }}>
-        {activities.map((activity) => (
+        {activities.map((activity, index) => (
           <button
             key={activity.id}
             onClick={() => !isActivityCompleted(activity.id) && handleSelectActivity(activity)}
@@ -368,7 +358,7 @@ export default function DailyChallenge({ energy, userProfile }) {
             style={{
               padding: '14px',
               background: isActivityCompleted(activity.id) ? '#F0FDF4' : '#FFFFFF',
-              border: activity.isHobby ? '2.5px solid #D946EF' : '1px solid #E5E7EB',
+              border: activity.isHobby && index < 3 ? '2.5px solid #D946EF' : '1px solid #E5E7EB',
               borderRadius: '14px',
               cursor: isActivityCompleted(activity.id) ? 'default' : 'pointer',
               textAlign: 'center',
@@ -379,8 +369,8 @@ export default function DailyChallenge({ energy, userProfile }) {
             }}
             onMouseEnter={(e) => {
               if (!isActivityCompleted(activity.id)) {
-                e.currentTarget.style.background = activity.isHobby ? '#FFF8FE' : '#F9F9F9';
-                e.currentTarget.style.boxShadow = activity.isHobby
+                e.currentTarget.style.background = (activity.isHobby && index < 3) ? '#FFF8FE' : '#F9F9F9';
+                e.currentTarget.style.boxShadow = (activity.isHobby && index < 3)
                   ? '0 6px 16px rgba(217, 70, 239, 0.15)'
                   : '0 4px 12px rgba(0, 0, 0, 0.08)';
               }
@@ -392,8 +382,7 @@ export default function DailyChallenge({ energy, userProfile }) {
               }
             }}
           >
-            {/* Pill "Para ti" en hobbies */}
-            {activity.isHobby && (
+            {activity.isHobby && index < 3 && (
               <div style={{
                 position: 'absolute',
                 top: '6px',
@@ -409,7 +398,7 @@ export default function DailyChallenge({ energy, userProfile }) {
                 ⭐ PARA TI
               </div>
             )}
-            <div style={{ fontSize: '32px', marginBottom: '6px', marginTop: activity.isHobby ? '12px' : '0', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '40px' }}>
+            <div style={{ fontSize: '32px', marginBottom: '6px', marginTop: (activity.isHobby && index < 3) ? '12px' : '0', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '40px' }}>
               {typeof activity.emoji === 'string' ? activity.emoji : activity.emoji}
             </div>
             <div style={{
@@ -427,7 +416,6 @@ export default function DailyChallenge({ energy, userProfile }) {
         ))}
       </div>
 
-      {/* Modal */}
       {showModal && selectedActivity && (
         <div style={{
           position: 'fixed',
@@ -518,7 +506,6 @@ export default function DailyChallenge({ energy, userProfile }) {
         </div>
       )}
 
-      {/* Feedback Modal */}
       {showFeedback && (
         <div style={{
           position: 'fixed',
@@ -594,7 +581,6 @@ export default function DailyChallenge({ energy, userProfile }) {
         </div>
       )}
 
-      {/* Confetti */}
       {showConfetti && <Confetti />}
     </div>
   );
