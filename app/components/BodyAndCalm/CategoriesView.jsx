@@ -31,21 +31,25 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #FBF8F3 0%, #FFF5E1 100%)',
+      background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
       padding: '20px 16px 100px',
       maxWidth: '600px',
-      margin: '0 auto'
+      margin: '0 auto',
+      position: 'relative'
     }}>
-      {/* Header */}
+      {/* Header con botón absoluto y título centrado */}
       <div style={{
         marginBottom: '32px',
-        paddingTop: '20px'
+        paddingTop: '20px',
+        position: 'relative',
+        textAlign: 'center'
       }}>
         <button
           onClick={onBack}
           style={{
-            position: 'relative',
+            position: 'absolute',
             left: '0',
+            top: '20px',
             background: 'white',
             border: 'none',
             padding: '8px',
@@ -57,8 +61,7 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            transition: 'all 0.2s',
-            marginBottom: '16px'
+            transition: 'all 0.2s'
           }}
           onMouseEnter={(e) => {
             e.target.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.15)';
@@ -75,7 +78,7 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
         <h1 style={{
           fontSize: '28px',
           fontWeight: '700',
-          color: '#3E3530',
+          color: '#1F2937',
           margin: '0',
           lineHeight: '1.3',
           letterSpacing: '-0.5px'
@@ -97,21 +100,21 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
             onClick={() => onSelectCategory(cat.id)}
             style={{
               background: 'white',
-              border: '2px solid #D4C4B0',
+              border: '1px solid #E5E7EB',
               borderRadius: '16px',
               padding: '20px 16px',
               textAlign: 'center',
               cursor: 'pointer',
               transition: 'all 0.2s',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#C8956D';
-              e.currentTarget.style.boxShadow = '0 4px 16px rgba(200, 149, 109, 0.15)';
+              e.currentTarget.style.borderColor = '#D946EF';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.15)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = '#D4C4B0';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
+              e.currentTarget.style.borderColor = '#E5E7EB';
+              e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
             }}
           >
             <div style={{ fontSize: '40px', marginBottom: '8px' }}>
@@ -120,14 +123,14 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
             <h3 style={{
               fontSize: '15px',
               fontWeight: '600',
-              color: '#3E3530',
+              color: '#111827',
               margin: '0 0 6px 0'
             }}>
               {cat.title}
             </h3>
             <p style={{
               fontSize: '12px',
-              color: '#7A6F67',
+              color: '#6B7280',
               margin: '0',
               fontWeight: '400'
             }}>
@@ -144,13 +147,17 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
         left: 0,
         right: 0,
         background: 'rgba(255, 255, 255, 0.9)',
-        borderTop: '1px solid #D4C4B0',
-        padding: '12px 16px',
+        borderTop: '1px solid #E5E7EB',
+        padding: '8px 16px',
         textAlign: 'center',
-        fontSize: '12px',
-        color: '#999'
+        fontSize: '11px',
+        color: '#9CA3AF',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        width: '100%'
       }}>
-        ℹ️ Escucha a tu cuerpo y confirma siempre tu alta médica antes de iniciar.
+        ℹ️ Escucha a tu cuerpo y confirma tu alta médica antes de empezar.
       </div>
     </div>
   );

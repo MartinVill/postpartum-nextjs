@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 const EXERCISE_GUIDES = {
   'breathing-1': {
     title: 'Respiración Diafragmática 360°',
-    emoji: '🫁',
     instructions: [
       'Recuéstate sobre tu espalda, con las rodillas dobladas si es necesario.',
       'Coloca una mano sobre el pecho y otra sobre el vientre.',
@@ -13,7 +12,6 @@ const EXERCISE_GUIDES = {
   },
   'breathing-2': {
     title: 'Box Breathing para Ansiedad',
-    emoji: '🫁',
     instructions: [
       'Siéntate cómoda con la espalda recta.',
       'Inhala durante 4 segundos.',
@@ -22,7 +20,6 @@ const EXERCISE_GUIDES = {
   },
   'stretch-1': {
     title: 'Apertura Pectoral Suave',
-    emoji: '🧘‍♀️',
     instructions: [
       'Siéntate derecha, pies apoyados en el suelo.',
       'Entrelaza los dedos detrás de tu cabeza o cuello.',
@@ -31,7 +28,6 @@ const EXERCISE_GUIDES = {
   },
   'relax-1': {
     title: 'Exploración Corporal Mindful',
-    emoji: '🕊️',
     instructions: [
       'Acuéstate en un lugar cómodo y tranquilo.',
       'Cierra los ojos y respira profundamente.',
@@ -40,7 +36,6 @@ const EXERCISE_GUIDES = {
   },
   'move-1': {
     title: 'Movimiento Orgánico del Pelvis',
-    emoji: '🌿',
     instructions: [
       'Ponte de pie con los pies al ancho de las caderas.',
       'Relaja las rodillas ligeramente.',
@@ -50,16 +45,59 @@ const EXERCISE_GUIDES = {
 };
 
 export default function ExercisePlayer({ activity, onComplete, onBack }) {
-  const [timeLeft, setTimeLeft] = useState(parseInt(activity.duration.split('-')[0]) * 60); // segundos
+  const [timeLeft, setTimeLeft] = useState(parseInt(activity.duration.split('-')[0]) * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [selectedMood, setSelectedMood] = useState(null);
+  const [phase, setPhase] = useState('inhale');
+  const [scale, setScale] = useState(1);
 
   const guide = EXERCISE_GUIDES[activity.id] || {
     title: activity.title,
-    emoji: activity.emoji,
     instructions: ['Sigue tu propio ritmo.', 'Escucha a tu cuerpo.', 'Sin presión.']
   };
+
+  // Ciclo respiratorio (4 segundos por fase)
+  useEffect(() => {
+    let interval;
+    const phases = ['inhale', 'exhale'];
+    let currentPhaseIndex = 0;
+
+    if (isRunning) {
+      interval = setInterval(() => {
+        const currentPhase = phases[currentPhaseIndex];
+        setPhase(currentPhase);
+
+        if (currentPhase === 'inhale') {
+          // Escalar de 1 a 1.35 durante 4 segundos
+          let scaleValue = 1;
+          const scaleInterval = setInterval(() => {
+            scaleValue += 0.35 / 40; // 40 pasos en 4 segundos
+            if (scaleValue >= 1.35) {
+              scaleValue = 1.35;
+              clearInterval(scaleInterval);
+            }
+            setScale(scaleValue);
+          }, 100);
+        } else {
+          // Escalar de 1.35 a 0.85 durante 4 segundos
+          let scaleValue = 1.35;
+          const scaleInterval = setInterval(() => {
+            scaleValue -= 0.5 / 40; // 40 pasos en 4 segundos
+            if (scaleValue <= 0.85) {
+              scaleValue = 0.85;
+              clearInterval(scaleInterval);
+            }
+            setScale(scaleValue);
+          }, 100);
+        }
+
+        currentPhaseIndex = (currentPhaseIndex + 1) % phases.length;
+      }, 4000);
+    }
+
+    return () => clearInterval(interval);
+  }, [isRunning]);
 
   // Timer logic
   useEffect(() => {
@@ -87,10 +125,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   const handleReset = () => {
     setTimeLeft(parseInt(activity.duration.split('-')[0]) * 60);
     setIsRunning(false);
-  };
-
-  const handleStop = () => {
-    setIsRunning(false);
+    setScale(1);
   };
 
   const handleComplete = () => {
@@ -104,38 +139,35 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     }, 800);
   };
 
+  const phaseText = {
+    'inhale': 'INHALA',
+    'exhale': 'EXHALA'
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #FBF8F3 0%, #FFF5E1 100%)',
+      background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
       padding: '20px 16px',
       maxWidth: '600px',
       margin: '0 auto',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      position: 'relative'
     }}>
-      <style>{`
-        @keyframes scalePulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.05); opacity: 0.8; }
-        }
-        .breathing-circle {
-          animation: scalePulse 4s ease-in-out infinite;
-        }
-      `}</style>
-
-      {/* Header */}
+      {/* Header con botón y título */}
       <div style={{
         display: 'flex',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         alignItems: 'center',
         marginBottom: '24px',
-        paddingTop: '12px'
+        paddingTop: '12px',
+        position: 'relative'
       }}>
         <button
           onClick={onBack}
           style={{
-            position: 'relative',
+            position: 'absolute',
             left: '0',
             background: 'white',
             border: 'none',
@@ -161,17 +193,18 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
         >
           <span style={{ fontSize: '24px', color: '#D946EF', fontWeight: 'bold' }}>&lt;</span>
         </button>
+
         <h2 style={{
           fontSize: '18px',
           fontWeight: '600',
-          color: '#3E3530',
+          color: '#111827',
           margin: '0',
           textAlign: 'center',
           flex: 1
         }}>
           {guide.title}
         </h2>
-        <div style={{ width: '60px' }} />
+        <div style={{ width: '40px' }} />
       </div>
 
       {/* Zona gráfica central - Círculo respiratorio animado */}
@@ -184,97 +217,155 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
         gap: '24px',
         marginBottom: '24px'
       }}>
-        <div
-          className='breathing-circle'
-          style={{
-            width: '140px',
-            height: '140px',
-            borderRadius: '50%',
-            background: '#D4E8E0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '64px',
-            boxShadow: '0 8px 24px rgba(107, 142, 113, 0.2)'
-          }}
-        >
-          {guide.emoji}
+        {/* Círculo con escala dinámica y SVG sincronizado */}
+        <div style={{
+          position: 'relative',
+          width: '180px',
+          height: '180px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          {/* SVG para anillo con stroke-dashoffset */}
+          <svg
+            style={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              transform: `scale(${scale})`,
+              transition: 'transform 0.1s linear',
+              filter: 'drop-shadow(0 8px 24px rgba(217, 70, 239, 0.2))'
+            }}
+            viewBox="0 0 180 180"
+          >
+            <circle
+              cx="90"
+              cy="90"
+              r="80"
+              fill="none"
+              stroke="#D946EF"
+              strokeWidth="3"
+              opacity="0.3"
+            />
+            <circle
+              cx="90"
+              cy="90"
+              r="80"
+              fill="none"
+              stroke="#D946EF"
+              strokeWidth="3"
+              strokeDasharray="502.4"
+              strokeDashoffset={phase === 'inhale' ? 502.4 * (1 - scale / 1.35) : 502.4 * ((1.35 - scale) / 0.5)}
+              opacity="0.8"
+              style={{
+                transition: 'stroke-dashoffset 0.1s linear'
+              }}
+            />
+          </svg>
+
+          {/* Círculo central relleno con texto dinámico */}
+          <div
+            style={{
+              width: '140px',
+              height: '140px',
+              borderRadius: '50%',
+              background: '#F3E8FF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              gap: '8px',
+              transform: `scale(${scale})`,
+              transition: 'transform 0.1s linear',
+              zIndex: 10
+            }}
+          >
+            <div style={{
+              fontSize: '28px',
+              fontWeight: '700',
+              color: '#7C3AED',
+              textAlign: 'center',
+              letterSpacing: '1px'
+            }}>
+              {phaseText[phase]}
+            </div>
+          </div>
         </div>
 
         {/* Temporizador grande */}
         <div style={{
           fontSize: '48px',
           fontWeight: '700',
-          color: '#C8956D',
+          color: '#D946EF',
           fontFamily: 'monospace',
           letterSpacing: '2px'
         }}>
           {formatTime(timeLeft)}
         </div>
 
-        {/* Instrucciones */}
+        {/* Instrucciones - Mejoradas */}
         <div style={{
-          background: 'rgba(255, 255, 255, 0.8)',
+          background: 'white',
           borderRadius: '12px',
-          padding: '16px',
-          maxWidth: '100%',
-          textAlign: 'center'
+          padding: '20px',
+          width: '100%',
+          border: '1px solid #E5E7EB'
         }}>
           {guide.instructions.map((instruction, idx) => (
             <p
               key={idx}
               style={{
-                fontSize: '13px',
-                color: '#7A6F67',
-                margin: idx === guide.instructions.length - 1 ? '0' : '0 0 8px 0',
-                lineHeight: '1.5',
-                fontWeight: '400'
+                fontSize: '14px',
+                color: '#111827',
+                margin: idx === guide.instructions.length - 1 ? '0' : '0 0 12px 0',
+                lineHeight: '1.6',
+                fontWeight: '400',
+                textAlign: 'left'
               }}
             >
-              {idx + 1}. {instruction}
+              <span style={{ fontWeight: '600', color: '#7C3AED' }}>{idx + 1}.</span> {instruction}
             </p>
           ))}
         </div>
       </div>
 
-      {/* Controles de temporizador */}
+      {/* Controles de temporizador - 2 botones solamente */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '1fr auto 1fr',
+        gridTemplateColumns: '1fr 1fr',
         gap: '12px',
-        marginBottom: '16px',
-        alignItems: 'center'
+        marginBottom: '16px'
       }}>
         <button
           onClick={handleReset}
           style={{
-            padding: '10px 16px',
+            padding: '12px 16px',
             background: 'white',
-            border: '1px solid #D4C4B0',
-            borderRadius: '10px',
+            border: '1px solid #E5E7EB',
+            borderRadius: '50px',
             cursor: 'pointer',
             fontWeight: '600',
-            fontSize: '13px',
-            color: '#7A6F67',
+            fontSize: '14px',
+            color: '#6B7280',
             transition: 'all 0.2s'
           }}
           onMouseEnter={(e) => {
-            e.target.style.background = '#F5F5F5';
-            e.target.style.borderColor = '#C8956D';
+            e.target.style.background = '#F3F4F6';
+            e.target.style.borderColor = '#D946EF';
           }}
           onMouseLeave={(e) => {
             e.target.style.background = 'white';
-            e.target.style.borderColor = '#D4C4B0';
+            e.target.style.borderColor = '#E5E7EB';
           }}
         >
-          ↻ Reiniciar
+          🔄 Reiniciar
         </button>
 
         <button
           onClick={() => setIsRunning(!isRunning)}
           style={{
-            padding: '12px 28px',
-            background: '#C8956D',
+            padding: '12px 16px',
+            background: '#D946EF',
             border: 'none',
             borderRadius: '50px',
             cursor: 'pointer',
@@ -282,73 +373,47 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
             fontSize: '14px',
             color: 'white',
             transition: 'all 0.2s',
-            boxShadow: '0 4px 12px rgba(200, 149, 109, 0.3)',
-            minWidth: '140px'
+            boxShadow: '0 4px 12px rgba(217, 70, 239, 0.3)'
           }}
           onMouseEnter={(e) => {
-            e.target.style.background = '#A8755A';
-            e.target.style.boxShadow = '0 6px 16px rgba(200, 149, 109, 0.4)';
+            e.target.style.background = '#C72BD9';
+            e.target.style.boxShadow = '0 6px 16px rgba(217, 70, 239, 0.4)';
           }}
           onMouseLeave={(e) => {
-            e.target.style.background = '#C8956D';
-            e.target.style.boxShadow = '0 4px 12px rgba(200, 149, 109, 0.3)';
+            e.target.style.background = '#D946EF';
+            e.target.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.3)';
           }}
         >
           {isRunning ? '⏸ Pausar' : '▶ Iniciar'}
         </button>
-
-        <button
-          onClick={handleStop}
-          style={{
-            padding: '10px 16px',
-            background: 'white',
-            border: '1px solid #D4C4B0',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            fontWeight: '600',
-            fontSize: '13px',
-            color: '#7A6F67',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.background = '#F5F5F5';
-            e.target.style.borderColor = '#C8956D';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.background = 'white';
-            e.target.style.borderColor = '#D4C4B0';
-          }}
-        >
-          ◼ Detener
-        </button>
       </div>
 
-      {/* Botón de finalización */}
+      {/* Botón de finalización - Simplificado */}
       <button
         onClick={handleComplete}
         style={{
           width: '100%',
           padding: '14px',
-          background: '#6B8E71',
+          background: '#10B981',
           border: 'none',
-          borderRadius: '12px',
+          borderRadius: '50px',
           cursor: 'pointer',
           fontWeight: '700',
           fontSize: '15px',
           color: 'white',
           transition: 'all 0.2s',
-          boxShadow: '0 4px 12px rgba(107, 142, 113, 0.2)'
+          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
         }}
         onMouseEnter={(e) => {
-          e.target.style.background = '#4B6E51';
-          e.target.style.boxShadow = '0 6px 16px rgba(107, 142, 113, 0.3)';
+          e.target.style.background = '#059669';
+          e.target.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.3)';
         }}
         onMouseLeave={(e) => {
-          e.target.style.background = '#6B8E71';
-          e.target.style.boxShadow = '0 4px 12px rgba(107, 142, 113, 0.2)';
+          e.target.style.background = '#10B981';
+          e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.2)';
         }}
       >
-        ¡Completé mi actividad!
+        ✓ Listo
       </button>
 
       {/* Modal de finalización */}
@@ -376,7 +441,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
             <h3 style={{
               fontSize: '18px',
               fontWeight: '700',
-              color: '#3E3530',
+              color: '#111827',
               margin: '0 0 16px 0'
             }}>
               ¿Cómo te sientes ahora?
@@ -395,22 +460,22 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
                   style={{
                     fontSize: '40px',
                     background: 'none',
-                    border: '2px solid #D4C4B0',
+                    border: '2px solid #E5E7EB',
                     borderRadius: '12px',
                     padding: '12px',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                     opacity: selectedMood === emoji ? 1 : 0.6,
                     transform: selectedMood === emoji ? 'scale(1.1)' : 'scale(1)',
-                    borderColor: selectedMood === emoji ? '#C8956D' : '#D4C4B0'
+                    borderColor: selectedMood === emoji ? '#D946EF' : '#E5E7EB'
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.borderColor = '#C8956D';
+                    e.target.style.borderColor = '#D946EF';
                     e.target.style.opacity = '1';
                   }}
                   onMouseLeave={(e) => {
                     if (selectedMood !== emoji) {
-                      e.target.style.borderColor = '#D4C4B0';
+                      e.target.style.borderColor = '#E5E7EB';
                       e.target.style.opacity = '0.6';
                     }
                   }}
@@ -422,7 +487,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
 
             <p style={{
               fontSize: '12px',
-              color: '#999',
+              color: '#6B7280',
               margin: '0'
             }}>
               Tu feedback nos ayuda a personalizar mejor
