@@ -56,40 +56,44 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
         margin: '0 auto'
       }}>
         <InProgressChallenge />
-        {/* Header */}
-        <div style={{
-          paddingBottom: '24px',
-          textAlign: 'center',
-          borderBottom: '1px solid rgba(0,0,0,0.05)'
-        }}>
-          <p style={{
-            fontSize: '19px',
-            color: '#7F1D1D',
-            fontWeight: '600',
-            margin: '0 0 16px 0',
-            lineHeight: '1.5'
+        {/* Header - Oculto si hay reto en progreso */}
+        {!hasInProgress && (
+          <div style={{
+            paddingBottom: '24px',
+            textAlign: 'center',
+            borderBottom: '1px solid rgba(0,0,0,0.05)'
           }}>
-            Vamos a hacer algo<br />para que te sientas mejor
-          </p>
-          <p style={{
-            fontSize: '26px',
-            color: '#7F1D1D',
-            fontWeight: '700',
-            margin: '0',
-            lineHeight: '1.4',
-            letterSpacing: '-0.5px'
-          }}>
-            ¿Qué te gustaría hacer?
-          </p>
-        </div>
+            <p style={{
+              fontSize: '19px',
+              color: '#7F1D1D',
+              fontWeight: '600',
+              margin: '0 0 16px 0',
+              lineHeight: '1.5'
+            }}>
+              Vamos a hacer algo<br />para que te sientas mejor
+            </p>
+            <p style={{
+              fontSize: '26px',
+              color: '#7F1D1D',
+              fontWeight: '700',
+              margin: '0',
+              lineHeight: '1.4',
+              letterSpacing: '-0.5px'
+            }}>
+              ¿Qué te gustaría hacer?
+            </p>
+          </div>
+        )}
 
         {/* Contenedor de opciones */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
+          gridTemplateColumns: hasInProgress ? '1fr' : '1fr 1fr',
           gap: '16px',
-          marginTop: '24px',
-          marginBottom: '24px'
+          marginTop: hasInProgress ? '16px' : '24px',
+          marginBottom: '24px',
+          maxWidth: hasInProgress ? '300px' : '100%',
+          margin: hasInProgress ? '16px auto 24px' : '24px auto 24px'
         }}>
           {/* Chat principal */}
           <button
@@ -362,40 +366,42 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
         margin: '0 auto'
       }}>
         <InProgressChallenge />
-        {/* Mensaje motivador */}
-        <div style={{
-          padding: '24px',
-          background: 'white',
-          border: 'none',
-          borderRadius: '20px',
-          marginBottom: '24px',
-          textAlign: 'center',
-          boxShadow: '0 2px 12px rgba(59, 130, 246, 0.1)'
-        }}>
-          <p style={{
-            fontSize: '18px',
-            color: '#2563EB',
-            fontWeight: '700',
-            margin: '0'
+        {/* Mensaje motivador - Oculto si hay reto en progreso */}
+        {!hasInProgress && (
+          <div style={{
+            padding: '24px',
+            background: 'white',
+            border: 'none',
+            borderRadius: '20px',
+            marginBottom: '24px',
+            textAlign: 'center',
+            boxShadow: '0 2px 12px rgba(59, 130, 246, 0.1)'
           }}>
-            Vas bien 💙
-          </p>
-          <p style={{
-            fontSize: '14px',
-            color: '#1D4ED8',
-            marginTop: '8px',
-            margin: '0',
-            lineHeight: '1.6'
-          }}>
-            Hoy es un día para consolidar este ánimo. Vamos!
-          </p>
-        </div>
+            <p style={{
+              fontSize: '18px',
+              color: '#2563EB',
+              fontWeight: '700',
+              margin: '0'
+            }}>
+              Vas bien 💙
+            </p>
+            <p style={{
+              fontSize: '14px',
+              color: '#1D4ED8',
+              marginTop: '8px',
+              margin: '0',
+              lineHeight: '1.6'
+            }}>
+              Hoy es un día para consolidar este ánimo. Vamos!
+            </p>
+          </div>
+        )}
 
-        {/* Reto normal */}
+        {/* Cuéntame principal */}
         <button
           onClick={onChat}
           style={{
-            width: '100%',
+            width: hasInProgress ? '300px' : '100%',
             padding: '16px',
             background: 'white',
             border: 'none',
@@ -405,6 +411,8 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
             color: '#D946EF',
             cursor: 'pointer',
             marginBottom: '20px',
+            marginLeft: hasInProgress ? 'auto' : '0',
+            marginRight: hasInProgress ? 'auto' : '0',
             boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
             transition: 'all 0.2s'
           }}
@@ -552,7 +560,8 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
         margin: '0 auto'
       }}>
         <InProgressChallenge />
-        {/* Mensaje empoderador */}
+        {/* Mensaje empoderador - Oculto si hay reto en progreso */}
+        {!hasInProgress && (
       <div style={{
         padding: '24px',
         background: 'linear-gradient(135deg, #CCFF00 0%, #84DD20 100%)',
@@ -581,8 +590,10 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
           Esta energía es tuya. Vamos a hacerla grande hoy.
         </p>
       </div>
+        )}
 
-      {/* Reto desafiante */}
+      {/* Reto desafiante - Oculto si hay reto en progreso */}
+      {!hasInProgress && (
       <button
         onClick={() => setShowChallenge(true)}
         style={{
@@ -624,12 +635,13 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
           Toca aquí para ver las actividades disponibles →
         </p>
       </button>
+      )}
 
       {/* Botones */}
       <button
         onClick={onChat}
         style={{
-          width: '100%',
+          width: hasInProgress ? '300px' : '100%',
           padding: '16px',
           background: 'white',
           border: 'none',
@@ -639,6 +651,9 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
           color: '#D946EF',
           cursor: 'pointer',
           marginBottom: '12px',
+          marginLeft: hasInProgress ? 'auto' : '0',
+          marginRight: hasInProgress ? 'auto' : '0',
+          display: hasInProgress ? 'block' : 'auto',
           boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
           transition: 'all 0.2s'
         }}
