@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import Lottie from 'lottie-react';
+import chatAnimation from '../../public/chat-animation.json';
 
 export default function ChatSection({ userId, initialProfile }) {
   const [messages, setMessages] = useState([]);
@@ -10,28 +11,12 @@ export default function ChatSection({ userId, initialProfile }) {
   const [isFaqOpen, setIsFaqOpen] = useState(false);
   const [userProfile, setUserProfile] = useState(initialProfile);
   const [userMessageCount, setUserMessageCount] = useState(0);
-  const [animationData, setAnimationData] = useState(null);
   const messagesEndRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
-
-  // Cargar animación Lottie
-  useEffect(() => {
-    const loadAnimation = async () => {
-      try {
-        const response = await fetch('/chat-animation.json');
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        setAnimationData(data);
-      } catch (error) {
-        console.error('Error cargando animación Lottie:', error);
-      }
-    };
-    loadAnimation();
-  }, []);
 
   // Cargar historial del localStorage al montar
   useEffect(() => {
@@ -324,16 +309,14 @@ export default function ChatSection({ userId, initialProfile }) {
             maxWidth: '280px'
           }}>
             {/* Animación Lottie */}
-            {animationData && (
-              <div style={{ width: '180px', height: '180px' }}>
-                <Lottie
-                  animationData={animationData}
-                  loop={true}
-                  autoplay={true}
-                  style={{ width: '100%', height: '100%' }}
-                />
-              </div>
-            )}
+            <div style={{ width: '180px', height: '180px' }}>
+              <Lottie
+                animationData={chatAnimation}
+                loop={true}
+                autoplay={true}
+                style={{ width: '100%', height: '100%' }}
+              />
+            </div>
 
             {/* Textos */}
             <div style={{ textAlign: 'center' }}>
