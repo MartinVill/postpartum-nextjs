@@ -6,6 +6,7 @@ import EnergyCheckIn from './components/EnergyCheckIn';
 import DynamicFeed from './components/DynamicFeed';
 import Calendar from './components/Calendar';
 import NightReflection from './components/NightReflection';
+import BodyAndCalmModule from './components/BodyAndCalm/BodyAndCalmModule';
 
 export default function Home() {
   const [state, setState] = useState({
@@ -15,6 +16,7 @@ export default function Home() {
     showChat: false,
     showReflection: false,
     showCalendar: false,
+    showBodyAndCalm: false,
     energyScore: null,
     lastCheckInDate: null,
     isMenuOpen: false
@@ -63,6 +65,16 @@ export default function Home() {
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)'
       }} />
+    );
+  }
+
+  // Body and Calm Module
+  if (state.showBodyAndCalm && state.energyScore) {
+    return (
+      <BodyAndCalmModule
+        userProfile={state.userProfile}
+        onBack={() => setState(prev => ({ ...prev, showBodyAndCalm: false }))}
+      />
     );
   }
 
@@ -192,6 +204,7 @@ export default function Home() {
         onChat={() => setState(prev => ({ ...prev, showChat: true }))}
         onCalendar={() => setState(prev => ({ ...prev, showCalendar: true }))}
         onReflection={() => setState(prev => ({ ...prev, showReflection: true }))}
+        onBodyAndCalm={() => setState(prev => ({ ...prev, showBodyAndCalm: true }))}
       />
     );
   }

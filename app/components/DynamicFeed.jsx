@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import DailyChallenge from './DailyChallenge';
 import InProgressChallenge from './InProgressChallenge';
 
-export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, onReflection }) {
+export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, onReflection, onBodyAndCalm }) {
   const [showMoreOptions, setShowMoreOptions] = useState(false);
   const [showChallenge, setShowChallenge] = useState(false);
   const [hasInProgress, setHasInProgress] = useState(false);
@@ -299,6 +299,28 @@ export default function DynamicFeed({ energy, userProfile, onChat, onCalendar, o
                     onMouseLeave={(e) => e.target.style.background = '#F0FDF4'}
                   >
                     🌙 Reflexión nocturna
+                  </button>
+                  <button
+                    onClick={() => {
+                      onBodyAndCalm();
+                      setShowMoreOptions(false);
+                    }}
+                    style={{
+                      padding: '14px 16px',
+                      background: '#F5F3ED',
+                      border: 'none',
+                      borderRadius: '16px',
+                      fontSize: '14px',
+                      color: '#C8956D',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      textAlign: 'left'
+                    }}
+                    onMouseEnter={(e) => e.target.style.background = '#E8DFD2'}
+                    onMouseLeave={(e) => e.target.style.background = '#F5F3ED'}
+                  >
+                    🕉️ Cuerpo y Calma
                   </button>
                   <button
                     onClick={() => {
