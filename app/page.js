@@ -203,7 +203,7 @@ export default function Home() {
     if (state.showCalendar) {
       return (
         <div style={{ paddingBottom: '70px' }}>
-          <Calendar userProfile={state.userProfile} />
+          <Calendar userProfile={state.userProfile} onBack={() => setState(prev => ({ ...prev, showCalendar: false, activeTab: 'home' }))} />
           <BottomNavigationBar
             activeTab={state.activeTab}
             onTabChange={(tab) => {
