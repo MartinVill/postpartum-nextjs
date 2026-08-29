@@ -327,7 +327,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
             gap: '12px',
             width: '100%'
           }}>
-            {['🧠 Mandíbula', '💪 Hombros', '🫀 Cadera', '🦶 Pies'].map((area, idx) => (
+            {['🗣️ Mandíbula', '💪 Hombros', '🧘 Cadera', '🦶 Pies'].map((area, idx) => (
               <div key={idx} style={{
                 background: '#F3E8FF',
                 border: '1px solid #E9D5FF',
