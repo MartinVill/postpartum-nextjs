@@ -3,82 +3,154 @@
 const ACTIVITIES_DATABASE = {
   breathing: [
     {
-      id: 'breathing-1',
+      id: 'resp-1',
       title: 'Respiración Diafragmática 360°',
       duration: '3-5',
-      posture: 'Recostada'
+      posture: 'Recostada',
+      type: 'breathing',
+      instructions: [
+        'Recuéstate sobre tu espalda con las rodillas flectadas o siéntate cómoda junto a tu bebé.',
+        'Inhala lentamente por la nariz llevando el aire hacia tu espalda y costillas inferiores. Exhala suave por la boca.',
+        'Tu respiración es el primer freno de mano para la ansiedad de hoy.'
+      ]
     },
     {
-      id: 'breathing-2',
-      title: 'Box Breathing para Ansiedad',
+      id: 'resp-2',
+      title: 'Abrazos Abdominales (Transverso)',
       duration: '4-6',
-      posture: 'Sentada'
+      posture: 'Recostada',
+      type: 'breathing',
+      instructions: [
+        'Recostada sobre tu espalda o sentada erguida.',
+        'Inhala profundo. Al exhalar, imagina que tus músculos abdominales abrazan suavemente a tu bebé hacia tu columna.',
+        'Tu centro se está volviendo a integrar, dale su tiempo.'
+      ]
     },
     {
-      id: 'breathing-3',
-      title: 'Respiración Alterna (Nadi Shodhana)',
+      id: 'resp-3',
+      title: 'Respiración Equilibrante 4x4',
       duration: '5-8',
-      posture: 'Sentada'
+      posture: 'Sentada',
+      type: 'breathing',
+      instructions: [
+        'Busca una postura donde no tengas que hacer esfuerzo físico.',
+        'Inhala en 4 segundos sintiendo cómo se llena tu abdomen y exhala en 4 segundos soltando la tensión del cuello.',
+        'Un minuto de calma regula también a tu bebé.'
+      ]
     }
   ],
   stretching: [
     {
-      id: 'stretch-1',
-      title: 'Apertura Pectoral Suave',
-      duration: '5-7',
-      posture: 'Sentada'
-    },
-    {
-      id: 'stretch-2',
+      id: 'est-1',
       title: 'Liberación de Cervicales y Hombros',
-      duration: '6-8',
-      posture: 'Sentada'
+      duration: '5-7',
+      posture: 'Sentada',
+      type: 'stretch',
+      instructions: [
+        'Sentada con la espalda apoyada o en la alfombra junto a tu bebé.',
+        'Deja caer suavemente la oreja hacia el hombro derecho. Suelta la mandíbula por completo. Cambia de lado a la mitad del tiempo.',
+        'Baja los hombros: no tienes que sostener el mundo todo el tiempo.'
+      ]
     },
     {
-      id: 'stretch-3',
-      title: 'Secuencia de Espalda Baja',
+      id: 'est-2',
+      title: 'Apertura de Pecho (Postura de Lactancia)',
+      duration: '6-8',
+      posture: 'De pie',
+      type: 'stretch',
+      instructions: [
+        'De pie o sentada cerca de una pared/silla.',
+        'Lleva los codos hacia atrás formando una "W" con tus brazos. Acurruca tus escápulas y respira profundo hacia el pecho.',
+        'Desenrollar los hombros le devuelve el espacio a tus pulmones.'
+      ]
+    },
+    {
+      id: 'est-3',
+      title: 'Descompresión Lumbar en Suelo',
       duration: '8-10',
-      posture: 'Recostada'
+      posture: 'Recostada',
+      type: 'stretch',
+      instructions: [
+        'En el suelo sobre una alfombra o bordes de la cama.',
+        'Lleva suavemente ambas rodillas hacia el pecho o deja caer las piernas hacia un lado liberando la espalda baja.',
+        'Tu espalda cargó peso muchos meses, regálale esta pausa.'
+      ]
     }
   ],
   relaxation: [
     {
-      id: 'relax-1',
-      title: 'Exploración Corporal Mindful',
+      id: 'rel-1',
+      title: 'Pausa de Descarga Somática',
       duration: '7-10',
-      posture: 'Recostada'
+      posture: 'Recostada',
+      type: 'relaxation',
+      instructions: [
+        'Tu cuerpo estuvo en alerta constante. Esta pausa le avisa a tu sistema nervioso que estás a salvo.',
+        'Suelta la lengua del paladar, floja la boca y siente el peso de tus caderas sobre la superficie.',
+        'No estás haciendo nada mal. Lo estás haciendo increíble.'
+      ]
     },
     {
-      id: 'relax-2',
-      title: 'Relajación Progresiva',
+      id: 'rel-2',
+      title: 'Pausa Visual y Descompresión Mental',
       duration: '10-15',
-      posture: 'Recostada'
+      posture: 'Sentada',
+      type: 'relaxation',
+      instructions: [
+        'Pensada para momentos de sobrecarga sensorial.',
+        'Cierra los ojos o fija la mirada en un punto neutro. Notarás pensamientos de pendientes: déjalos pasar sin juzgar.',
+        'Estos minutos son solo tuyos.'
+      ]
     },
     {
-      id: 'relax-3',
-      title: 'Meditación Guiada: Soltar y Confiar',
+      id: 'rel-3',
+      title: 'Rastreo Corporal de Desconexión',
       duration: '8-12',
-      posture: 'Sentada o Recostada'
+      posture: 'Recostada',
+      type: 'relaxation',
+      instructions: [
+        'Libera la tensión acumulada en las articulaciones.',
+        'Recorre mentalmente tu cuerpo de arriba abajo soltando frente, mandíbula, hombros, abdomen y pies.',
+        'Descansar también es cuidar a tu bebé.'
+      ]
     }
   ],
   movement: [
     {
-      id: 'move-1',
-      title: 'Movimiento Orgánico del Pelvis',
+      id: 'mov-1',
+      title: 'Balanza Pélvica Suave',
       duration: '5-7',
-      posture: 'De pie'
+      posture: 'Recostada',
+      type: 'movement',
+      instructions: [
+        'Recostada sobre la espalda con rodillas flectadas.',
+        'Bascula suavemente la pelvis pegando y despegando la espalda baja del suelo de forma fluida.',
+        'Movimiento sutil para reconectar con tu cuerpo.'
+      ]
     },
     {
-      id: 'move-2',
-      title: 'Danza Suave de Recuperación',
+      id: 'mov-2',
+      title: 'Movilidad de Tobillos y Retorno Venoso',
       duration: '7-10',
-      posture: 'De pie'
+      posture: 'Recostada',
+      type: 'movement',
+      instructions: [
+        'Recostada con piernas ligeramente elevadas sobre almohadones.',
+        'Dibuja círculos lentos con los pies hacia afuera y adentro para activar la circulación de las piernas.',
+        'Cuidar tus piernas es cuidar tu energía diaria.'
+      ]
     },
     {
-      id: 'move-3',
-      title: 'Fortalecimiento Suave del Core',
+      id: 'mov-3',
+      title: 'Balanceo de Hombros y Torso',
       duration: '8-10',
-      posture: 'Recostada'
+      posture: 'Sentada',
+      type: 'movement',
+      instructions: [
+        'Sentada cómoda en una silla o en el suelo.',
+        'Realiza giros suaves con los hombros hacia atrás coordinando con una respiración fluida sin forzar.',
+        'Recupera la fluidez paso a paso.'
+      ]
     }
   ]
 };

@@ -1,48 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-const EXERCISE_GUIDES = {
-  'breathing-1': {
-    title: 'Respiración Diafragmática 360°',
-    instructions: [
-      'Recuéstate sobre tu espalda, con las rodillas dobladas si es necesario.',
-      'Coloca una mano sobre el pecho y otra sobre el vientre.',
-      'Inhala lentamente por la nariz, expandiendo el abdomen (no el pecho).'
-    ]
-  },
-  'breathing-2': {
-    title: 'Box Breathing para Ansiedad',
-    instructions: [
-      'Siéntate cómoda con la espalda recta.',
-      'Inhala durante 4 segundos.',
-      'Retén el aire durante 4 segundos.'
-    ]
-  },
-  'stretch-1': {
-    title: 'Apertura Pectoral Suave',
-    instructions: [
-      'Siéntate derecha, pies apoyados en el suelo.',
-      'Entrelaza los dedos detrás de tu cabeza o cuello.',
-      'Abre los codos hacia los lados suavemente.'
-    ]
-  },
-  'relax-1': {
-    title: 'Exploración Corporal Mindful',
-    instructions: [
-      'Acuéstate en un lugar cómodo y tranquilo.',
-      'Cierra los ojos y respira profundamente.',
-      'Comienza a notar sensaciones en los pies, subiendo lentamente.'
-    ]
-  },
-  'move-1': {
-    title: 'Movimiento Orgánico del Pelvis',
-    instructions: [
-      'Ponte de pie con los pies al ancho de las caderas.',
-      'Relaja las rodillas ligeramente.',
-      'Permite que tu pelvis se mueva en círculos lentos.'
-    ]
-  }
-};
+// Las instrucciones se cargan dinámicamente desde la actividad seleccionada
 
 export default function ExercisePlayer({ activity, onComplete, onBack }) {
   const [timeLeft, setTimeLeft] = useState(parseInt(activity.duration.split('-')[0]) * 60);
@@ -52,9 +11,10 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   const [phase, setPhase] = useState('inhale');
   const [scale, setScale] = useState(1);
 
-  const guide = EXERCISE_GUIDES[activity.id] || {
+  const guide = {
     title: activity.title,
-    instructions: ['Sigue tu propio ritmo.', 'Escucha a tu cuerpo.', 'Sin presión.']
+    instructions: activity.instructions || ['Sigue tu propio ritmo.', 'Escucha a tu cuerpo.', 'Sin presión.'],
+    type: activity.type || 'breathing'
   };
 
   // Ciclo respiratorio (4 segundos por fase)
@@ -223,7 +183,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
         }} />
       </div>
 
-      {/* Zona gráfica central - Círculo respiratorio animado */}
+      {/* Zona gráfica central - Contenido dinámico según tipo de ejercicio */}
       <div style={{
         flex: 1,
         display: 'flex',
@@ -233,7 +193,8 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
         gap: '24px',
         marginBottom: '24px'
       }}>
-        {/* Círculo con escala dinámica y SVG sincronizado */}
+        {/* BREATHING: Círculo respiratorio animado */}
+        {guide.type === 'breathing' && (
         <div style={{
           position: 'relative',
           width: '180px',
