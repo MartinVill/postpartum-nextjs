@@ -195,17 +195,22 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
           <span style={{ fontSize: '24px', color: '#D946EF', fontWeight: 'bold' }}>&lt;</span>
         </button>
 
-        {/* Título centrado - Centro */}
+        {/* Título centrado - Centro (permite 2 líneas) */}
         <h2 style={{
-          fontSize: '18px',
-          fontWeight: '600',
+          fontSize: '16px',
+          fontWeight: '700',
           color: '#D946EF',
           margin: '0',
           textAlign: 'center',
           flex: 1,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap'
+          minWidth: '0',
+          paddingLeft: '8px',
+          paddingRight: '8px',
+          lineHeight: '1.3',
+          display: '-webkit-box',
+          WebkitBoxOrient: 'vertical',
+          WebkitLineClamp: 2,
+          overflow: 'hidden'
         }}>
           {guide.title}
         </h2>
@@ -348,7 +353,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
         gap: '24px',
         marginBottom: '16px'
       }}>
-        {/* Botón Reiniciar - Circular pequeño */}
+        {/* Botón Reiniciar - Circular con SVG */}
         <button
           onClick={handleReset}
           style={{
@@ -363,9 +368,9 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '24px',
             transition: 'all 0.2s',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            padding: '0'
           }}
           onMouseEnter={(e) => {
             e.target.style.background = '#E5E7EB';
@@ -378,7 +383,9 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
             e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
           }}
         >
-          🔄
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
         </button>
 
         {/* Botón Play/Pausa - Circular grande */}
