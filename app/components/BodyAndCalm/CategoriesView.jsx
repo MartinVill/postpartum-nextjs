@@ -37,19 +37,19 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
       margin: '0 auto',
       position: 'relative'
     }}>
-      {/* Header con botón absoluto y título centrado */}
+      {/* Header con layout simétrico - Botón | Título | Espaciador */}
       <div style={{
-        marginBottom: '32px',
-        paddingTop: '20px',
-        position: 'relative',
-        textAlign: 'center'
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '24px',
+        paddingTop: '12px',
+        gap: '12px'
       }}>
+        {/* Botón Volver - Lado izquierdo */}
         <button
           onClick={onBack}
           style={{
-            position: 'absolute',
-            left: '0',
-            top: '20px',
             background: 'white',
             border: 'none',
             padding: '8px',
@@ -57,11 +57,13 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
             cursor: 'pointer',
             width: '40px',
             height: '40px',
+            minWidth: '40px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
+            flexShrink: 0
           }}
           onMouseEnter={(e) => {
             e.target.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.15)';
@@ -75,16 +77,27 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
           <span style={{ fontSize: '24px', color: '#D946EF', fontWeight: 'bold' }}>&lt;</span>
         </button>
 
+        {/* Título centrado - Centro */}
         <h1 style={{
-          fontSize: '28px',
+          fontSize: '26px',
           fontWeight: '700',
           color: '#1F2937',
           margin: '0',
           lineHeight: '1.3',
-          letterSpacing: '-0.5px'
+          letterSpacing: '-0.5px',
+          flex: 1,
+          textAlign: 'center',
+          minWidth: '0'
         }}>
           ¿Qué necesita tu cuerpo hoy?
         </h1>
+
+        {/* Espaciador invisible - Lado derecho */}
+        <div style={{
+          width: '40px',
+          minWidth: '40px',
+          flexShrink: 0
+        }} />
       </div>
 
       {/* Grid de categorías */}
