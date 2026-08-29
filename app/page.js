@@ -132,7 +132,9 @@ export default function Home() {
             background: 'white',
             borderBottom: '1px solid rgba(0,0,0,0.05)',
             flexShrink: 0,
-            position: 'relative'
+            position: 'sticky',
+            top: 0,
+            zIndex: 40
           }}>
             <button
               onClick={() => setState(prev => ({ ...prev, showChat: false }))}
