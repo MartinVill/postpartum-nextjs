@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // Las instrucciones se cargan dinámicamente desde la actividad seleccionada
 
@@ -10,12 +10,95 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   const [selectedMood, setSelectedMood] = useState(null);
   const [phase, setPhase] = useState('inhale');
   const [scale, setScale] = useState(1);
+  const audioContextRef = useRef(null);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
 
   const guide = {
     title: activity.title,
     instructions: activity.instructions || ['Sigue tu propio ritmo.', 'Escucha a tu cuerpo.', 'Sin presión.'],
     type: activity.type || 'breathing'
   };
+
+  // Función para desbloquear audio context
+  const unlockAudio = () => {
+    if (audioUnlocked) return;
+
+    try {
+      if (!audioContextRef.current) {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        audioContextRef.current = audioContext;
+      }
+
+      if (audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume();
+      }
+
+      setAudioUnlocked(true);
+    } catch (error) {
+      console.warn('[AUDIO] Error unlocking audio context:', error);
+    }
+  };
+
+  // Función para generar sonido de campana (cuenco tibetano)
+  const playTimerChime = () => {
+    try {
+      if (!audioContextRef.current) {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        audioContextRef.current = audioContext;
+      }
+
+      const ctx = audioContextRef.current;
+      const now = ctx.currentTime;
+      const duration = 3; // 3 segundos de decay
+
+      // Crear múltiples osciladores para sonido más complejo (armónicos)
+      const frequencies = [432, 540, 648]; // Frecuencias armónicas (fundamentales)
+
+      frequencies.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+
+        // Volumen máximo al inicio
+        gain.gain.setValueAtTime(0.15 / frequencies.length, now);
+        // Decay gradual durante duration segundos
+        gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      });
+    } catch (error) {
+      console.warn('[AUDIO] Error playing timer chime:', error);
+    }
+  };
+
+  // Función para vibración táctil
+  const triggerVibration = () => {
+    if ('vibrate' in navigator) {
+      try {
+        navigator.vibrate([300, 200, 500]); // Patrón: 300ms vibración, 200ms pausa, 500ms vibración
+      } catch (error) {
+        console.warn('[VIBRATION] Error triggering vibration:', error);
+      }
+    }
+  };
+
+  // Efecto para cuando el temporizador llega a 0
+  useEffect(() => {
+    if (timeLeft === 0 && isRunning) {
+      // Detener temporizador
+      setIsRunning(false);
+
+      // Reproducir sonido y vibración
+      playTimerChime();
+      triggerVibration();
+    }
+  }, [timeLeft, isRunning]);
 
   // Ciclo respiratorio (4 segundos por fase)
   useEffect(() => {
@@ -427,7 +510,10 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
 
         {/* Botón Play/Pausa - Circular grande */}
         <button
-          onClick={() => setIsRunning(!isRunning)}
+          onClick={() => {
+            unlockAudio();
+            setIsRunning(!isRunning);
+          }}
           style={{
             width: '72px',
             height: '72px',
