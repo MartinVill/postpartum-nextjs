@@ -268,8 +268,84 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
             </div>
           </div>
         </div>
+        )}
 
-        {/* Temporizador grande */}
+        {/* STRETCH / MOVEMENT: Indicador lineal de fases */}
+        {(guide.type === 'stretch' || guide.type === 'movement') && (
+        <div style={{
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '20px'
+        }}>
+          <div style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            color: '#D946EF',
+            textAlign: 'center'
+          }}>
+            {guide.type === 'stretch' ? 'Lado Izquierdo / Lado Derecho' : 'Fase Activa / Descanso'}
+          </div>
+          <div style={{
+            width: '100%',
+            height: '12px',
+            background: '#E5E7EB',
+            borderRadius: '6px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              height: '100%',
+              background: 'linear-gradient(90deg, #D946EF 0%, #7C3AED 100%)',
+              width: `${(timeLeft === 0 ? 0 : ((parseInt(activity.duration.split('-')[0]) * 60 - timeLeft) / (parseInt(activity.duration.split('-')[0]) * 60)) * 100)}%`,
+              transition: 'width 0.1s linear'
+            }} />
+          </div>
+        </div>
+        )}
+
+        {/* RELAXATION: Temporizador limpio + guía corporal */}
+        {guide.type === 'relaxation' && (
+        <div style={{
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '20px'
+        }}>
+          <div style={{
+            fontSize: '16px',
+            fontWeight: '600',
+            color: '#6B7280',
+            textAlign: 'center'
+          }}>
+            Rastreo corporal: libera tensión paso a paso
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '12px',
+            width: '100%'
+          }}>
+            {['🧠 Mandíbula', '💪 Hombros', '🫀 Cadera', '🦶 Pies'].map((area, idx) => (
+              <div key={idx} style={{
+                background: '#F3E8FF',
+                border: '1px solid #E9D5FF',
+                borderRadius: '8px',
+                padding: '12px',
+                textAlign: 'center',
+                fontSize: '12px',
+                fontWeight: '600',
+                color: '#7C3AED'
+              }}>
+                {area}
+              </div>
+            ))}
+          </div>
+        </div>
+        )}
+
+        {/* Temporizador grande (visible para todos) */}
         <div style={{
           fontSize: '48px',
           fontWeight: '700',
