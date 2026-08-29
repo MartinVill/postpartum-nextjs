@@ -6,6 +6,7 @@ import EnergyCheckIn from './components/EnergyCheckIn';
 import DynamicFeed from './components/DynamicFeed';
 import Calendar from './components/Calendar';
 import NightReflection from './components/NightReflection';
+import DailyChallenge from './components/DailyChallenge';
 import BodyAndCalmModule from './components/BodyAndCalm/BodyAndCalmModule';
 import BottomNavigationBar from './components/BottomNavigationBar';
 import HomeGrid from './components/HomeGrid';
@@ -19,6 +20,7 @@ export default function Home() {
     showReflection: false,
     showCalendar: false,
     showBodyAndCalm: false,
+    showReto: false,
     activeTab: 'home',
     energyScore: null,
     lastCheckInDate: null,
@@ -218,6 +220,20 @@ export default function Home() {
       );
     }
 
+    // Sub-pantalla: Reto 30 Días
+    if (state.showReto && state.energyScore) {
+      return (
+        <div style={{ paddingBottom: '70px' }}>
+          <DailyChallenge
+            energy={state.energyScore}
+            userProfile={state.userProfile}
+            onChallengeStart={() => setState(prev => ({ ...prev, showReto: false }))}
+          />
+          <BottomNavigationBar activeTab="home" onTabChange={() => {}} />
+        </div>
+      );
+    }
+
     // Sub-pantalla: Cuerpo y Calma
     if (state.showBodyAndCalm) {
       return (
@@ -240,6 +256,7 @@ export default function Home() {
           onChat={() => setState(prev => ({ ...prev, showChat: true, activeTab: 'home' }))}
           onCalendar={() => setState(prev => ({ ...prev, showCalendar: true, activeTab: 'calendar' }))}
           onBodyAndCalm={() => setState(prev => ({ ...prev, showBodyAndCalm: true }))}
+          onReto={() => setState(prev => ({ ...prev, showReto: true }))}
           onMoreOptions={() => {}}
         />
         <BottomNavigationBar

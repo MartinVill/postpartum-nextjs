@@ -1,6 +1,6 @@
 'use client';
 
-export default function HomeGrid({ energy, userProfile, onChat, onCalendar, onBodyAndCalm, onMoreOptions }) {
+export default function HomeGrid({ energy, userProfile, onChat, onCalendar, onBodyAndCalm, onReto, onMoreOptions }) {
   return (
     <div style={{
       minHeight: '100vh',
@@ -68,7 +68,7 @@ export default function HomeGrid({ energy, userProfile, onChat, onCalendar, onBo
 
         {/* Card 2: Reto del día */}
         <button
-          onClick={() => {}}
+          onClick={onReto}
           style={{
             padding: '24px 16px',
             background: 'white',
