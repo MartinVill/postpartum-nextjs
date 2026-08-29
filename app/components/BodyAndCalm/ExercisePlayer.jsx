@@ -155,20 +155,19 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
       flexDirection: 'column',
       position: 'relative'
     }}>
-      {/* Header con botón y título */}
+      {/* Header con botón simétrico y título centrado */}
       <div style={{
         display: 'flex',
-        justifyContent: 'center',
         alignItems: 'center',
+        justifyContent: 'space-between',
         marginBottom: '24px',
         paddingTop: '12px',
-        position: 'relative'
+        gap: '12px'
       }}>
+        {/* Botón Volver - Lado izquierdo */}
         <button
           onClick={onBack}
           style={{
-            position: 'absolute',
-            left: '0',
             background: 'white',
             border: 'none',
             padding: '8px',
@@ -176,11 +175,13 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
             cursor: 'pointer',
             width: '40px',
             height: '40px',
+            minWidth: '40px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
+            flexShrink: 0
           }}
           onMouseEnter={(e) => {
             e.target.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.15)';
@@ -194,17 +195,27 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
           <span style={{ fontSize: '24px', color: '#D946EF', fontWeight: 'bold' }}>&lt;</span>
         </button>
 
+        {/* Título centrado - Centro */}
         <h2 style={{
           fontSize: '18px',
           fontWeight: '600',
-          color: '#111827',
+          color: '#D946EF',
           margin: '0',
           textAlign: 'center',
-          flex: 1
+          flex: 1,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap'
         }}>
           {guide.title}
         </h2>
-        <div style={{ width: '40px' }} />
+
+        {/* Espaciador invisible - Lado derecho */}
+        <div style={{
+          width: '40px',
+          minWidth: '40px',
+          flexShrink: 0
+        }} />
       </div>
 
       {/* Zona gráfica central - Círculo respiratorio animado */}
@@ -315,7 +326,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
             <p
               key={idx}
               style={{
-                fontSize: '14px',
+                fontSize: '16px',
                 color: '#111827',
                 margin: idx === guide.instructions.length - 1 ? '0' : '0 0 12px 0',
                 lineHeight: '1.6',
@@ -329,51 +340,66 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
         </div>
       </div>
 
-      {/* Controles de temporizador - 2 botones solamente */}
+      {/* Controles de temporizador - Botones circulares */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '12px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '24px',
         marginBottom: '16px'
       }}>
+        {/* Botón Reiniciar - Circular pequeño */}
         <button
           onClick={handleReset}
           style={{
-            padding: '12px 16px',
-            background: 'white',
+            width: '56px',
+            height: '56px',
+            minWidth: '56px',
+            minHeight: '56px',
+            background: '#F3F4F6',
             border: '1px solid #E5E7EB',
-            borderRadius: '50px',
+            borderRadius: '50%',
             cursor: 'pointer',
-            fontWeight: '600',
-            fontSize: '14px',
-            color: '#6B7280',
-            transition: 'all 0.2s'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '24px',
+            transition: 'all 0.2s',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
           }}
           onMouseEnter={(e) => {
-            e.target.style.background = '#F3F4F6';
+            e.target.style.background = '#E5E7EB';
             e.target.style.borderColor = '#D946EF';
+            e.target.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.15)';
           }}
           onMouseLeave={(e) => {
-            e.target.style.background = 'white';
+            e.target.style.background = '#F3F4F6';
             e.target.style.borderColor = '#E5E7EB';
+            e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
           }}
         >
-          🔄 Reiniciar
+          🔄
         </button>
 
+        {/* Botón Play/Pausa - Circular grande */}
         <button
           onClick={() => setIsRunning(!isRunning)}
           style={{
-            padding: '12px 16px',
+            width: '72px',
+            height: '72px',
+            minWidth: '72px',
+            minHeight: '72px',
             background: '#D946EF',
             border: 'none',
-            borderRadius: '50px',
+            borderRadius: '50%',
             cursor: 'pointer',
-            fontWeight: '700',
-            fontSize: '14px',
-            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '28px',
             transition: 'all 0.2s',
-            boxShadow: '0 4px 12px rgba(217, 70, 239, 0.3)'
+            boxShadow: '0 4px 12px rgba(217, 70, 239, 0.3)',
+            color: 'white'
           }}
           onMouseEnter={(e) => {
             e.target.style.background = '#C72BD9';
@@ -384,7 +410,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
             e.target.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.3)';
           }}
         >
-          {isRunning ? '⏸ Pausar' : '▶ Iniciar'}
+          {isRunning ? '⏸' : '▶'}
         </button>
       </div>
 
