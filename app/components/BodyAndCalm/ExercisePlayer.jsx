@@ -241,6 +241,77 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     }
   };
 
+  // ARQUITECTURA CRÍTICA: Programar audio en Web Audio API (reloj de hardware)
+  // Se ejecuta INCLUSO cuando JS congelado en background (porque es hardware-scheduled)
+  const scheduleAudioCompletion = (totalSeconds) => {
+    try {
+      if (!audioContextRef.current) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) {
+          console.warn('[AUDIO SCHEDULING] AudioContext no disponible');
+          return;
+        }
+        audioContextRef.current = new AudioContext();
+      }
+
+      const ctx = audioContextRef.current;
+
+      // Si AudioContext está suspendido, no se puede programar
+      if (ctx.state === 'suspended') {
+        console.warn('[AUDIO SCHEDULING] AudioContext suspendido, sonido NO se ejecutará en background');
+        return;
+      }
+
+      // Momento exacto en el AudioContext cuando debe sonar (reloj de hardware)
+      // Sumar el tiempo total del ejercicio al tiempo actual del AudioContext
+      const completionTime = ctx.currentTime + totalSeconds;
+
+      console.log(`[AUDIO SCHEDULING] Programando sonido para ${totalSeconds}s en audioCtx.currentTime=${completionTime}`);
+
+      // ========== CREAR SONIDO PROGRAMADO ==========
+      // Opción 1: Intentar cargar archivo de audio
+      if (chimeAudioRef.current && chimeAudioRef.current.src) {
+        try {
+          // Convertir HTMLAudioElement a AudioBuffer para poder schedularlo
+          // (esto es complejo, así que usar oscillator como fallback siempre)
+          console.log('[AUDIO SCHEDULING] Usando síntesis de tono (Web Audio API)');
+        } catch (e) {
+          console.warn('[AUDIO SCHEDULING] No se puede usar archivo, usando síntesis');
+        }
+      }
+
+      // Opción 2: Síntesis de tono tibetano (siempre funciona)
+      const frequencies = [174.61, 349.23, 523.25];
+      const attackTime = 0.05;
+      const decayTime = 1.5;
+
+      frequencies.forEach((freq) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        osc.detune.value = 2; // +2 cents detune
+
+        // Ganancia: silencio → máximo → decay exponencial
+        gain.gain.setValueAtTime(0.001, completionTime); // Inicia silencioso
+        gain.gain.linearRampToValueAtTime(0.15, completionTime + attackTime); // Attack
+        gain.gain.exponentialRampToValueAtTime(0.001, completionTime + attackTime + decayTime); // Decay
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        // Programar exactamente en completionTime (reloj de hardware, NO JS)
+        osc.start(completionTime);
+        osc.stop(completionTime + attackTime + decayTime);
+      });
+
+      console.log('[AUDIO SCHEDULING] Sonido programado en hardware ✓ (se ejecutará aunque JS esté congelado)');
+    } catch (error) {
+      console.error('[AUDIO SCHEDULING] Error programando audio:', error);
+    }
+  };
+
   // Fallback: Síntesis de tono con Web Audio API (funciona si fue desbloqueado)
   const playWebAudioChime = () => {
     try {
@@ -373,9 +444,13 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
       // Al iniciar, establecer endTime absoluto basado en Date.now()
       if (!endTimeRef.current) {
         endTimeRef.current = Date.now() + timeLeft * 1000;
+
+        // ARQUITECTURA CRÍTICA: Programar audio en Web Audio API (reloj de hardware)
+        // Esto se ejecutará INCLUSO si JS se congela en background
+        scheduleAudioCompletion(timeLeft);
       }
 
-      // Tick cada 250ms para mayor precisión
+      // Tick cada 250ms para mayor precisión (solo para UI, no para audio)
       interval = setInterval(() => {
         const now = Date.now();
         const remaining = Math.max(0, Math.ceil((endTimeRef.current - now) / 1000));
