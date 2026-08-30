@@ -17,6 +17,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   const audioContextRef = useRef(null);
   const hasSoundPlayedRef = useRef(false);
   const wakeLockRef = useRef(null);
+  const endTimeRef = useRef(null);
 
   const guide = {
     title: activity.title,
@@ -88,10 +89,68 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
 
       // Solicitar Wake Lock al iniciar
       await requestWakeLock();
+
+      // Inicializar Media Session API para audio en segundo plano
+      initMediaSession();
     } catch (error) {
       console.warn('[AUDIO] Error unlocking audio context:', error);
     }
   };
+
+  // Media Session API - Control de reproducción en segundo plano
+  const initMediaSession = () => {
+    try {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: guide.title,
+          artist: 'Postpartum Recovery',
+          album: 'Cuerpo y Calma',
+          artwork: [
+            {
+              src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect fill="%23D946EF" width="96" height="96"/></svg>',
+              sizes: '96x96',
+              type: 'image/svg+xml'
+            }
+          ]
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => {
+          setIsRunning(true);
+        });
+
+        navigator.mediaSession.setActionHandler('pause', () => {
+          setIsRunning(false);
+        });
+
+        navigator.mediaSession.setActionHandler('stop', () => {
+          setIsRunning(false);
+        });
+
+        console.log('[MEDIA SESSION] Inicializada para audio en segundo plano');
+      }
+    } catch (error) {
+      console.warn('[MEDIA SESSION] Error inicializando:', error);
+    }
+  };
+
+  // Actualizar Media Session con tiempo restante
+  useEffect(() => {
+    try {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = isRunning ? 'playing' : 'paused';
+
+        if (navigator.mediaSession.setPositionState) {
+          navigator.mediaSession.setPositionState({
+            duration: parseInt(activity.duration.split('-')[0]) * 60,
+            playbackRate: 1,
+            position: Math.max(0, parseInt(activity.duration.split('-')[0]) * 60 - timeLeft)
+          });
+        }
+      }
+    } catch (error) {
+      console.warn('[MEDIA SESSION] Error actualizando:', error);
+    }
+  }, [isRunning, timeLeft, activity.duration]);
 
   // Síntesis exacta: Cuenco tibetano de 8 segundos
   const playTimerChime = () => {
@@ -204,22 +263,33 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  // Timer logic
+  // Timer logic basado en timestamp absoluto (previene congelamiento en bloqueo)
   useEffect(() => {
     let interval;
-    if (isRunning && timeLeft > 0) {
+    if (isRunning) {
+      // Al iniciar, establecer endTime absoluto basado en Date.now()
+      if (!endTimeRef.current) {
+        endTimeRef.current = Date.now() + timeLeft * 1000;
+      }
+
+      // Tick cada 250ms para mayor precisión
       interval = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            setIsRunning(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+        const now = Date.now();
+        const remaining = Math.max(0, Math.ceil((endTimeRef.current - now) / 1000));
+
+        setTimeLeft(remaining);
+
+        if (remaining === 0) {
+          setIsRunning(false);
+          endTimeRef.current = null;
+        }
+      }, 250);
+    } else {
+      endTimeRef.current = null;
     }
+
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft]);
+  }, [isRunning]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
