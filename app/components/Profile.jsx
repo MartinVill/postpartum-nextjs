@@ -36,9 +36,18 @@ const BackButton = ({ onClick }) => (
 
 export default function Profile({ userProfile, onBack }) {
   const [activeSubView, setActiveSubView] = useState(null);
-  const [draftProfile, setDraftProfile] = useState(userProfile);
+  const [draftProfile, setDraftProfile] = useState(() => ({
+    name: userProfile?.name || '',
+    surname: userProfile?.surname || '',
+    email: userProfile?.email || '',
+    babyBirthDate: userProfile?.babyBirthDate || '',
+    hobbies: userProfile?.hobbies || ['Yoga', 'Lectura'],
+    avatar: userProfile?.avatar || null
+  }));
   const fileInputRef = useRef(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [newHobby, setNewHobby] = useState('');
+  const [openFAQ, setOpenFAQ] = useState(null);
   const containerRef = useRef(null);
   const [notifications, setNotifications] = useState({
     dailyRoutine: true,
@@ -59,6 +68,19 @@ export default function Profile({ userProfile, onBack }) {
       containerRef.current.scrollTop = 0;
     }
   }, [activeSubView]);
+
+  useEffect(() => {
+    if (userProfile) {
+      setDraftProfile({
+        name: userProfile.name || '',
+        surname: userProfile.surname || '',
+        email: userProfile.email || '',
+        babyBirthDate: userProfile.babyBirthDate || '',
+        hobbies: userProfile.hobbies || ['Yoga', 'Lectura'],
+        avatar: userProfile.avatar || null
+      });
+    }
+  }, [userProfile]);
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -488,7 +510,6 @@ export default function Profile({ userProfile, onBack }) {
   // ============ EDITAR PERFIL ============
   if (activeSubView === 'EDIT_PROFILE') {
     const suggestedHobbies = ['Yoga', 'Lectura', 'Caminatas', 'Meditación', 'Cocina', 'Pilates', 'Danza', 'Arte'];
-    const [newHobby, setNewHobby] = useState('');
     const hobbyList = draftProfile?.hobbies || [];
 
     return (
@@ -515,7 +536,15 @@ export default function Profile({ userProfile, onBack }) {
           borderBottom: '1px solid rgba(0,0,0,0.05)'
         }}>
           <BackButton onClick={() => {
-            setDraftProfile(userProfile);
+            setDraftProfile({
+              name: userProfile?.name || '',
+              surname: userProfile?.surname || '',
+              email: userProfile?.email || '',
+              babyBirthDate: userProfile?.babyBirthDate || '',
+              hobbies: userProfile?.hobbies || ['Yoga', 'Lectura'],
+              avatar: userProfile?.avatar || null
+            });
+            setNewHobby('');
             setActiveSubView(null);
           }} />
           <h1 style={{
@@ -1245,8 +1274,6 @@ export default function Profile({ userProfile, onBack }) {
 
   // ============ SOPORTE ============
   if (activeSubView === 'SUPPORT') {
-    const [openFAQ, setOpenFAQ] = useState(null);
-
     const faqs = [
       {
         q: '¿Cómo cambio mis datos personales?',
