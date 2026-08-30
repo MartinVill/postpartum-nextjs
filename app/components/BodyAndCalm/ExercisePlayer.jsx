@@ -1,52 +1,8 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 
-// Data URI de sonido de campana meditativa (WAV sin compresión, ~2KB)
-const CHIME_SOUND = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==';
-
-// Crear Web Worker inline para timers en background (no se congela con pantalla bloqueada)
-const createBackgroundWorker = () => {
-  const workerCode = `
-    let startTime = null;
-    let duration = null;
-    let isRunning = false;
-
-    self.onmessage = (event) => {
-      const { command, duration: dur } = event.data;
-
-      if (command === 'start') {
-        startTime = performance.now();
-        duration = dur * 1000; // Convertir a ms
-        isRunning = true;
-
-        // Enviar ticks cada 100ms (4x más preciso que 250ms)
-        const ticker = setInterval(() => {
-          if (!isRunning) {
-            clearInterval(ticker);
-            return;
-          }
-
-          const elapsed = performance.now() - startTime;
-          const remaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
-
-          self.postMessage({ tick: remaining, elapsed });
-
-          if (remaining === 0) {
-            isRunning = false;
-            self.postMessage({ completed: true });
-            clearInterval(ticker);
-          }
-        }, 100);
-      } else if (command === 'stop') {
-        isRunning = false;
-      }
-    };
-  `;
-
-  const blob = new Blob([workerCode], { type: 'application/javascript' });
-  const workerUrl = URL.createObjectURL(blob);
-  return new Worker(workerUrl);
-};
+// Audio HTML5 simple - reproduce directamente chime.mp3
+const chimeAudio = typeof window !== 'undefined' ? new Audio('/sounds/chime.mp3') : null;
 
 // Las instrucciones se cargan dinámicamente desde la actividad seleccionada
 
@@ -62,9 +18,6 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   const hasSoundPlayedRef = useRef(false);
   const wakeLockRef = useRef(null);
   const endTimeRef = useRef(null);
-  const chimeAudioRef = useRef(null);
-  const backgroundWorkerRef = useRef(null);
-  const silentAudioLoopRef = useRef(null);
 
   const guide = {
     title: activity.title,
@@ -113,29 +66,13 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isRunning]);
 
-  // Inicializar Audio Element para cuenco tibetano (garantizado en background)
-  useEffect(() => {
-    if (!chimeAudioRef.current && typeof window !== 'undefined') {
-      try {
-        // Usar archivo MP3 de cuenco tibetano desde CDN (garantizado en background)
-        // O usar /sounds/chime.wav local si está disponible
-        chimeAudioRef.current = new Audio('/sounds/chime.wav');
-        chimeAudioRef.current.preload = 'auto';
-        chimeAudioRef.current.volume = 1.0;
-        console.log('[AUDIO] HTMLAudioElement inicializado para reproducción en background');
-      } catch (err) {
-        console.warn('[AUDIO] Error inicializando HTMLAudioElement:', err);
-      }
-    }
-  }, []);
-
-  // Cleanup: Liberar Wake Lock y audio al desmontar el componente
+  // Cleanup: Liberar Wake Lock al desmontar el componente
   useEffect(() => {
     return () => {
       releaseWakeLock();
-      if (chimeAudioRef.current) {
-        chimeAudioRef.current.pause();
-        chimeAudioRef.current.currentTime = 0;
+      if (chimeAudio) {
+        chimeAudio.pause();
+        chimeAudio.currentTime = 0;
       }
     };
   }, []);
@@ -231,57 +168,37 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     }
   };
 
-  // Función para desbloquear audio context y solicitar Wake Lock
+  // Función para desbloquear audio y solicitar permisos
   const unlockAudio = async () => {
     try {
-      // 1. Desbloquear AudioContext
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (AudioContext) {
-        if (!audioContextRef.current) {
-          audioContextRef.current = new AudioContext();
-        }
-
-        if (audioContextRef.current.state === 'suspended') {
-          audioContextRef.current.resume();
-          console.log('[AUDIO] AudioContext resumido desde suspended');
-        }
+      // Desbloquear audio HTML5 al hacer clic (gesto del usuario)
+      if (chimeAudio) {
+        chimeAudio.volume = 0;
+        chimeAudio.load();
+        await chimeAudio.play().catch(() => {});
+        chimeAudio.pause();
+        chimeAudio.currentTime = 0;
+        chimeAudio.volume = 1.0;
+        console.log('[AUDIO] Desbloqueo de audio completado');
       }
 
-      // 2. Desbloquear HTMLAudioElement reproduciendo en silencio
-      if (chimeAudioRef.current) {
-        chimeAudioRef.current.volume = 0.001; // Casi inaudible
-        const silentPlayPromise = chimeAudioRef.current.play();
-
-        if (silentPlayPromise !== undefined) {
-          silentPlayPromise
-            .then(() => {
-              console.log('[AUDIO] Canal de audio desbloqueado silenciosamente');
-              // Parar inmediatamente
-              chimeAudioRef.current.pause();
-              chimeAudioRef.current.currentTime = 0;
-              chimeAudioRef.current.volume = 1.0;
-            })
-            .catch((error) => {
-              console.warn('[AUDIO] Desbloqueo silencioso falló:', error);
-              // Reintentar con volumen 0
-              chimeAudioRef.current.muted = true;
-              chimeAudioRef.current.play().catch(e => console.warn('[AUDIO] Fallback muted:', e));
-            });
-        }
+      // Solicitar permisos de notificación
+      if ('Notification' in window && Notification.permission === 'default') {
+        await Notification.requestPermission();
+        console.log('[NOTIFICATION] Permisos solicitados');
       }
 
-      // 3. Solicitar Wake Lock al iniciar
+      // Solicitar Wake Lock
       await requestWakeLock();
 
-      // 4. Inicializar Media Session API para audio en segundo plano
+      // Inicializar Media Session
       initMediaSession();
 
-      // 5. Forzar playbackState a 'playing' para activar procesamiento en background
       if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
       }
     } catch (error) {
-      console.warn('[AUDIO] Error unlocking audio context:', error);
+      console.warn('[AUDIO] Error:', error);
     }
   };
 
@@ -536,30 +453,26 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     if (timeLeft === 0 && !hasSoundPlayedRef.current) {
       hasSoundPlayedRef.current = true;
       setIsRunning(false);
-      stopSilentAudioLoop();
-      stopBackgroundTimer();
 
-      // Reproducir audio nativo HTML5
-      if (chimeAudioRef.current) {
-        chimeAudioRef.current.currentTime = 0;
-        chimeAudioRef.current.volume = 1.0;
-        chimeAudioRef.current.play().catch(() => {
-          console.warn('[AUDIO] Play falló, intentando fallback');
-        });
+      // Reproducir audio nativo HTML5 simple
+      if (chimeAudio) {
+        chimeAudio.currentTime = 0;
+        chimeAudio.volume = 1.0;
+        chimeAudio.play().catch(() => console.warn('[AUDIO] Play falló'));
       }
 
       // Vibración táctil
       triggerVibration();
-      setTimeout(() => triggerVibration(), 100); // Doble pulso
+      setTimeout(() => triggerVibration(), 100);
 
-      // Notificación nativa del sistema (más confiable en background)
+      // Notificación nativa del sistema operativo
       showNativeNotification();
 
       if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'paused';
       }
 
-      console.log('[COMPLETION] Ejercicio finalizado con audio, vibración y notificación');
+      console.log('[COMPLETION] Ejercicio finalizado');
     }
   }, [timeLeft]);
 
@@ -605,51 +518,29 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  // Timer logic con 3 capas de protección
+  // Timer simple basado en timestamp absoluto
   useEffect(() => {
     let interval;
     if (isRunning) {
-      // Al iniciar, establecer configuración inicial
       if (!endTimeRef.current) {
         endTimeRef.current = Date.now() + timeLeft * 1000;
-
-        // CAPA 1: Programar audio en Web Audio API (reloj de hardware)
-        scheduleAudioCompletion(timeLeft);
-
-        // CAPA 2: Iniciar bucle de audio silencioso (mantiene app viva en iOS)
-        startSilentAudioLoop();
-
-        // CAPA 3: Iniciar Web Worker para timer en background
-        startBackgroundTimer(timeLeft);
       }
 
-      // Timer principal: timestamp absoluto (fallback si Web Worker falla)
       interval = setInterval(() => {
         const now = Date.now();
         const remaining = Math.max(0, Math.ceil((endTimeRef.current - now) / 1000));
-
         setTimeLeft(remaining);
 
         if (remaining === 0) {
           setIsRunning(false);
           endTimeRef.current = null;
-          stopBackgroundTimer();
-          stopSilentAudioLoop();
         }
       }, 250);
     } else {
       endTimeRef.current = null;
-      stopBackgroundTimer();
-      stopSilentAudioLoop();
     }
 
-    return () => {
-      clearInterval(interval);
-      if (!isRunning) {
-        stopBackgroundTimer();
-        stopSilentAudioLoop();
-      }
-    };
+    return () => clearInterval(interval);
   }, [isRunning]);
 
   const formatTime = (seconds) => {
