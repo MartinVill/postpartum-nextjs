@@ -10,6 +10,7 @@ import DailyChallenge from './components/DailyChallenge';
 import BodyAndCalmModule from './components/BodyAndCalm/BodyAndCalmModule';
 import BottomNavigationBar from './components/BottomNavigationBar';
 import HomeGrid from './components/HomeGrid';
+import Profile from './components/Profile';
 
 export default function Home() {
   const [state, setState] = useState({
@@ -21,6 +22,7 @@ export default function Home() {
     showCalendar: false,
     showBodyAndCalm: false,
     showReto: false,
+    showProfile: false,
     activeTab: 'home',
     energyScore: null,
     lastCheckInDate: null,
@@ -46,8 +48,18 @@ export default function Home() {
         localStorage.setItem('userId', userId);
       }
 
-      const profileJson = localStorage.getItem('userProfile');
-      const userProfile = profileJson ? JSON.parse(profileJson) : null;
+      let profileJson = localStorage.getItem('userProfile');
+      let userProfile = profileJson ? JSON.parse(profileJson) : null;
+
+      if (userProfile && !userProfile.trialStartDate) {
+        userProfile = {
+          ...userProfile,
+          trialStartDate: new Date().toISOString(),
+          email: userProfile.email || 'mama@postpartumrecovery.app'
+        };
+        localStorage.setItem('userProfile', JSON.stringify(userProfile));
+      }
+
       const today = new Date().toDateString();
       const lastCheckInDate = localStorage.getItem('lastCheckInDate');
 
@@ -116,6 +128,30 @@ export default function Home() {
 
   // Pantalla 2: Si hay energía seleccionada
   if (state.energyScore) {
+    // Sub-pantalla: Mi Perfil
+    if (state.showProfile) {
+      return (
+        <div style={{ paddingBottom: '70px' }}>
+          <Profile
+            userProfile={state.userProfile}
+            onBack={() => setState(prev => ({ ...prev, showProfile: false, activeTab: 'home' }))}
+          />
+          <BottomNavigationBar
+            activeTab={state.activeTab}
+            onTabChange={(tab) => {
+              if (tab === 'profile') {
+                setState(prev => ({ ...prev, showProfile: true, activeTab: 'profile' }));
+              } else if (tab === 'home') {
+                setState(prev => ({ ...prev, showProfile: false, activeTab: 'home' }));
+              } else if (tab === 'calendar') {
+                setState(prev => ({ ...prev, showProfile: false, showCalendar: true, activeTab: 'calendar' }));
+              }
+            }}
+          />
+        </div>
+      );
+    }
+
     // Sub-pantalla: Chat
     if (state.showChat) {
       return (
@@ -265,6 +301,8 @@ export default function Home() {
             setState(prev => ({ ...prev, activeTab: tab }));
             if (tab === 'calendar') {
               setState(prev => ({ ...prev, showCalendar: true }));
+            } else if (tab === 'profile') {
+              setState(prev => ({ ...prev, showProfile: true }));
             }
           }}
         />
