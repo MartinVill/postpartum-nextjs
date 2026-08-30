@@ -1,6 +1,9 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 
+// Data URI de sonido de campana meditativa (WAV sin compresión, ~2KB)
+const CHIME_SOUND = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==';
+
 // Las instrucciones se cargan dinámicamente desde la actividad seleccionada
 
 export default function ExercisePlayer({ activity, onComplete, onBack }) {
@@ -10,8 +13,9 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   const [selectedMood, setSelectedMood] = useState(null);
   const [phase, setPhase] = useState('inhale');
   const [scale, setScale] = useState(1);
-  const audioContextRef = useRef(null);
-  const [audioUnlocked, setAudioUnlocked] = useState(false);
+
+  const audioRef = useRef(null);
+  const hasSoundPlayedRef = useRef(false);
 
   const guide = {
     title: activity.title,
@@ -19,61 +23,60 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     type: activity.type || 'breathing'
   };
 
-  // Función para desbloquear audio context
+  // Inicializar audio element
+  useEffect(() => {
+    if (!audioRef.current && typeof window !== 'undefined') {
+      audioRef.current = new Audio();
+      audioRef.current.src = '/sounds/chime.wav';
+      audioRef.current.volume = 1.0;
+      audioRef.current.preload = 'auto';
+    }
+  }, []);
+
+  // Función para desbloquear audio (autoplay unlock en iOS/Android)
   const unlockAudio = () => {
-    if (audioUnlocked) return;
+    if (!audioRef.current) return;
 
     try {
-      if (!audioContextRef.current) {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        audioContextRef.current = audioContext;
-      }
+      // Reproducir y pausar inmediatamente para desbloquear autoplay
+      audioRef.current.currentTime = 0;
+      const playPromise = audioRef.current.play();
 
-      if (audioContextRef.current.state === 'suspended') {
-        audioContextRef.current.resume();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+          })
+          .catch((error) => {
+            console.warn('[AUDIO] Unlock play failed:', error);
+          });
+      } else {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
       }
-
-      setAudioUnlocked(true);
     } catch (error) {
-      console.warn('[AUDIO] Error unlocking audio context:', error);
+      console.warn('[AUDIO] Error unlocking audio:', error);
     }
   };
 
-  // Función para generar sonido de campana (cuenco tibetano)
+  // Función para reproducir sonido de campana
   const playTimerChime = () => {
+    if (!audioRef.current) return;
+
     try {
-      if (!audioContextRef.current) {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        audioContextRef.current = audioContext;
+      audioRef.current.currentTime = 0;
+      audioRef.current.volume = 1.0;
+
+      const playPromise = audioRef.current.play();
+
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.error('[AUDIO] Failed to play chime:', error);
+        });
       }
-
-      const ctx = audioContextRef.current;
-      const now = ctx.currentTime;
-      const duration = 3; // 3 segundos de decay
-
-      // Crear múltiples osciladores para sonido más complejo (armónicos)
-      const frequencies = [432, 540, 648]; // Frecuencias armónicas (fundamentales)
-
-      frequencies.forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.frequency.value = freq;
-        osc.type = 'sine';
-
-        // Volumen máximo al inicio
-        gain.gain.setValueAtTime(0.15 / frequencies.length, now);
-        // Decay gradual durante duration segundos
-        gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(now);
-        osc.stop(now + duration);
-      });
     } catch (error) {
-      console.warn('[AUDIO] Error playing timer chime:', error);
+      console.error('[AUDIO] Error playing timer chime:', error);
     }
   };
 
@@ -81,24 +84,22 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   const triggerVibration = () => {
     if ('vibrate' in navigator) {
       try {
-        navigator.vibrate([300, 200, 500]); // Patrón: 300ms vibración, 200ms pausa, 500ms vibración
+        navigator.vibrate([300, 200, 500]);
       } catch (error) {
         console.warn('[VIBRATION] Error triggering vibration:', error);
       }
     }
   };
 
-  // Efecto para cuando el temporizador llega a 0
+  // Effect para cuando el temporizador llega a 0
   useEffect(() => {
-    if (timeLeft === 0 && isRunning) {
-      // Detener temporizador
+    if (timeLeft === 0 && !hasSoundPlayedRef.current) {
+      hasSoundPlayedRef.current = true;
       setIsRunning(false);
-
-      // Reproducir sonido y vibración
       playTimerChime();
       triggerVibration();
     }
-  }, [timeLeft, isRunning]);
+  }, [timeLeft]);
 
   // Ciclo respiratorio (4 segundos por fase)
   useEffect(() => {
@@ -166,6 +167,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   };
 
   const handleReset = () => {
+    hasSoundPlayedRef.current = false;
     setTimeLeft(parseInt(activity.duration.split('-')[0]) * 60);
     setIsRunning(false);
     setScale(1);
