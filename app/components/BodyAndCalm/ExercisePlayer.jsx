@@ -335,22 +335,23 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
 
   return (
     <div style={{
-      minHeight: '100vh',
+      height: '100vh',
       background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
-      padding: '20px 16px',
+      padding: '12px 12px 8px 12px',
       maxWidth: '600px',
       margin: '0 auto',
       display: 'flex',
       flexDirection: 'column',
-      position: 'relative'
+      position: 'relative',
+      overflow: 'hidden'
     }}>
       {/* Header con botón simétrico y título centrado */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: '24px',
-        paddingTop: '12px',
+        marginBottom: '8px',
+        paddingTop: '6px',
         gap: '12px'
       }}>
         {/* Botón Volver - Lado izquierdo */}
@@ -359,12 +360,12 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
           style={{
             background: 'white',
             border: 'none',
-            padding: '8px',
+            padding: '6px',
             borderRadius: '50%',
             cursor: 'pointer',
-            width: '40px',
-            height: '40px',
-            minWidth: '40px',
+            width: '36px',
+            height: '36px',
+            minWidth: '36px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -381,12 +382,12 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
             e.target.style.background = 'white';
           }}
         >
-          <span style={{ fontSize: '24px', color: '#D946EF', fontWeight: 'bold' }}>&lt;</span>
+          <span style={{ fontSize: '20px', color: '#D946EF', fontWeight: 'bold' }}>&lt;</span>
         </button>
 
         {/* Título centrado - Centro (permite 2 líneas) */}
         <h2 style={{
-          fontSize: '16px',
+          fontSize: '14px',
           fontWeight: '700',
           color: '#D946EF',
           margin: '0',
@@ -395,7 +396,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
           minWidth: '0',
           paddingLeft: '8px',
           paddingRight: '8px',
-          lineHeight: '1.3',
+          lineHeight: '1.2',
           display: '-webkit-box',
           WebkitBoxOrient: 'vertical',
           WebkitLineClamp: 2,
@@ -406,8 +407,8 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
 
         {/* Espaciador invisible - Lado derecho */}
         <div style={{
-          width: '40px',
-          minWidth: '40px',
+          width: '36px',
+          minWidth: '36px',
           flexShrink: 0
         }} />
       </div>
@@ -419,15 +420,16 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: '24px',
-        marginBottom: '24px'
+        gap: '12px',
+        marginBottom: '12px',
+        minHeight: '0'
       }}>
         {/* BREATHING: Círculo respiratorio animado */}
         {guide.type === 'breathing' && (
         <div style={{
           position: 'relative',
-          width: '180px',
-          height: '180px',
+          width: '140px',
+          height: '140px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
@@ -440,28 +442,28 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
               height: '100%',
               transform: `scale(${scale})`,
               transition: 'transform 0.1s linear',
-              filter: 'drop-shadow(0 8px 24px rgba(217, 70, 239, 0.2))'
+              filter: 'drop-shadow(0 4px 16px rgba(217, 70, 239, 0.15))'
             }}
-            viewBox="0 0 180 180"
+            viewBox="0 0 140 140"
           >
             <circle
-              cx="90"
-              cy="90"
-              r="80"
+              cx="70"
+              cy="70"
+              r="60"
               fill="none"
               stroke="#D946EF"
               strokeWidth="3"
               opacity="0.3"
             />
             <circle
-              cx="90"
-              cy="90"
-              r="80"
+              cx="70"
+              cy="70"
+              r="60"
               fill="none"
               stroke="#D946EF"
               strokeWidth="3"
-              strokeDasharray="502.4"
-              strokeDashoffset={phase === 'inhale' ? 502.4 * (1 - scale / 1.35) : 502.4 * ((1.35 - scale) / 0.5)}
+              strokeDasharray="376.99"
+              strokeDashoffset={phase === 'inhale' ? 376.99 * (1 - scale / 1.35) : 376.99 * ((1.35 - scale) / 0.5)}
               opacity="0.8"
               style={{
                 transition: 'stroke-dashoffset 0.1s linear'
@@ -472,26 +474,26 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
           {/* Círculo central relleno con texto dinámico */}
           <div
             style={{
-              width: '140px',
-              height: '140px',
+              width: '110px',
+              height: '110px',
               borderRadius: '50%',
               background: '#F3E8FF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexDirection: 'column',
-              gap: '8px',
+              gap: '4px',
               transform: `scale(${scale})`,
               transition: 'transform 0.1s linear',
               zIndex: 10
             }}
           >
             <div style={{
-              fontSize: '28px',
+              fontSize: '22px',
               fontWeight: '700',
               color: '#7C3AED',
               textAlign: 'center',
-              letterSpacing: '1px'
+              letterSpacing: '0.5px'
             }}>
               {phaseText[phase]}
             </div>
@@ -506,21 +508,22 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '20px'
+          gap: '12px'
         }}>
           <div style={{
-            fontSize: '24px',
+            fontSize: '18px',
             fontWeight: '700',
             color: '#D946EF',
-            textAlign: 'center'
+            textAlign: 'center',
+            lineHeight: '1.2'
           }}>
             {guide.type === 'stretch' ? 'Lado Izquierdo / Lado Derecho' : 'Fase Activa / Descanso'}
           </div>
           <div style={{
             width: '100%',
-            height: '12px',
+            height: '10px',
             background: '#E5E7EB',
-            borderRadius: '6px',
+            borderRadius: '5px',
             overflow: 'hidden'
           }}>
             <div style={{
@@ -540,10 +543,10 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '20px'
+          gap: '12px'
         }}>
           <div style={{
-            fontSize: '16px',
+            fontSize: '13px',
             fontWeight: '600',
             color: '#6B7280',
             textAlign: 'center'
@@ -576,11 +579,12 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
 
         {/* Temporizador grande (visible para todos) */}
         <div style={{
-          fontSize: '48px',
+          fontSize: '40px',
           fontWeight: '700',
           color: '#D946EF',
           fontFamily: 'monospace',
-          letterSpacing: '2px'
+          letterSpacing: '1px',
+          margin: '4px 0'
         }}>
           {formatTime(timeLeft)}
         </div>
@@ -589,7 +593,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
         <div style={{
           background: 'white',
           borderRadius: '12px',
-          padding: '20px',
+          padding: '12px 14px',
           width: '100%',
           border: '1px solid #E5E7EB'
         }}>
@@ -597,10 +601,10 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
             <p
               key={idx}
               style={{
-                fontSize: '16px',
+                fontSize: '13px',
                 color: '#111827',
-                margin: idx === guide.instructions.length - 1 ? '0' : '0 0 12px 0',
-                lineHeight: '1.6',
+                margin: idx === guide.instructions.length - 1 ? '0' : '0 0 8px 0',
+                lineHeight: '1.5',
                 fontWeight: '400',
                 textAlign: 'left'
               }}
@@ -616,17 +620,17 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: '24px',
-        marginBottom: '16px'
+        gap: '16px',
+        marginBottom: '8px'
       }}>
         {/* Botón Reiniciar - Circular con SVG */}
         <button
           onClick={handleReset}
           style={{
-            width: '56px',
-            height: '56px',
-            minWidth: '56px',
-            minHeight: '56px',
+            width: '48px',
+            height: '48px',
+            minWidth: '48px',
+            minHeight: '48px',
             background: '#F3F4F6',
             border: '1px solid #E5E7EB',
             borderRadius: '50%',
@@ -661,10 +665,10 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
             setIsRunning(!isRunning);
           }}
           style={{
-            width: '72px',
-            height: '72px',
-            minWidth: '72px',
-            minHeight: '72px',
+            width: '60px',
+            height: '60px',
+            minWidth: '60px',
+            minHeight: '60px',
             background: '#D946EF',
             border: 'none',
             borderRadius: '50%',
@@ -672,7 +676,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '28px',
+            fontSize: '24px',
             transition: 'all 0.2s',
             boxShadow: '0 4px 12px rgba(217, 70, 239, 0.3)',
             color: 'white'
@@ -695,16 +699,17 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
         onClick={handleComplete}
         style={{
           width: '100%',
-          padding: '14px',
+          padding: '10px 12px',
           background: '#10B981',
           border: 'none',
           borderRadius: '50px',
           cursor: 'pointer',
           fontWeight: '700',
-          fontSize: '15px',
+          fontSize: '14px',
           color: 'white',
           transition: 'all 0.2s',
-          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)',
+          flexShrink: 0
         }}
         onMouseEnter={(e) => {
           e.target.style.background = '#059669';
