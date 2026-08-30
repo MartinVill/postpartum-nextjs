@@ -14,7 +14,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   const [phase, setPhase] = useState('inhale');
   const [scale, setScale] = useState(1);
 
-  const audioRef = useRef(null);
+  const audioContextRef = useRef(null);
   const hasSoundPlayedRef = useRef(false);
 
   const guide = {
@@ -23,68 +23,77 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     type: activity.type || 'breathing'
   };
 
-  // Inicializar audio element
-  useEffect(() => {
-    if (!audioRef.current && typeof window !== 'undefined') {
-      audioRef.current = new Audio();
-      audioRef.current.src = '/sounds/chime.wav';
-      audioRef.current.volume = 1.0;
-      audioRef.current.preload = 'auto';
-    }
-  }, []);
-
-  // Función para desbloquear audio (autoplay unlock en iOS/Android)
+  // Función para desbloquear audio context
   const unlockAudio = () => {
-    if (!audioRef.current) return;
-
     try {
-      // Reproducir y pausar inmediatamente para desbloquear autoplay
-      audioRef.current.currentTime = 0;
-      const playPromise = audioRef.current.play();
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
 
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-          })
-          .catch((error) => {
-            console.warn('[AUDIO] Unlock play failed:', error);
-          });
-      } else {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContext();
+      }
+
+      if (audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume();
       }
     } catch (error) {
-      console.warn('[AUDIO] Error unlocking audio:', error);
+      console.warn('[AUDIO] Error unlocking audio context:', error);
     }
   };
 
-  // Función para reproducir sonido de campana
+  // Síntesis exacta: Cuenco tibetano de 8 segundos
   const playTimerChime = () => {
-    if (!audioRef.current) return;
-
     try {
-      audioRef.current.currentTime = 0;
-      audioRef.current.volume = 1.0;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
 
-      const playPromise = audioRef.current.play();
+      const ctx = audioContextRef.current || new AudioContext();
+      audioContextRef.current = ctx;
 
-      if (playPromise !== undefined) {
-        playPromise.catch((error) => {
-          console.error('[AUDIO] Failed to play chime:', error);
-        });
+      if (ctx.state === 'suspended') {
+        ctx.resume();
       }
+
+      const now = ctx.currentTime;
+      const duration = 8.0; // 8 segundos exactos de resonancia
+
+      // Master Gain para volumen máximo
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(0.8, now);
+      // Caída exponencial suave durante 8 segundos sin cortes abruptos
+      masterGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      masterGain.connect(ctx.destination);
+
+      // Frecuencia fundamental del cuenco tibetano (F3 ~ 174 Hz) y armónico puro
+      const freqs = [174.61, 349.23, 523.25];
+      freqs.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+
+        // Ligero 'detune' para crear el pulso/batimiento característico del cuenco
+        if (idx === 0) osc.detune.setValueAtTime(2, now);
+
+        gain.gain.setValueAtTime(1 / freqs.length, now);
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      });
     } catch (error) {
-      console.error('[AUDIO] Error playing timer chime:', error);
+      console.error('[AUDIO] Error al reproducir el chime:', error);
     }
   };
 
-  // Función para vibración táctil
+  // Función para vibración táctil intensa
   const triggerVibration = () => {
     if ('vibrate' in navigator) {
       try {
-        navigator.vibrate([300, 200, 500]);
+        // Patrón intenso de vibración: 4 pulsos progresivos
+        navigator.vibrate([400, 150, 400, 150, 500, 200, 600]);
       } catch (error) {
         console.warn('[VIBRATION] Error triggering vibration:', error);
       }
