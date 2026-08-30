@@ -18,6 +18,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   const hasSoundPlayedRef = useRef(false);
   const wakeLockRef = useRef(null);
   const endTimeRef = useRef(null);
+  const chimeAudioRef = useRef(null);
 
   const guide = {
     title: activity.title,
@@ -66,10 +67,30 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isRunning]);
 
-  // Cleanup: Liberar Wake Lock al desmontar el componente
+  // Inicializar Audio Element para cuenco tibetano (garantizado en background)
+  useEffect(() => {
+    if (!chimeAudioRef.current && typeof window !== 'undefined') {
+      try {
+        // Usar archivo MP3 de cuenco tibetano desde CDN (garantizado en background)
+        // O usar /sounds/chime.wav local si está disponible
+        chimeAudioRef.current = new Audio('/sounds/chime.wav');
+        chimeAudioRef.current.preload = 'auto';
+        chimeAudioRef.current.volume = 1.0;
+        console.log('[AUDIO] HTMLAudioElement inicializado para reproducción en background');
+      } catch (err) {
+        console.warn('[AUDIO] Error inicializando HTMLAudioElement:', err);
+      }
+    }
+  }, []);
+
+  // Cleanup: Liberar Wake Lock y audio al desmontar el componente
   useEffect(() => {
     return () => {
       releaseWakeLock();
+      if (chimeAudioRef.current) {
+        chimeAudioRef.current.pause();
+        chimeAudioRef.current.currentTime = 0;
+      }
     };
   }, []);
 
@@ -152,50 +173,40 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     }
   }, [isRunning, timeLeft, activity.duration]);
 
-  // Síntesis exacta: Cuenco tibetano de 8 segundos
+  // Reproducir cuenco tibetano usando HTMLAudioElement (garantizado en background)
   const playTimerChime = () => {
     try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-
-      const ctx = audioContextRef.current || new AudioContext();
-      audioContextRef.current = ctx;
-
-      if (ctx.state === 'suspended') {
-        ctx.resume();
+      if (!chimeAudioRef.current) {
+        console.warn('[AUDIO] Audio element no inicializado');
+        return;
       }
 
-      const now = ctx.currentTime;
-      const duration = 8.0; // 8 segundos exactos de resonancia
+      // Reset audio para asegurar reproducción desde el inicio
+      chimeAudioRef.current.currentTime = 0;
+      chimeAudioRef.current.volume = 1.0;
 
-      // Master Gain para volumen máximo
-      const masterGain = ctx.createGain();
-      masterGain.gain.setValueAtTime(0.8, now);
-      // Caída exponencial suave durante 8 segundos sin cortes abruptos
-      masterGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-      masterGain.connect(ctx.destination);
+      // Intentar reproducir, con fallback silencioso si falla
+      const playPromise = chimeAudioRef.current.play();
 
-      // Frecuencia fundamental del cuenco tibetano (F3 ~ 174 Hz) y armónico puro
-      const freqs = [174.61, 349.23, 523.25];
-      freqs.forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, now);
-
-        // Ligero 'detune' para crear el pulso/batimiento característico del cuenco
-        if (idx === 0) osc.detune.setValueAtTime(2, now);
-
-        gain.gain.setValueAtTime(1 / freqs.length, now);
-        osc.connect(gain);
-        gain.connect(masterGain);
-
-        osc.start(now);
-        osc.stop(now + duration);
-      });
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('[AUDIO] Cuenco tibetano reproduciendo...');
+          })
+          .catch((error) => {
+            console.warn('[AUDIO] Error reproduciendo audio:', error);
+            // Intentar de nuevo después de 200ms
+            setTimeout(() => {
+              try {
+                chimeAudioRef.current?.play();
+              } catch (e) {
+                console.warn('[AUDIO] Reintento fallido:', e);
+              }
+            }, 200);
+          });
+      }
     } catch (error) {
-      console.error('[AUDIO] Error al reproducir el chime:', error);
+      console.error('[AUDIO] Error en playTimerChime:', error);
     }
   };
 
