@@ -1,11 +1,45 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+
+const BackButton = ({ onClick }) => (
+  <button
+    onClick={onClick}
+    style={{
+      background: 'white',
+      border: 'none',
+      padding: '8px',
+      borderRadius: '50%',
+      cursor: 'pointer',
+      width: '40px',
+      height: '40px',
+      minWidth: '40px',
+      minHeight: '40px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+      transition: 'all 0.2s',
+      flexShrink: 0
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.15)';
+      e.currentTarget.style.background = '#FFF8FE';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+      e.currentTarget.style.background = 'white';
+    }}
+  >
+    <span style={{ fontSize: '20px', color: '#D946EF' }}>&lt;</span>
+  </button>
+);
 
 export default function Profile({ userProfile, onBack }) {
   const [activeSubView, setActiveSubView] = useState(null);
   const [draftProfile, setDraftProfile] = useState(userProfile);
   const fileInputRef = useRef(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const containerRef = useRef(null);
   const [notifications, setNotifications] = useState({
     dailyRoutine: true,
     dailyRoutineTime: '09:30',
@@ -18,6 +52,13 @@ export default function Profile({ userProfile, onBack }) {
   const daysRemaining = Math.max(0, 14 - daysPassed);
   const trialEndDate = new Date(trialStartDate.getTime() + 14 * 24 * 60 * 60 * 1000);
   const progressPercentage = (daysPassed / 14) * 100;
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if (containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
+  }, [activeSubView]);
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -42,7 +83,7 @@ export default function Profile({ userProfile, onBack }) {
   };
 
   const handleSaveProfile = () => {
-    if (draftProfile.hobbies.length < 2) {
+    if ((draftProfile?.hobbies || []).length < 2) {
       alert('Debes conservar al menos 2 hobbies');
       return;
     }
@@ -51,19 +92,19 @@ export default function Profile({ userProfile, onBack }) {
   };
 
   const handleAddHobby = (hobby) => {
-    if (hobby && !draftProfile.hobbies.includes(hobby)) {
+    if (hobby && !(draftProfile?.hobbies || []).includes(hobby)) {
       setDraftProfile(prev => ({
         ...prev,
-        hobbies: [...prev.hobbies, hobby]
+        hobbies: [...(prev?.hobbies || []), hobby]
       }));
     }
   };
 
   const handleRemoveHobby = (hobby) => {
-    if (draftProfile.hobbies.length > 2) {
+    if ((draftProfile?.hobbies || []).length > 2) {
       setDraftProfile(prev => ({
         ...prev,
-        hobbies: prev.hobbies.filter(h => h !== hobby)
+        hobbies: (prev?.hobbies || []).filter(h => h !== hobby)
       }));
     }
   };
@@ -119,21 +160,27 @@ export default function Profile({ userProfile, onBack }) {
                 width: '32px',
                 height: '32px',
                 borderRadius: '50%',
-                background: '#D946EF',
+                background: '#F3F4F6',
                 border: '2px solid white',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '16px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#E5E7EB';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#F3F4F6';
               }}
             >
-              📷
+              <span style={{ fontSize: '14px' }}>📷</span>
             </button>
           </div>
 
-          {/* Nombre y datos */}
+          {/* Nombre */}
           <h1 style={{
             fontSize: '24px',
             fontWeight: '700',
@@ -143,7 +190,7 @@ export default function Profile({ userProfile, onBack }) {
             {userProfile?.name} {userProfile?.surname || ''}
           </h1>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '24px' }}>
             <span style={{
               background: '#FFF8FE',
               border: '1px solid #D946EF',
@@ -156,40 +203,6 @@ export default function Profile({ userProfile, onBack }) {
               Prueba Gratuita
             </span>
           </div>
-
-          <p style={{
-            fontSize: '13px',
-            color: '#6B7280',
-            margin: '0',
-            marginBottom: '12px'
-          }}>
-            {userProfile?.email || 'email@example.com'}
-          </p>
-
-          <button
-            onClick={() => setActiveSubView('EDIT_PROFILE')}
-            style={{
-              background: 'transparent',
-              border: '1px solid #E5E7EB',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: '600',
-              color: '#D946EF',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#FFF8FE';
-              e.currentTarget.style.borderColor = '#D946EF';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.borderColor = '#E5E7EB';
-            }}
-          >
-            ✏️ Editar Perfil
-          </button>
         </div>
 
         {/* BANNER TRIAL */}
@@ -476,6 +489,7 @@ export default function Profile({ userProfile, onBack }) {
   if (activeSubView === 'EDIT_PROFILE') {
     const suggestedHobbies = ['Yoga', 'Lectura', 'Caminatas', 'Meditación', 'Cocina', 'Pilates', 'Danza', 'Arte'];
     const [newHobby, setNewHobby] = useState('');
+    const hobbyList = draftProfile?.hobbies || [];
 
     return (
       <div style={{
@@ -483,47 +497,27 @@ export default function Profile({ userProfile, onBack }) {
         background: 'white',
         paddingBottom: '100px',
         maxWidth: '600px',
-        margin: '0 auto'
-      }}>
-        {/* HEADER */}
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column'
+      }} ref={containerRef}>
+        {/* HEADER STICKY */}
         <div style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          background: 'white',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
           padding: '16px',
           borderBottom: '1px solid rgba(0,0,0,0.05)'
         }}>
-          <button
-            onClick={() => {
-              setDraftProfile(userProfile);
-              setActiveSubView(null);
-            }}
-            style={{
-              background: 'white',
-              border: 'none',
-              padding: '8px',
-              borderRadius: '50%',
-              cursor: 'pointer',
-              width: '40px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              transition: 'all 0.2s',
-              flexShrink: 0
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.15)';
-              e.currentTarget.style.background = '#FFF8FE';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
-              e.currentTarget.style.background = 'white';
-            }}
-          >
-            <span style={{ fontSize: '20px' }}>&lt;</span>
-          </button>
+          <BackButton onClick={() => {
+            setDraftProfile(userProfile);
+            setActiveSubView(null);
+          }} />
           <h1 style={{
             fontSize: '20px',
             fontWeight: '700',
@@ -536,7 +530,7 @@ export default function Profile({ userProfile, onBack }) {
         </div>
 
         {/* FORMULARIO */}
-        <div style={{ padding: '20px 16px' }}>
+        <div style={{ padding: '20px 16px', flex: 1 }}>
           {/* Nombre */}
           <label style={{
             display: 'block',
@@ -685,7 +679,7 @@ export default function Profile({ userProfile, onBack }) {
             gap: '8px',
             marginBottom: '12px'
           }}>
-            {(draftProfile?.hobbies || []).map((hobby) => (
+            {hobbyList.map((hobby) => (
               <div
                 key={hobby}
                 style={{
@@ -704,13 +698,13 @@ export default function Profile({ userProfile, onBack }) {
                 {hobby}
                 <button
                   onClick={() => handleRemoveHobby(hobby)}
-                  disabled={draftProfile.hobbies.length === 2}
+                  disabled={hobbyList.length === 2}
                   style={{
                     background: 'none',
                     border: 'none',
-                    cursor: draftProfile.hobbies.length > 2 ? 'pointer' : 'not-allowed',
+                    cursor: hobbyList.length > 2 ? 'pointer' : 'not-allowed',
                     fontSize: '16px',
-                    opacity: draftProfile.hobbies.length > 2 ? 1 : 0.5,
+                    opacity: hobbyList.length > 2 ? 1 : 0.5,
                     padding: 0,
                     display: 'flex',
                     alignItems: 'center'
@@ -722,7 +716,7 @@ export default function Profile({ userProfile, onBack }) {
             ))}
           </div>
 
-          {draftProfile?.hobbies?.length === 2 && (
+          {hobbyList.length === 2 && (
             <p style={{
               fontSize: '11px',
               color: '#F97316',
@@ -807,7 +801,7 @@ export default function Profile({ userProfile, onBack }) {
             marginBottom: '24px'
           }}>
             {suggestedHobbies.map((hobby) => {
-              const isSelected = draftProfile?.hobbies?.includes(hobby);
+              const isSelected = hobbyList.includes(hobby);
               return (
                 <button
                   key={hobby}
@@ -827,8 +821,7 @@ export default function Profile({ userProfile, onBack }) {
                     fontSize: '12px',
                     fontWeight: '600',
                     cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    opacity: isSelected || draftProfile?.hobbies?.length < 10 ? 1 : 0.5
+                    transition: 'all 0.2s'
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
@@ -850,26 +843,26 @@ export default function Profile({ userProfile, onBack }) {
           {/* Botón Guardar */}
           <button
             onClick={handleSaveProfile}
-            disabled={draftProfile?.hobbies?.length < 2}
+            disabled={hobbyList.length < 2}
             style={{
               width: '100%',
               padding: '14px',
-              background: draftProfile?.hobbies?.length < 2 ? '#E5E7EB' : '#D946EF',
-              color: draftProfile?.hobbies?.length < 2 ? '#9CA3AF' : 'white',
+              background: hobbyList.length < 2 ? '#E5E7EB' : '#D946EF',
+              color: hobbyList.length < 2 ? '#9CA3AF' : 'white',
               border: 'none',
               borderRadius: '8px',
               fontWeight: '700',
-              cursor: draftProfile?.hobbies?.length < 2 ? 'not-allowed' : 'pointer',
+              cursor: hobbyList.length < 2 ? 'not-allowed' : 'pointer',
               fontSize: '14px',
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => {
-              if (draftProfile?.hobbies?.length >= 2) {
+              if (hobbyList.length >= 2) {
                 e.currentTarget.style.opacity = '0.9';
               }
             }}
             onMouseLeave={(e) => {
-              if (draftProfile?.hobbies?.length >= 2) {
+              if (hobbyList.length >= 2) {
                 e.currentTarget.style.opacity = '1';
               }
             }}
@@ -889,44 +882,24 @@ export default function Profile({ userProfile, onBack }) {
         background: 'white',
         paddingBottom: '100px',
         maxWidth: '600px',
-        margin: '0 auto'
-      }}>
-        {/* HEADER */}
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column'
+      }} ref={containerRef}>
+        {/* HEADER STICKY */}
         <div style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          background: 'white',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
           padding: '16px',
           borderBottom: '1px solid rgba(0,0,0,0.05)'
         }}>
-          <button
-            onClick={() => setActiveSubView(null)}
-            style={{
-              background: 'white',
-              border: 'none',
-              padding: '8px',
-              borderRadius: '50%',
-              cursor: 'pointer',
-              width: '40px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              transition: 'all 0.2s',
-              flexShrink: 0
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.15)';
-              e.currentTarget.style.background = '#FFF8FE';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
-              e.currentTarget.style.background = 'white';
-            }}
-          >
-            <span style={{ fontSize: '20px' }}>&lt;</span>
-          </button>
+          <BackButton onClick={() => setActiveSubView(null)} />
           <h1 style={{
             fontSize: '20px',
             fontWeight: '700',
@@ -939,7 +912,7 @@ export default function Profile({ userProfile, onBack }) {
         </div>
 
         {/* CONTENIDO */}
-        <div style={{ padding: '20px 16px' }}>
+        <div style={{ padding: '20px 16px', flex: 1 }}>
           <div style={{
             background: '#FFF8FE',
             border: '2px solid #D946EF',
@@ -1039,44 +1012,24 @@ export default function Profile({ userProfile, onBack }) {
         background: 'white',
         paddingBottom: '100px',
         maxWidth: '600px',
-        margin: '0 auto'
-      }}>
-        {/* HEADER */}
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column'
+      }} ref={containerRef}>
+        {/* HEADER STICKY */}
         <div style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          background: 'white',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
           padding: '16px',
           borderBottom: '1px solid rgba(0,0,0,0.05)'
         }}>
-          <button
-            onClick={() => setActiveSubView(null)}
-            style={{
-              background: 'white',
-              border: 'none',
-              padding: '8px',
-              borderRadius: '50%',
-              cursor: 'pointer',
-              width: '40px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              transition: 'all 0.2s',
-              flexShrink: 0
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.15)';
-              e.currentTarget.style.background = '#FFF8FE';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
-              e.currentTarget.style.background = 'white';
-            }}
-          >
-            <span style={{ fontSize: '20px' }}>&lt;</span>
-          </button>
+          <BackButton onClick={() => setActiveSubView(null)} />
           <h1 style={{
             fontSize: '20px',
             fontWeight: '700',
@@ -1089,7 +1042,7 @@ export default function Profile({ userProfile, onBack }) {
         </div>
 
         {/* CONTENIDO */}
-        <div style={{ padding: '20px 16px' }}>
+        <div style={{ padding: '20px 16px', flex: 1 }}>
           {/* Toggle 1: Recordatorio diario */}
           <div style={{
             display: 'flex',
@@ -1285,18 +1238,6 @@ export default function Profile({ userProfile, onBack }) {
               }} />
             </button>
           </div>
-
-          <p style={{
-            fontSize: '11px',
-            color: '#6B7280',
-            margin: '24px 0 0 0',
-            padding: '12px',
-            background: '#F3F4F6',
-            borderRadius: '6px',
-            textAlign: 'center'
-          }}>
-            ✓ Tus preferencias se guardan automáticamente
-          </p>
         </div>
       </div>
     );
@@ -1331,44 +1272,24 @@ export default function Profile({ userProfile, onBack }) {
         background: 'white',
         paddingBottom: '100px',
         maxWidth: '600px',
-        margin: '0 auto'
-      }}>
-        {/* HEADER */}
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column'
+      }} ref={containerRef}>
+        {/* HEADER STICKY */}
         <div style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          background: 'white',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
           padding: '16px',
           borderBottom: '1px solid rgba(0,0,0,0.05)'
         }}>
-          <button
-            onClick={() => setActiveSubView(null)}
-            style={{
-              background: 'white',
-              border: 'none',
-              padding: '8px',
-              borderRadius: '50%',
-              cursor: 'pointer',
-              width: '40px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              transition: 'all 0.2s',
-              flexShrink: 0
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.15)';
-              e.currentTarget.style.background = '#FFF8FE';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
-              e.currentTarget.style.background = 'white';
-            }}
-          >
-            <span style={{ fontSize: '20px' }}>&lt;</span>
-          </button>
+          <BackButton onClick={() => setActiveSubView(null)} />
           <h1 style={{
             fontSize: '20px',
             fontWeight: '700',
@@ -1381,7 +1302,7 @@ export default function Profile({ userProfile, onBack }) {
         </div>
 
         {/* CONTENIDO */}
-        <div style={{ padding: '20px 16px' }}>
+        <div style={{ padding: '20px 16px', flex: 1 }}>
           {/* FAQ Acordeón */}
           <h3 style={{
             fontSize: '14px',
