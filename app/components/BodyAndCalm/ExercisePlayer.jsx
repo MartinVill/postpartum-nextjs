@@ -97,22 +97,52 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   // Función para desbloquear audio context y solicitar Wake Lock
   const unlockAudio = async () => {
     try {
+      // 1. Desbloquear AudioContext
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
+      if (AudioContext) {
+        if (!audioContextRef.current) {
+          audioContextRef.current = new AudioContext();
+        }
 
-      if (!audioContextRef.current) {
-        audioContextRef.current = new AudioContext();
+        if (audioContextRef.current.state === 'suspended') {
+          audioContextRef.current.resume();
+          console.log('[AUDIO] AudioContext resumido desde suspended');
+        }
       }
 
-      if (audioContextRef.current.state === 'suspended') {
-        audioContextRef.current.resume();
+      // 2. Desbloquear HTMLAudioElement reproduciendo en silencio
+      if (chimeAudioRef.current) {
+        chimeAudioRef.current.volume = 0.001; // Casi inaudible
+        const silentPlayPromise = chimeAudioRef.current.play();
+
+        if (silentPlayPromise !== undefined) {
+          silentPlayPromise
+            .then(() => {
+              console.log('[AUDIO] Canal de audio desbloqueado silenciosamente');
+              // Parar inmediatamente
+              chimeAudioRef.current.pause();
+              chimeAudioRef.current.currentTime = 0;
+              chimeAudioRef.current.volume = 1.0;
+            })
+            .catch((error) => {
+              console.warn('[AUDIO] Desbloqueo silencioso falló:', error);
+              // Reintentar con volumen 0
+              chimeAudioRef.current.muted = true;
+              chimeAudioRef.current.play().catch(e => console.warn('[AUDIO] Fallback muted:', e));
+            });
+        }
       }
 
-      // Solicitar Wake Lock al iniciar
+      // 3. Solicitar Wake Lock al iniciar
       await requestWakeLock();
 
-      // Inicializar Media Session API para audio en segundo plano
+      // 4. Inicializar Media Session API para audio en segundo plano
       initMediaSession();
+
+      // 5. Forzar playbackState a 'playing' para activar procesamiento en background
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'playing';
+      }
     } catch (error) {
       console.warn('[AUDIO] Error unlocking audio context:', error);
     }
@@ -176,37 +206,85 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   // Reproducir cuenco tibetano usando HTMLAudioElement (garantizado en background)
   const playTimerChime = () => {
     try {
-      if (!chimeAudioRef.current) {
-        console.warn('[AUDIO] Audio element no inicializado');
-        return;
-      }
+      // 1. Intentar con HTMLAudioElement (método principal - funciona en background)
+      if (chimeAudioRef.current) {
+        // Reset audio para asegurar reproducción desde el inicio
+        chimeAudioRef.current.currentTime = 0;
+        chimeAudioRef.current.volume = 1.0;
+        chimeAudioRef.current.muted = false;
 
-      // Reset audio para asegurar reproducción desde el inicio
-      chimeAudioRef.current.currentTime = 0;
-      chimeAudioRef.current.volume = 1.0;
+        const playPromise = chimeAudioRef.current.play();
 
-      // Intentar reproducir, con fallback silencioso si falla
-      const playPromise = chimeAudioRef.current.play();
-
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log('[AUDIO] Cuenco tibetano reproduciendo...');
-          })
-          .catch((error) => {
-            console.warn('[AUDIO] Error reproduciendo audio:', error);
-            // Intentar de nuevo después de 200ms
-            setTimeout(() => {
-              try {
-                chimeAudioRef.current?.play();
-              } catch (e) {
-                console.warn('[AUDIO] Reintento fallido:', e);
-              }
-            }, 200);
-          });
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log('[AUDIO] Cuenco tibetano reproduciendo (HTMLAudioElement)');
+              // Éxito, no hacer nada más
+            })
+            .catch((error) => {
+              console.warn('[AUDIO] HTMLAudioElement falló:', error);
+              // 2. Fallback: Web Audio API synthesis (si está desbloqueado)
+              playWebAudioChime();
+            });
+        } else {
+          // Si play() no devuelve una Promise, intentar directamente
+          playWebAudioChime();
+        }
+      } else {
+        console.warn('[AUDIO] Audio element no inicializado, usando Web Audio');
+        playWebAudioChime();
       }
     } catch (error) {
       console.error('[AUDIO] Error en playTimerChime:', error);
+      // Último fallback: Web Audio
+      playWebAudioChime();
+    }
+  };
+
+  // Fallback: Síntesis de tono con Web Audio API (funciona si fue desbloqueado)
+  const playWebAudioChime = () => {
+    try {
+      if (!audioContextRef.current) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        audioContextRef.current = new AudioContext();
+      }
+
+      const ctx = audioContextRef.current;
+      if (!ctx) return;
+
+      // Si está suspendido, no hacer nada
+      if (ctx.state === 'suspended') {
+        console.warn('[AUDIO] AudioContext aún suspendido, no se puede reproducir Web Audio');
+        return;
+      }
+
+      // Crear tono tibetano (frequencies: 174.61, 349.23, 523.25 Hz)
+      const now = ctx.currentTime;
+      const duration = 0.5; // Corto (350ms en lugar de 8s para no interferir)
+      const frequencies = [174.61, 349.23, 523.25];
+
+      frequencies.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.frequency.value = freq;
+        osc.detune.value = 2; // Detune +2 cents
+        osc.type = 'sine';
+
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      });
+
+      console.log('[AUDIO] Cuenco tibetano reproduciendo (Web Audio API fallback)');
+    } catch (error) {
+      console.warn('[AUDIO] Web Audio fallback también falló:', error);
     }
   };
 
@@ -227,8 +305,22 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     if (timeLeft === 0 && !hasSoundPlayedRef.current) {
       hasSoundPlayedRef.current = true;
       setIsRunning(false);
+
+      // Ejecutar audio y vibración inmediatamente (no esperar)
       playTimerChime();
       triggerVibration();
+
+      // Repetir vibración si la primera no funcionó (fallback para pantalla bloqueada)
+      setTimeout(() => {
+        triggerVibration();
+      }, 100);
+
+      // Actualizar Media Session para indicar que se completó
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+      }
+
+      console.log('[COMPLETION] Ejercicio finalizado con audio y vibración');
     }
   }, [timeLeft]);
 
