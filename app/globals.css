@@ -3,6 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --color-brand-magenta: #D946EF;
+  --color-brand-magenta-light: #FFF8FE;
 }
 
 @theme inline {

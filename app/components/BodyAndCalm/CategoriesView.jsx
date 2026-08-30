@@ -81,7 +81,7 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
         <h1 style={{
           fontSize: '26px',
           fontWeight: '700',
-          color: '#1F2937',
+          color: 'var(--color-brand-magenta)',
           margin: '0',
           lineHeight: '1.3',
           letterSpacing: '-0.5px',
