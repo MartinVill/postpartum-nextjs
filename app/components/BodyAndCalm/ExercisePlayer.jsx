@@ -4,6 +4,50 @@ import { useState, useEffect, useRef } from 'react';
 // Data URI de sonido de campana meditativa (WAV sin compresión, ~2KB)
 const CHIME_SOUND = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==';
 
+// Crear Web Worker inline para timers en background (no se congela con pantalla bloqueada)
+const createBackgroundWorker = () => {
+  const workerCode = `
+    let startTime = null;
+    let duration = null;
+    let isRunning = false;
+
+    self.onmessage = (event) => {
+      const { command, duration: dur } = event.data;
+
+      if (command === 'start') {
+        startTime = performance.now();
+        duration = dur * 1000; // Convertir a ms
+        isRunning = true;
+
+        // Enviar ticks cada 100ms (4x más preciso que 250ms)
+        const ticker = setInterval(() => {
+          if (!isRunning) {
+            clearInterval(ticker);
+            return;
+          }
+
+          const elapsed = performance.now() - startTime;
+          const remaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
+
+          self.postMessage({ tick: remaining, elapsed });
+
+          if (remaining === 0) {
+            isRunning = false;
+            self.postMessage({ completed: true });
+            clearInterval(ticker);
+          }
+        }, 100);
+      } else if (command === 'stop') {
+        isRunning = false;
+      }
+    };
+  `;
+
+  const blob = new Blob([workerCode], { type: 'application/javascript' });
+  const workerUrl = URL.createObjectURL(blob);
+  return new Worker(workerUrl);
+};
+
 // Las instrucciones se cargan dinámicamente desde la actividad seleccionada
 
 export default function ExercisePlayer({ activity, onComplete, onBack }) {
@@ -19,6 +63,8 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   const wakeLockRef = useRef(null);
   const endTimeRef = useRef(null);
   const chimeAudioRef = useRef(null);
+  const backgroundWorkerRef = useRef(null);
+  const silentAudioLoopRef = useRef(null);
 
   const guide = {
     title: activity.title,
@@ -93,6 +139,97 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
       }
     };
   }, []);
+
+  // CAPA 2: Bucle de audio silencioso (mantiene la app "activa" en iOS/Android)
+  const startSilentAudioLoop = () => {
+    try {
+      // Crear buffer de silencio absoluto (44.1kHz, 1 segundo)
+      if (!silentAudioLoopRef.current) {
+        const audioCtx = audioContextRef.current || (window.AudioContext && new (window.AudioContext || window.webkitAudioContext)());
+        if (!audioCtx) return;
+
+        const sampleRate = audioCtx.sampleRate;
+        const silentBuffer = audioCtx.createBuffer(1, sampleRate, sampleRate);
+        // Buffer contiene todo ceros (silencio absoluto)
+
+        silentAudioLoopRef.current = audioCtx.createBufferSource();
+        silentAudioLoopRef.current.buffer = silentBuffer;
+        silentAudioLoopRef.current.loop = true;
+        silentAudioLoopRef.current.loopStart = 0;
+        silentAudioLoopRef.current.loopEnd = sampleRate;
+
+        // Volumen prácticamente inaudible
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.value = 0.001;
+
+        silentAudioLoopRef.current.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        // Iniciar el bucle
+        silentAudioLoopRef.current.start(0);
+
+        console.log('[SILENT LOOP] Bucle de audio silencioso iniciado (mantiene app activa en background)');
+      }
+    } catch (error) {
+      console.warn('[SILENT LOOP] Error iniciando bucle silencioso:', error);
+    }
+  };
+
+  const stopSilentAudioLoop = () => {
+    try {
+      if (silentAudioLoopRef.current) {
+        silentAudioLoopRef.current.stop();
+        silentAudioLoopRef.current = null;
+        console.log('[SILENT LOOP] Bucle de audio detenido');
+      }
+    } catch (error) {
+      console.warn('[SILENT LOOP] Error deteniendo bucle:', error);
+    }
+  };
+
+  // CAPA 3: Web Worker para timers en background (no se congela con pantalla bloqueada)
+  const startBackgroundTimer = (totalSeconds) => {
+    try {
+      if (!backgroundWorkerRef.current) {
+        backgroundWorkerRef.current = createBackgroundWorker();
+
+        backgroundWorkerRef.current.onmessage = (event) => {
+          const { tick, completed } = event.data;
+
+          // Actualizar UI con tiempo restante
+          if (tick !== undefined) {
+            setTimeLeft(tick);
+          }
+
+          // Cuando el worker reporta finalización
+          if (completed) {
+            console.log('[BACKGROUND WORKER] Timer completado en background');
+            // NO llamar aquí - dejar que el useEffect de timeLeft === 0 lo maneje
+          }
+        };
+
+        backgroundWorkerRef.current.onerror = (error) => {
+          console.warn('[BACKGROUND WORKER] Error en worker:', error);
+        };
+      }
+
+      backgroundWorkerRef.current.postMessage({ command: 'start', duration: totalSeconds });
+      console.log('[BACKGROUND WORKER] Timer iniciado en background thread para', totalSeconds, 'segundos');
+    } catch (error) {
+      console.error('[BACKGROUND WORKER] Error iniciando background timer:', error);
+    }
+  };
+
+  const stopBackgroundTimer = () => {
+    try {
+      if (backgroundWorkerRef.current) {
+        backgroundWorkerRef.current.postMessage({ command: 'stop' });
+        console.log('[BACKGROUND WORKER] Timer detenido');
+      }
+    } catch (error) {
+      console.warn('[BACKGROUND WORKER] Error deteniendo background timer:', error);
+    }
+  };
 
   // Función para desbloquear audio context y solicitar Wake Lock
   const unlockAudio = async () => {
@@ -437,20 +574,25 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  // Timer logic basado en timestamp absoluto (previene congelamiento en bloqueo)
+  // Timer logic con 3 capas de protección
   useEffect(() => {
     let interval;
     if (isRunning) {
-      // Al iniciar, establecer endTime absoluto basado en Date.now()
+      // Al iniciar, establecer configuración inicial
       if (!endTimeRef.current) {
         endTimeRef.current = Date.now() + timeLeft * 1000;
 
-        // ARQUITECTURA CRÍTICA: Programar audio en Web Audio API (reloj de hardware)
-        // Esto se ejecutará INCLUSO si JS se congela en background
+        // CAPA 1: Programar audio en Web Audio API (reloj de hardware)
         scheduleAudioCompletion(timeLeft);
+
+        // CAPA 2: Iniciar bucle de audio silencioso (mantiene app viva en iOS)
+        startSilentAudioLoop();
+
+        // CAPA 3: Iniciar Web Worker para timer en background
+        startBackgroundTimer(timeLeft);
       }
 
-      // Tick cada 250ms para mayor precisión (solo para UI, no para audio)
+      // Timer principal: timestamp absoluto (fallback si Web Worker falla)
       interval = setInterval(() => {
         const now = Date.now();
         const remaining = Math.max(0, Math.ceil((endTimeRef.current - now) / 1000));
@@ -460,13 +602,23 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
         if (remaining === 0) {
           setIsRunning(false);
           endTimeRef.current = null;
+          stopBackgroundTimer();
+          stopSilentAudioLoop();
         }
       }, 250);
     } else {
       endTimeRef.current = null;
+      stopBackgroundTimer();
+      stopSilentAudioLoop();
     }
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (!isRunning) {
+        stopBackgroundTimer();
+        stopSilentAudioLoop();
+      }
+    };
   }, [isRunning]);
 
   const formatTime = (seconds) => {
