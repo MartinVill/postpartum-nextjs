@@ -16,6 +16,7 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
 
   const audioContextRef = useRef(null);
   const hasSoundPlayedRef = useRef(false);
+  const wakeLockRef = useRef(null);
 
   const guide = {
     title: activity.title,
@@ -23,8 +24,56 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     type: activity.type || 'breathing'
   };
 
-  // Función para desbloquear audio context
-  const unlockAudio = () => {
+  // Wake Lock API: Mantener pantalla encendida durante el ejercicio
+  const requestWakeLock = async () => {
+    try {
+      if ('wakeLock' in navigator && !wakeLockRef.current) {
+        wakeLockRef.current = await navigator.wakeLock.request('screen');
+        console.log('[WAKE LOCK] Pantalla bloqueada para permanecer encendida');
+      }
+    } catch (err) {
+      console.warn('[WAKE LOCK] No activado:', err);
+    }
+  };
+
+  const releaseWakeLock = async () => {
+    try {
+      if (wakeLockRef.current) {
+        await wakeLockRef.current.release();
+        wakeLockRef.current = null;
+        console.log('[WAKE LOCK] Pantalla desbloqueada');
+      }
+    } catch (err) {
+      console.warn('[WAKE LOCK] Error liberando:', err);
+    }
+  };
+
+  // Re-solicitar Wake Lock si pantalla se despierta (user reactiva)
+  useEffect(() => {
+    if (!isRunning) return;
+
+    const handleVisibilityChange = async () => {
+      if (document.hidden) {
+        console.log('[WAKE LOCK] Pantalla se oscureció');
+      } else {
+        console.log('[WAKE LOCK] Pantalla se reactivó, re-solicitando...');
+        await requestWakeLock();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isRunning]);
+
+  // Cleanup: Liberar Wake Lock al desmontar el componente
+  useEffect(() => {
+    return () => {
+      releaseWakeLock();
+    };
+  }, []);
+
+  // Función para desbloquear audio context y solicitar Wake Lock
+  const unlockAudio = async () => {
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       if (!AudioContext) return;
@@ -36,6 +85,9 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
       if (audioContextRef.current.state === 'suspended') {
         audioContextRef.current.resume();
       }
+
+      // Solicitar Wake Lock al iniciar
+      await requestWakeLock();
     } catch (error) {
       console.warn('[AUDIO] Error unlocking audio context:', error);
     }
@@ -175,14 +227,16 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     hasSoundPlayedRef.current = false;
+    await releaseWakeLock();
     setTimeLeft(parseInt(activity.duration.split('-')[0]) * 60);
     setIsRunning(false);
     setScale(1);
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    await releaseWakeLock();
     setShowCompletionModal(true);
   };
 
