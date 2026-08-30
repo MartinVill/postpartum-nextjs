@@ -496,6 +496,29 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     }
   };
 
+  // Mostrar notificación nativa del sistema operativo
+  // Esto garantiza alerta sonora + vibración incluso con pantalla bloqueada
+  const showNativeNotification = async () => {
+    try {
+      if ('Notification' in window && Notification.permission === 'default') {
+        await Notification.requestPermission();
+      }
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('¡Ejercicio Completado! 🎉', {
+          body: `${guide.title} finalizado. ¡Bien hecho!`,
+          icon: '/icon-192x192.png',
+          tag: 'exercise-complete',
+          vibrate: [400, 150, 400, 150, 500, 200, 600]
+        });
+
+        console.log('[NOTIFICATION] Notificación nativa enviada');
+      }
+    } catch (error) {
+      console.warn('[NOTIFICATION] Error:', error);
+    }
+  };
+
   // Función para vibración táctil intensa
   const triggerVibration = () => {
     if ('vibrate' in navigator) {
@@ -513,22 +536,30 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     if (timeLeft === 0 && !hasSoundPlayedRef.current) {
       hasSoundPlayedRef.current = true;
       setIsRunning(false);
+      stopSilentAudioLoop();
+      stopBackgroundTimer();
 
-      // Ejecutar audio y vibración inmediatamente (no esperar)
-      playTimerChime();
+      // Reproducir audio nativo HTML5
+      if (chimeAudioRef.current) {
+        chimeAudioRef.current.currentTime = 0;
+        chimeAudioRef.current.volume = 1.0;
+        chimeAudioRef.current.play().catch(() => {
+          console.warn('[AUDIO] Play falló, intentando fallback');
+        });
+      }
+
+      // Vibración táctil
       triggerVibration();
+      setTimeout(() => triggerVibration(), 100); // Doble pulso
 
-      // Repetir vibración si la primera no funcionó (fallback para pantalla bloqueada)
-      setTimeout(() => {
-        triggerVibration();
-      }, 100);
+      // Notificación nativa del sistema (más confiable en background)
+      showNativeNotification();
 
-      // Actualizar Media Session para indicar que se completó
       if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'paused';
       }
 
-      console.log('[COMPLETION] Ejercicio finalizado con audio y vibración');
+      console.log('[COMPLETION] Ejercicio finalizado con audio, vibración y notificación');
     }
   }, [timeLeft]);
 
