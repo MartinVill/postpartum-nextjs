@@ -333,28 +333,66 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart }
         }
       `}</style>
 
-      <div style={{ marginBottom: '20px' }}>
-        <h2 style={{
-          fontSize: '20px',
-          fontWeight: '700',
-          color: '#1F2937',
-          margin: '0 0 12px 0'
-        }}>
-          🎯 Reto de Hoy
-        </h2>
-        <div style={{
-          background: '#FFF5E6',
-          border: '1.5px solid #F59E0B',
-          borderRadius: '20px',
-          padding: '8px 14px',
-          fontSize: '14px',
-          fontWeight: '600',
-          color: '#D97706',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px'
-        }}>
-          🔥 <span>{challengeData?.streak || 0}</span> días de racha
+      {/* Header con botón Volver */}
+      <div style={{
+        position: 'relative',
+        marginBottom: '20px',
+        paddingTop: '12px'
+      }}>
+        <button
+          onClick={onChallengeStart}
+          style={{
+            position: 'absolute',
+            left: '0',
+            top: '12px',
+            background: 'white',
+            border: 'none',
+            padding: '8px',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.15)';
+            e.target.style.background = '#FFF8FE';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+            e.target.style.background = 'white';
+          }}
+        >
+          <span style={{ fontSize: '24px', color: '#D946EF', fontWeight: 'bold' }}>&lt;</span>
+        </button>
+
+        <div style={{ paddingLeft: '60px' }}>
+          <h2 style={{
+            fontSize: '20px',
+            fontWeight: '700',
+            color: '#1F2937',
+            margin: '0 0 12px 0'
+          }}>
+            🎯 Reto de Hoy
+          </h2>
+          <div style={{
+            background: '#FFF5E6',
+            border: '1.5px solid #F59E0B',
+            borderRadius: '20px',
+            padding: '8px 14px',
+            fontSize: '14px',
+            fontWeight: '600',
+            color: '#D97706',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            🔥 <span>{challengeData?.streak || 0}</span> días de racha
+          </div>
         </div>
       </div>
 
