@@ -184,25 +184,25 @@ export default function DailyCheckIn({ onComplete, lastCheckIn }) {
   return (
     <div style={{
       background: 'linear-gradient(135deg, #D946EF 0%, #C026D3 100%)',
-      padding: '24px',
+      padding: '16px',
       borderRadius: '16px',
       color: 'white',
-      marginBottom: '20px',
+      marginBottom: '16px',
       boxShadow: '0 4px 15px rgba(217, 70, 239, 0.2)'
     }}>
-      <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px' }}>
+      <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '12px' }}>
         Buenos días 💜
       </h2>
 
-      <p style={{ fontSize: '14px', marginBottom: '20px', opacity: 0.95 }}>
+      <p style={{ fontSize: '13px', marginBottom: '14px', opacity: 0.95 }}>
         ¿Cómo te sientes hoy?
       </p>
 
       <div style={{
         background: 'rgba(255,255,255,0.1)',
-        padding: '16px',
+        padding: '14px',
         borderRadius: '12px',
-        marginBottom: '20px'
+        marginBottom: '14px'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
           <span style={{ fontSize: '12px', opacity: 0.8 }}>Muy cansada</span>
@@ -226,9 +226,9 @@ export default function DailyCheckIn({ onComplete, lastCheckIn }) {
       {/* Tarjeta de Registro por Voz - Tipo WhatsApp */}
       <div style={{
         background: 'white',
-        padding: '16px',
+        padding: '14px',
         borderRadius: '12px',
-        marginBottom: '20px',
+        marginBottom: '14px',
         border: '1px solid #f0f0f0',
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
       }}>
@@ -415,14 +415,14 @@ export default function DailyCheckIn({ onComplete, lastCheckIn }) {
         disabled={isSubmitting}
         style={{
           width: '100%',
-          padding: '14px',
+          padding: '12px',
           background: 'rgba(255,255,255,0.25)',
           border: '2px solid rgba(255,255,255,0.5)',
           color: 'white',
           borderRadius: '10px',
           fontWeight: '600',
           cursor: 'pointer',
-          fontSize: '15px',
+          fontSize: '14px',
           transition: 'all 0.2s'
         }}
         onMouseEnter={(e) => {
