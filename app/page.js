@@ -129,7 +129,7 @@ export default function Home() {
 
       if (moodScore && moodScore >= 1 && moodScore <= 4) {
         // Ánimo bajo - Necesita apoyo
-        title = `Vamos a hacer algo para que te sientas mejor`;
+        title = `Vamos a hacer algo para que te sientas mejor 💜`;
         subtitle = `¿Qué te gustaría hacer hoy?`;
       } else if (moodScore && moodScore >= 8 && moodScore <= 10) {
         // Energía alta - Muy bien
@@ -137,7 +137,7 @@ export default function Home() {
         subtitle = `¿Qué quieres hacer hoy?`;
       } else {
         // Neutral/estable (5-7 o sin score)
-        title = `Qué bueno tenerte por aquí`;
+        title = `Qué bueno tenerte por aquí 😊`;
         subtitle = `¿En qué nos enfocamos hoy?`;
       }
 
@@ -392,10 +392,10 @@ export default function Home() {
       }}>
         {/* Header personalizado - Sistema de diseño nativo magenta con copy dinámico */}
         <div className="w-full max-w-md mx-auto text-center pt-6 pb-2 px-6 flex flex-col items-center justify-center">
-          <h1 className={`font-bold tracking-tight text-center leading-snug max-w-[320px] ${
+          <h1 className={`font-bold tracking-tight text-center leading-snug max-w-[320px] text-[#D946EF] ${
             headerCopy.title.includes('¡Me alegra')
-              ? "text-2xl text-[#D946EF]"
-              : "text-xl text-gray-800"
+              ? "text-2xl"
+              : "text-xl"
           }`}>
             {headerCopy.title}
           </h1>
