@@ -315,6 +315,7 @@ export default function Home() {
     // Pantalla principal: Home Grid
     return (
       <div style={{
+        paddingTop: '0px',
         paddingBottom: '70px',
         background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
         minHeight: '100vh'
@@ -324,44 +325,42 @@ export default function Home() {
           <div style={{
             background: 'white',
             margin: '16px 16px 12px 16px',
+            marginTop: '24px',
             borderRadius: '16px',
-            padding: '16px',
+            padding: '24px 16px',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #F3F4F6'
+            border: '1px solid #F3F4F6',
+            textAlign: 'center'
           }}>
-            {/* Encabezado con icono + nombre + progreso */}
+            {/* Emoji centrado */}
             <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '12px',
-              marginBottom: '16px'
+              fontSize: '40px',
+              lineHeight: '1',
+              marginBottom: '12px'
             }}>
-              <div style={{
-                fontSize: '32px',
-                lineHeight: '1'
-              }}>
-                {state.ongoingChallenge.emoji || '🎯'}
-              </div>
-              <div style={{ flex: 1 }}>
-                <h2 style={{
-                  fontSize: '16px',
-                  fontWeight: '700',
-                  color: '#1F2937',
-                  margin: '0 0 4px 0',
-                  lineHeight: '1.3'
-                }}>
-                  {state.ongoingChallenge.title}
-                </h2>
-                <p style={{
-                  fontSize: '12px',
-                  color: '#9CA3AF',
-                  margin: '0',
-                  fontWeight: '500'
-                }}>
-                  Día {Math.ceil(Math.random() * 30)} de 30
-                </p>
-              </div>
+              {state.ongoingChallenge.emoji || '🎯'}
             </div>
+
+            {/* Nombre del reto centrado */}
+            <h2 style={{
+              fontSize: '18px',
+              fontWeight: '700',
+              color: '#1F2937',
+              margin: '0 0 6px 0',
+              lineHeight: '1.3'
+            }}>
+              {state.ongoingChallenge.title}
+            </h2>
+
+            {/* Indicador de progreso centrado */}
+            <p style={{
+              fontSize: '12px',
+              color: '#9CA3AF',
+              margin: '0 0 16px 0',
+              fontWeight: '500'
+            }}>
+              Día {Math.ceil(Math.random() * 30)} de 30
+            </p>
 
             {/* Botón principal: ¡Lo hice! */}
             <button
