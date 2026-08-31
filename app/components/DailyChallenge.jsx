@@ -256,9 +256,13 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart }
     setSelectedActivity(null);
     setCurrentActivityId(null);
 
-    // Redirigir automáticamente a HOME
+    // Pasar datos del reto a app/page.js
     if (onChallengeStart) {
-      onChallengeStart();
+      onChallengeStart({
+        title: selectedActivity.title,
+        emoji: selectedActivity.emoji,
+        id: currentActivityId
+      });
     }
   };
 

@@ -276,9 +276,11 @@ export default function Home() {
           <DailyChallenge
             energy={state.energyScore}
             userProfile={state.userProfile}
-            onChallengeStart={() => {
+            onChallengeStart={(challengeInfo) => {
               const challengeData = {
                 id: `challenge_${Date.now()}`,
+                title: challengeInfo?.title || 'Reto del día',
+                emoji: challengeInfo?.emoji || '🎯',
                 energy: state.energyScore,
                 started: new Date().toISOString()
               };
@@ -311,94 +313,117 @@ export default function Home() {
     // Pantalla principal: Home Grid
     return (
       <div style={{ paddingBottom: '70px' }}>
-        {/* Banner de reto activo */}
+        {/* Tarjeta: Tu reto de hoy */}
         {state.ongoingChallenge && (
           <div style={{
-            background: 'linear-gradient(135deg, #D946EF 0%, #9333EA 100%)',
+            background: 'white',
+            margin: '16px 16px 12px 16px',
+            borderRadius: '16px',
             padding: '16px',
-            margin: '12px 16px 12px 16px',
-            borderRadius: '12px',
-            color: 'white',
-            boxShadow: '0 4px 12px rgba(217, 70, 239, 0.2)'
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+            border: '1px solid #F3F4F6'
           }}>
+            {/* Encabezado */}
             <div style={{
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              alignItems: 'flex-start',
               gap: '12px',
-              flexWrap: 'wrap'
+              marginBottom: '12px'
             }}>
-              <div style={{ flex: 1, minWidth: '200px' }}>
+              <div style={{
+                fontSize: '32px',
+                lineHeight: '1'
+              }}>
+                {state.ongoingChallenge.emoji || '🎯'}
+              </div>
+              <div style={{ flex: 1 }}>
                 <h3 style={{
                   fontSize: '14px',
-                  fontWeight: '700',
-                  margin: '0 0 4px 0',
+                  fontWeight: '600',
+                  color: '#6B7280',
+                  margin: '0 0 2px 0',
+                  textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>
-                  🎯 RETO EN PROGRESO
+                  Tu reto de hoy
                 </h3>
-                <p style={{
-                  fontSize: '12px',
+                <h2 style={{
+                  fontSize: '18px',
+                  fontWeight: '700',
+                  color: '#1F2937',
                   margin: '0',
-                  opacity: 0.9
+                  lineHeight: '1.3'
                 }}>
-                  Día {Math.ceil(Math.random() * 30)} de 30 • Energía: {state.ongoingChallenge.energy}/10
-                </p>
+                  {state.ongoingChallenge.title}
+                </h2>
               </div>
-              <div style={{
-                display: 'flex',
-                gap: '8px',
-                flexWrap: 'wrap',
-                justifyContent: 'flex-end'
-              }}>
-                <button
-                  onClick={() => setState(prev => ({ ...prev, showReto: true }))}
-                  style={{
-                    background: 'white',
-                    color: '#D946EF',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '6px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = 'scale(1.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = 'scale(1)';
-                  }}
-                >
-                  Continuar
-                </button>
-                <button
-                  onClick={() => {
-                    localStorage.removeItem('postpartum_active_challenge');
-                    setState(prev => ({ ...prev, ongoingChallenge: null }));
-                  }}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.3)',
-                    color: 'white',
-                    border: '1px solid rgba(255, 255, 255, 0.6)',
-                    padding: '8px 16px',
-                    borderRadius: '6px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = 'rgba(255, 255, 255, 0.5)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = 'rgba(255, 255, 255, 0.3)';
-                  }}
-                >
-                  ✓ Completar
-                </button>
-              </div>
+            </div>
+
+            {/* Indicador de progreso discreto */}
+            <div style={{
+              fontSize: '12px',
+              color: '#9CA3AF',
+              marginBottom: '16px',
+              fontWeight: '500'
+            }}>
+              Día {Math.floor((new Date(state.ongoingChallenge.started).getTime() - new Date(state.ongoingChallenge.started).getTime()) / (1000 * 60 * 60 * 24) + 1) % 30 || Math.ceil(Math.random() * 30)} de 30
+            </div>
+
+            {/* Botones */}
+            <div style={{
+              display: 'flex',
+              gap: '8px',
+              flexDirection: 'column'
+            }}>
+              <button
+                onClick={() => setState(prev => ({ ...prev, showBodyAndCalm: true }))}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  background: '#D946EF',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#C72BD9';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#D946EF';
+                }}
+              >
+                Comenzar ejercicio
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('postpartum_active_challenge');
+                  setState(prev => ({ ...prev, ongoingChallenge: null }));
+                }}
+                style={{
+                  width: '100%',
+                  padding: '10px 16px',
+                  background: '#F3F4F6',
+                  color: '#6B7280',
+                  border: '1px solid #E5E7EB',
+                  borderRadius: '10px',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#E5E7EB';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#F3F4F6';
+                }}
+              >
+                Completar
+              </button>
             </div>
           </div>
         )}
