@@ -91,6 +91,56 @@ export default function Home() {
     }
   }, []);
 
+  // Calcular copia dinámica basada en moodScore (solo client-side)
+  const getDynamicHeaderCopy = () => {
+    // Proteger contra SSR
+    if (typeof window === 'undefined') {
+      return {
+        title: `¡Hola, ${state.userProfile?.name || 'hermosa'}! 💜`,
+        subtitle: 'Qué bueno tenerte aquí. ¿En qué nos enfocamos hoy?'
+      };
+    }
+
+    try {
+      const dailyCheckInStr = localStorage.getItem('dailyCheckIn');
+      let moodScore = null;
+
+      if (dailyCheckInStr) {
+        const dailyCheckIn = JSON.parse(dailyCheckInStr);
+        moodScore = dailyCheckIn.voiceNote?.moodScore || dailyCheckIn.energyMorning;
+      }
+
+      const userName = state.userProfile?.name || 'hermosa';
+
+      // Determinar título y subtítulo basado en rango de moodScore
+      let title, subtitle;
+
+      if (moodScore && moodScore >= 1 && moodScore <= 4) {
+        // Ánimo bajo
+        title = `¡Hola, ${userName}! 💜`;
+        subtitle = 'Vamos a hacer algo para que te sientas mejor. ¿Qué te gustaría hacer?';
+      } else if (moodScore && moodScore >= 8 && moodScore <= 10) {
+        // Energía alta
+        title = `¡Me alegra verte bien, ${userName}! ✨`;
+        subtitle = '¡Nos encanta verte con energía! ¿Qué quieres hacer hoy?';
+      } else {
+        // Default: neutral/estable (5-7 o sin score)
+        title = `¡Hola, ${userName}! 💜`;
+        subtitle = 'Qué bueno tenerte aquí. ¿En qué nos enfocamos hoy?';
+      }
+
+      return { title, subtitle };
+    } catch (error) {
+      console.error('[HEADER] Error reading mood score:', error);
+      return {
+        title: `¡Hola, ${state.userProfile?.name || 'hermosa'}! 💜`,
+        subtitle: 'Qué bueno tenerte aquí. ¿En qué nos enfocamos hoy?'
+      };
+    }
+  };
+
+  const headerCopy = getDynamicHeaderCopy();
+
   if (!state.isReady) {
     return (
       <div style={{
@@ -319,13 +369,13 @@ export default function Home() {
         paddingBottom: '70px',
         minHeight: '100vh'
       }}>
-        {/* Header personalizado - Sistema de diseño nativo magenta */}
+        {/* Header personalizado - Sistema de diseño nativo magenta con copy dinámico */}
         <div className="text-center mt-6 mb-8 px-4 flex flex-col items-center justify-center">
           <h1 className="text-2xl sm:text-3xl font-bold text-[#D946EF] tracking-tight flex items-center justify-center gap-2">
-            ¡Hola, {state.userProfile?.name || 'hermosa'}! <span>💜</span>
+            {headerCopy.title}
           </h1>
           <p className="text-[#7E6A9A] text-sm font-medium mt-2 max-w-xs text-center leading-relaxed">
-            Vamos a hacer algo para que te sientas mejor. ¿Qué te gustaría hacer?
+            {headerCopy.subtitle}
           </p>
         </div>
 
