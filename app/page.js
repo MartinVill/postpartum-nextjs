@@ -319,37 +319,12 @@ export default function Home() {
         paddingBottom: '70px',
         minHeight: '100vh'
       }}>
-        {/* Header personalizado centrado - Único */}
-        <div style={{
-          textAlign: 'center',
-          marginTop: '24px',
-          marginBottom: '32px',
-          paddingLeft: '16px',
-          paddingRight: '16px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <h1 style={{
-            fontSize: '24px',
-            fontWeight: '600',
-            color: '#111827',
-            margin: '0',
-            letterSpacing: '-0.5px',
-            lineHeight: '1.1'
-          }}>
-            ¡Hola, {state.userProfile?.name || 'hermosa'}! 💜
+        {/* Header personalizado - Sistema de diseño nativo magenta */}
+        <div className="text-center mt-6 mb-8 px-4 flex flex-col items-center justify-center">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#D946EF] tracking-tight flex items-center justify-center gap-2">
+            ¡Hola, {state.userProfile?.name || 'hermosa'}! <span>💜</span>
           </h1>
-          <p style={{
-            fontSize: '13px',
-            color: '#6B7280',
-            fontWeight: '400',
-            margin: '8px auto 0',
-            maxWidth: '280px',
-            lineHeight: '1.5',
-            textAlign: 'center'
-          }}>
+          <p className="text-[#7E6A9A] text-sm font-medium mt-2 max-w-xs text-center leading-relaxed">
             Vamos a hacer algo para que te sientas mejor. ¿Qué te gustaría hacer?
           </p>
         </div>
