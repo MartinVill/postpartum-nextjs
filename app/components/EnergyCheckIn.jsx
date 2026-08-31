@@ -7,6 +7,7 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingError, setProcessingError] = useState(null);
   const [micPermissionDenied, setMicPermissionDenied] = useState(false);
 
   const mediaRecorderRef = useRef(null);
@@ -117,23 +118,40 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
     }
 
     setIsProcessing(true);
+    setProcessingError(null);
 
     try {
+      console.log('[VOICE] Enviando nota de voz, tamaño chunks:', audioChunksRef.current.length);
+
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      console.log('[VOICE] Blob creado, tamaño:', audioBlob.size, 'bytes');
+
       const formData = new FormData();
       formData.append('audio', audioBlob, 'voice-note.webm');
+
+      console.log('[VOICE] Iniciando fetch a /api/transcribe...');
 
       const response = await fetch('/api/transcribe', {
         method: 'POST',
         body: formData,
       });
 
+      console.log('[VOICE] Response recibida, status:', response.status);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Error uploading voice note');
+        let errorMessage = 'Error al procesar el audio';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+          console.error('[VOICE] Error response:', errorData);
+        } catch (e) {
+          console.error('[VOICE] No se pudo parsear error response');
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
+      console.log('[VOICE] Resultado exitoso:', result);
 
       // Guardar análisis en localStorage
       const today = new Date().toDateString();
@@ -151,27 +169,32 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
 
       localStorage.setItem('lastCheckInDate', today);
       localStorage.setItem('dailyCheckIn', JSON.stringify(checkInData));
+      console.log('[VOICE] Datos guardados en localStorage');
 
       // Limpiar estado
       audioChunksRef.current = [];
       setRecordingTime(0);
       setIsProcessing(false);
+      setProcessingError(null);
 
       // Esperar un poco antes de redirigir para que se vea el cambio de estado
+      console.log('[VOICE] Redirigiendo a Home...');
       setTimeout(() => {
         onEnergySelect(energy);
       }, 300);
     } catch (error) {
-      console.error('Error submitting voice note:', error);
+      const errorMsg = error?.message || 'Error desconocido';
+      console.error('[VOICE] FATAL ERROR:', errorMsg);
 
       // Resetear estado de grabación y procesamiento
       audioChunksRef.current = [];
       setRecordingTime(0);
       setIsRecording(false);
       setIsProcessing(false);
+      setProcessingError(errorMsg);
 
-      // Mostrar error
-      alert(`Error al procesar la nota de voz: ${error.message}. Por favor intenta de nuevo.`);
+      // Mostrar error en pantalla
+      console.error('[VOICE] Mostrando error al usuario:', errorMsg);
     }
   };
 
@@ -316,6 +339,46 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
                 marginBottom: '12px'
               }}>
                 ⚠️ Permiso de micrófono denegado. Por favor, habilita el acceso en los ajustes de tu navegador.
+              </div>
+            )}
+
+            {/* Mensaje de error de procesamiento */}
+            {processingError && (
+              <div style={{
+                padding: '12px',
+                background: '#fee',
+                borderRadius: '8px',
+                color: '#c33',
+                fontSize: '13px',
+                marginBottom: '12px',
+                display: 'flex',
+                gap: '8px',
+                alignItems: 'flex-start'
+              }}>
+                <span style={{ fontSize: '16px', lineHeight: '1' }}>⚠️</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: '0 0 6px 0', fontWeight: '600' }}>No pudimos procesar tu audio</p>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '12px' }}>{processingError}</p>
+                  <button
+                    onClick={() => {
+                      setProcessingError(null);
+                      setIsRecording(false);
+                      setRecordingTime(0);
+                    }}
+                    style={{
+                      background: '#c33',
+                      color: 'white',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Intentar de nuevo
+                  </button>
+                </div>
               </div>
             )}
 
