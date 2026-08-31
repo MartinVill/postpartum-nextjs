@@ -346,21 +346,11 @@ export default function Home() {
               fontSize: '18px',
               fontWeight: '700',
               color: '#1F2937',
-              margin: '0 0 6px 0',
+              margin: '0 0 16px 0',
               lineHeight: '1.3'
             }}>
               {state.ongoingChallenge.title}
             </h2>
-
-            {/* Indicador de progreso centrado */}
-            <p style={{
-              fontSize: '12px',
-              color: '#9CA3AF',
-              margin: '0 0 16px 0',
-              fontWeight: '500'
-            }}>
-              Día {Math.ceil(Math.random() * 30)} de 30
-            </p>
 
             {/* Botón principal: ¡Lo hice! */}
             <button
