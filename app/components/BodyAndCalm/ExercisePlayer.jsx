@@ -1,8 +1,9 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 
-// Audio HTML5 simple - reproduce directamente chime.mp3
+// Audio HTML5 nativo - MP3 reales
 const chimeAudio = typeof window !== 'undefined' ? new Audio('/sounds/chime.mp3') : null;
+const celebrationAudio = typeof window !== 'undefined' ? new Audio('/sounds/celebration.mp3') : null;
 
 // Las instrucciones se cargan dinámicamente desde la actividad seleccionada
 
@@ -171,21 +172,28 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   // Función para desbloquear audio y solicitar permisos
   const unlockAudio = async () => {
     try {
-      // Desbloquear audio HTML5 al hacer clic (gesto del usuario)
+      // Desbloquear ambos audios HTML5 al hacer clic (gesto del usuario)
       if (chimeAudio) {
-        chimeAudio.volume = 0;
         chimeAudio.load();
+        chimeAudio.volume = 0;
         await chimeAudio.play().catch(() => {});
         chimeAudio.pause();
         chimeAudio.currentTime = 0;
         chimeAudio.volume = 1.0;
-        console.log('[AUDIO] Desbloqueo de audio completado');
+      }
+
+      if (celebrationAudio) {
+        celebrationAudio.load();
+        celebrationAudio.volume = 0;
+        await celebrationAudio.play().catch(() => {});
+        celebrationAudio.pause();
+        celebrationAudio.currentTime = 0;
+        celebrationAudio.volume = 0.5;
       }
 
       // Solicitar permisos de notificación
       if ('Notification' in window && Notification.permission === 'default') {
         await Notification.requestPermission();
-        console.log('[NOTIFICATION] Permisos solicitados');
       }
 
       // Solicitar Wake Lock
@@ -197,6 +205,8 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
       if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
       }
+
+      console.log('[AUDIO] Audio desbloqueado. Notificaciones solicitadas.');
     } catch (error) {
       console.warn('[AUDIO] Error:', error);
     }
@@ -429,10 +439,23 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
           vibrate: [400, 150, 400, 150, 500, 200, 600]
         });
 
-        console.log('[NOTIFICATION] Notificación nativa enviada');
+        console.log('[NOTIFICATION] Notificación enviada');
       }
     } catch (error) {
       console.warn('[NOTIFICATION] Error:', error);
+    }
+  };
+
+  // Reproducir sonido de celebración con confetti
+  const playCelebration = () => {
+    try {
+      if (celebrationAudio) {
+        celebrationAudio.currentTime = 0;
+        celebrationAudio.volume = 0.5;
+        celebrationAudio.play().catch(() => {});
+      }
+    } catch (error) {
+      console.warn('[CELEBRATION] Error:', error);
     }
   };
 
@@ -454,25 +477,30 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
       hasSoundPlayedRef.current = true;
       setIsRunning(false);
 
-      // Reproducir audio nativo HTML5 simple
+      // Reproducir audio de finalización
       if (chimeAudio) {
         chimeAudio.currentTime = 0;
         chimeAudio.volume = 1.0;
-        chimeAudio.play().catch(() => console.warn('[AUDIO] Play falló'));
+        chimeAudio.play().catch(() => {});
       }
 
       // Vibración táctil
       triggerVibration();
       setTimeout(() => triggerVibration(), 100);
 
-      // Notificación nativa del sistema operativo
+      // Notificación nativa
       showNativeNotification();
+
+      // Reproducir sonido de celebración (opcional, si hay confetti)
+      setTimeout(() => {
+        playCelebration();
+      }, 300);
 
       if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'paused';
       }
 
-      console.log('[COMPLETION] Ejercicio finalizado');
+      console.log('[COMPLETION] Ejercicio finalizado con audio y notificación');
     }
   }, [timeLeft]);
 
