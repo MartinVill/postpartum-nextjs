@@ -340,6 +340,13 @@ export default function Home() {
           <DailyChallenge
             energy={state.energyScore}
             userProfile={state.userProfile}
+            onBack={() => {
+              // Solo volver sin iniciar reto
+              setState(prev => ({
+                ...prev,
+                showReto: false
+              }));
+            }}
             onChallengeStart={(challengeInfo) => {
               const challengeData = {
                 id: `challenge_${Date.now()}`,

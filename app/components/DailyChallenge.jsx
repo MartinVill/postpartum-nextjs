@@ -146,7 +146,7 @@ function Confetti() {
   );
 }
 
-export default function DailyChallenge({ energy, userProfile, onChallengeStart }) {
+export default function DailyChallenge({ energy, userProfile, onChallengeStart, onBack }) {
   const [activities, setActivities] = useState([]);
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -339,7 +339,7 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart }
         paddingTop: '12px'
       }}>
         <button
-          onClick={onChallengeStart}
+          onClick={onBack}
           style={{
             position: 'absolute',
             left: '0',
