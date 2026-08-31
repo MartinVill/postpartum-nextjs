@@ -128,17 +128,17 @@ export default function Home() {
       let title, subtitle;
 
       if (moodScore && moodScore >= 1 && moodScore <= 4) {
-        // Ánimo bajo
+        // Ánimo bajo - Necesita apoyo
         title = `¡Hola, ${userName}! 💜`;
-        subtitle = 'Vamos a hacer algo para que te sientas mejor. ¿Qué te gustaría hacer?';
+        subtitle = `Vamos a hacer algo para que te sientas mejor. ¿Qué te gustaría hacer?`;
       } else if (moodScore && moodScore >= 8 && moodScore <= 10) {
-        // Energía alta
+        // Energía alta - Muy bien
         title = `¡Me alegra verte bien, ${userName}! ✨`;
-        subtitle = '¡Nos encanta verte con energía! ¿Qué quieres hacer hoy?';
+        subtitle = `¡Nos encanta verte bien! ¿Qué quieres hacer hoy?`;
       } else {
-        // Default: neutral/estable (5-7 o sin score)
+        // Neutral/estable (5-7 o sin score)
         title = `¡Hola, ${userName}! 💜`;
-        subtitle = 'Qué bueno tenerte aquí. ¿En qué nos enfocamos hoy?';
+        subtitle = `Qué bueno tenerte por aquí. ¿En qué nos enfocamos hoy?`;
       }
 
       return { title, subtitle };
@@ -669,7 +669,15 @@ export default function Home() {
         userProfile={state.userProfile}
         onEnergySelect={(energy) => {
           const today = new Date().toDateString();
+          // Guardar check-in con energyScore para que getDynamicHeaderCopy lo lea
+          const checkInData = {
+            date: today,
+            energyMorning: energy,
+            timestamp: new Date().toISOString()
+          };
           localStorage.setItem('lastCheckInDate', today);
+          localStorage.setItem('dailyCheckIn', JSON.stringify(checkInData));
+          console.log('[SLIDER] Check-in por slider guardado con energyMorning:', energy);
           setState(prev => ({
             ...prev,
             energyScore: energy,
