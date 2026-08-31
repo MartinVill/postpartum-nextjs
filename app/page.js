@@ -64,11 +64,23 @@ export default function Home() {
       const today = new Date().toDateString();
       const lastCheckInDate = localStorage.getItem('lastCheckInDate');
 
+      // Cargar reto activo desde localStorage si existe
+      let ongoingChallenge = null;
+      const challengeJson = localStorage.getItem('postpartum_active_challenge');
+      if (challengeJson) {
+        try {
+          ongoingChallenge = JSON.parse(challengeJson);
+        } catch (e) {
+          console.error('[CHALLENGE LOAD]', e);
+        }
+      }
+
       setState(prev => ({
         ...prev,
         userId,
         userProfile,
         lastCheckInDate,
+        ongoingChallenge,
         isReady: true
       }));
     } catch (error) {
@@ -264,15 +276,19 @@ export default function Home() {
           <DailyChallenge
             energy={state.energyScore}
             userProfile={state.userProfile}
-            onChallengeStart={() => setState(prev => ({
-              ...prev,
-              showReto: false,
-              ongoingChallenge: {
+            onChallengeStart={() => {
+              const challengeData = {
                 id: `challenge_${Date.now()}`,
-                energy: prev.energyScore,
+                energy: state.energyScore,
                 started: new Date().toISOString()
-              }
-            }))}
+              };
+              localStorage.setItem('postpartum_active_challenge', JSON.stringify(challengeData));
+              setState(prev => ({
+                ...prev,
+                showReto: false,
+                ongoingChallenge: challengeData
+              }));
+            }}
           />
           <BottomNavigationBar activeTab="home" onTabChange={() => {}} />
         </div>
@@ -309,9 +325,10 @@ export default function Home() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: '12px'
+              gap: '12px',
+              flexWrap: 'wrap'
             }}>
-              <div>
+              <div style={{ flex: 1, minWidth: '200px' }}>
                 <h3 style={{
                   fontSize: '14px',
                   fontWeight: '700',
@@ -328,28 +345,60 @@ export default function Home() {
                   Día {Math.ceil(Math.random() * 30)} de 30 • Energía: {state.ongoingChallenge.energy}/10
                 </p>
               </div>
-              <button
-                onClick={() => setState(prev => ({ ...prev, showReto: true }))}
-                style={{
-                  background: 'white',
-                  color: '#D946EF',
-                  border: 'none',
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'scale(1.05)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'scale(1)';
-                }}
-              >
-                Continuar
-              </button>
+              <div style={{
+                display: 'flex',
+                gap: '8px',
+                flexWrap: 'wrap',
+                justifyContent: 'flex-end'
+              }}>
+                <button
+                  onClick={() => setState(prev => ({ ...prev, showReto: true }))}
+                  style={{
+                    background: 'white',
+                    color: '#D946EF',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'scale(1.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'scale(1)';
+                  }}
+                >
+                  Continuar
+                </button>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('postpartum_active_challenge');
+                    setState(prev => ({ ...prev, ongoingChallenge: null }));
+                  }}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.3)',
+                    color: 'white',
+                    border: '1px solid rgba(255, 255, 255, 0.6)',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = 'rgba(255, 255, 255, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = 'rgba(255, 255, 255, 0.3)';
+                  }}
+                >
+                  ✓ Completar
+                </button>
+              </div>
             </div>
           </div>
         )}
