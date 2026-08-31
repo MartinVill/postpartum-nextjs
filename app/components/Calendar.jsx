@@ -648,20 +648,24 @@ export default function Calendar({ userProfile, onBack }) {
           top: 0,
           left: 0,
           right: 0,
-          bottom: 0,
+          bottom: '70px',
           background: 'rgba(0,0,0,0.3)',
-          zIndex: 999,
+          zIndex: 9999,
           display: 'flex',
-          alignItems: 'flex-end'
+          alignItems: 'flex-end',
+          overflowY: 'auto'
         }}>
           <div onClick={(e) => e.stopPropagation()} style={{
             background: 'white',
             borderRadius: '24px 24px 0 0',
-            padding: '24px 16px 32px',
+            padding: '24px 16px',
+            paddingBottom: '32px',
             width: '100%',
             maxWidth: '600px',
             margin: '0 auto',
-            boxShadow: '0 -4px 16px rgba(0,0,0,0.1)'
+            boxShadow: '0 -4px 16px rgba(0,0,0,0.1)',
+            maxHeight: 'calc(100vh - 140px)',
+            overflowY: 'auto'
           }}>
             <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1F2937', marginBottom: '20px', textAlign: 'center' }}>
               📍 Registrar sangrado
@@ -741,20 +745,24 @@ export default function Calendar({ userProfile, onBack }) {
           top: 0,
           left: 0,
           right: 0,
-          bottom: 0,
+          bottom: '70px',
           background: 'rgba(0,0,0,0.3)',
-          zIndex: 999,
+          zIndex: 9999,
           display: 'flex',
-          alignItems: 'flex-end'
+          alignItems: 'flex-end',
+          overflowY: 'auto'
         }}>
           <div onClick={(e) => e.stopPropagation()} style={{
             background: 'white',
             borderRadius: '24px 24px 0 0',
-            padding: '24px 16px 32px',
+            padding: '24px 16px',
+            paddingBottom: '32px',
             width: '100%',
             maxWidth: '600px',
             margin: '0 auto',
-            boxShadow: '0 -4px 16px rgba(0,0,0,0.1)'
+            boxShadow: '0 -4px 16px rgba(0,0,0,0.1)',
+            maxHeight: 'calc(100vh - 140px)',
+            overflowY: 'auto'
           }}>
             <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1F2937', marginBottom: '20px', textAlign: 'center', margin: '0 0 20px 0' }}>
               {eventName}
@@ -1177,20 +1185,24 @@ export default function Calendar({ userProfile, onBack }) {
           top: 0,
           left: 0,
           right: 0,
-          bottom: 0,
+          bottom: '70px',
           background: 'rgba(0,0,0,0.3)',
-          zIndex: 999,
+          zIndex: 9999,
           display: 'flex',
-          alignItems: 'flex-end'
+          alignItems: 'flex-end',
+          overflowY: 'auto'
         }}>
           <div onClick={(e) => e.stopPropagation()} style={{
             background: 'white',
             borderRadius: '24px 24px 0 0',
-            padding: '24px 16px 32px',
+            padding: '24px 16px',
+            paddingBottom: '32px',
             width: '100%',
             maxWidth: '600px',
             margin: '0 auto',
-            boxShadow: '0 -4px 16px rgba(0,0,0,0.1)'
+            boxShadow: '0 -4px 16px rgba(0,0,0,0.1)',
+            maxHeight: 'calc(100vh - 140px)',
+            overflowY: 'auto'
           }}>
             <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1F2937', marginBottom: '20px', textAlign: 'center' }}>
               {eventType === 'sintoma' ? '🤕 Síntoma' : '📅 Evento'}
