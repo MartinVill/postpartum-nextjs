@@ -520,16 +520,11 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
       // Notificación nativa
       showNativeNotification();
 
-      // Reproducir sonido de celebración (opcional, si hay confetti)
-      setTimeout(() => {
-        playCelebration();
-      }, 300);
-
       if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'paused';
       }
 
-      console.log('[COMPLETION] Ejercicio finalizado con audio y notificación');
+      console.log('[COMPLETION] Temporizador completado - esperando confirmación del usuario');
     }
   }, [timeLeft]);
 
@@ -621,6 +616,10 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
 
   const handleMoodSelect = (mood) => {
     setSelectedMood(mood);
+
+    // Disparar celebración solo cuando el usuario confirma manualmente
+    playCelebration();
+
     setTimeout(() => {
       onComplete();
     }, 800);
