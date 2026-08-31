@@ -66,14 +66,30 @@ export default function Home() {
       const today = new Date().toDateString();
       const lastCheckInDate = localStorage.getItem('lastCheckInDate');
 
-      // NO cargar reto activo automáticamente desde localStorage
-      // Solo aparecerá cuando el usuario explícitamente inicie uno en esta sesión
+      // Restaurar reto activo SOLO si tiene estado explícito 'in_progress'
+      let ongoingChallenge = null;
+      try {
+        const savedChallengeJson = localStorage.getItem('postpartum_active_challenge');
+        if (savedChallengeJson) {
+          const parsed = JSON.parse(savedChallengeJson);
+          // Solo restaurar si tiene timestamp 'started' y status 'in_progress'
+          if (parsed && parsed.started && parsed.status === 'in_progress') {
+            ongoingChallenge = parsed;
+            console.log('[CHALLENGE RESTORE] Reto restaurado con status in_progress');
+          } else {
+            console.log('[CHALLENGE RESTORE] Reto descartado - status inválido o ausente');
+          }
+        }
+      } catch (error) {
+        console.error('[CHALLENGE RESTORE] Error parseando reto guardado:', error);
+      }
+
       setState(prev => ({
         ...prev,
         userId,
         userProfile,
         lastCheckInDate,
-        ongoingChallenge: null,
+        ongoingChallenge,
         isReady: true
       }));
     } catch (error) {
@@ -325,9 +341,11 @@ export default function Home() {
                 title: challengeInfo?.title || 'Reto del día',
                 emoji: challengeInfo?.emoji || '🎯',
                 energy: state.energyScore,
-                started: new Date().toISOString()
+                started: new Date().toISOString(),
+                status: 'in_progress'
               };
               localStorage.setItem('postpartum_active_challenge', JSON.stringify(challengeData));
+              console.log('[CHALLENGE START] Reto iniciado con status in_progress');
               setState(prev => ({
                 ...prev,
                 showReto: false,
