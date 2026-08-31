@@ -429,9 +429,10 @@ export default function Home() {
             <h2 style={{
               fontSize: '18px',
               fontWeight: '700',
-              color: '#1F2937',
+              color: '#D946EF',
               margin: '0 0 16px 0',
-              lineHeight: '1.3'
+              lineHeight: '1.3',
+              textAlign: 'center'
             }}>
               {state.ongoingChallenge.title}
             </h2>
