@@ -19,6 +19,10 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   const hasSoundPlayedRef = useRef(false);
   const wakeLockRef = useRef(null);
   const endTimeRef = useRef(null);
+  const chimeAudioRef = useRef(null);
+  const celebrationAudioRef = useRef(null);
+  const silentAudioLoopRef = useRef(null);
+  const backgroundWorkerRef = useRef(null);
 
   const guide = {
     title: activity.title,
@@ -67,13 +71,24 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isRunning]);
 
-  // Cleanup: Liberar Wake Lock al desmontar el componente
+  // Inicializar referencias de audio
   useEffect(() => {
+    if (!chimeAudioRef.current) {
+      chimeAudioRef.current = chimeAudio;
+    }
+    if (!celebrationAudioRef.current) {
+      celebrationAudioRef.current = celebrationAudio;
+    }
+
     return () => {
       releaseWakeLock();
-      if (chimeAudio) {
-        chimeAudio.pause();
-        chimeAudio.currentTime = 0;
+      if (chimeAudioRef.current) {
+        chimeAudioRef.current.pause();
+        chimeAudioRef.current.currentTime = 0;
+      }
+      if (celebrationAudioRef.current) {
+        celebrationAudioRef.current.pause();
+        celebrationAudioRef.current.currentTime = 0;
       }
     };
   }, []);
@@ -173,22 +188,24 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   const unlockAudio = async () => {
     try {
       // Desbloquear ambos audios HTML5 al hacer clic (gesto del usuario)
-      if (chimeAudio) {
-        chimeAudio.load();
-        chimeAudio.volume = 0;
-        await chimeAudio.play().catch(() => {});
-        chimeAudio.pause();
-        chimeAudio.currentTime = 0;
-        chimeAudio.volume = 1.0;
+      if (chimeAudioRef.current) {
+        chimeAudioRef.current.load();
+        chimeAudioRef.current.volume = 0;
+        await chimeAudioRef.current.play().catch(() => {});
+        chimeAudioRef.current.pause();
+        chimeAudioRef.current.currentTime = 0;
+        chimeAudioRef.current.volume = 1.0;
+        console.log('[AUDIO] Chime audio desbloqueado');
       }
 
-      if (celebrationAudio) {
-        celebrationAudio.load();
-        celebrationAudio.volume = 0;
-        await celebrationAudio.play().catch(() => {});
-        celebrationAudio.pause();
-        celebrationAudio.currentTime = 0;
-        celebrationAudio.volume = 0.5;
+      if (celebrationAudioRef.current) {
+        celebrationAudioRef.current.load();
+        celebrationAudioRef.current.volume = 0;
+        await celebrationAudioRef.current.play().catch(() => {});
+        celebrationAudioRef.current.pause();
+        celebrationAudioRef.current.currentTime = 0;
+        celebrationAudioRef.current.volume = 0.5;
+        console.log('[AUDIO] Celebration audio desbloqueado');
       }
 
       // Solicitar permisos de notificación
@@ -446,13 +463,25 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     }
   };
 
-  // Reproducir sonido de celebración con confetti
+  // Reproducir sonido de celebración
   const playCelebration = () => {
     try {
-      if (celebrationAudio) {
-        celebrationAudio.currentTime = 0;
-        celebrationAudio.volume = 0.5;
-        celebrationAudio.play().catch(() => {});
+      if (!celebrationAudioRef.current) return;
+
+      const audio = celebrationAudioRef.current;
+      audio.currentTime = 0;
+      audio.volume = 0.5;
+      audio.muted = false;
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('[CELEBRATION] Sonido de celebración reproduciendo ✓');
+          })
+          .catch((error) => {
+            console.warn('[CELEBRATION] Error reproduciendo sonido:', error);
+          });
       }
     } catch (error) {
       console.warn('[CELEBRATION] Error:', error);
