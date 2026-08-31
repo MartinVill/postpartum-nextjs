@@ -112,6 +112,7 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
 
   const submitVoiceNote = async () => {
     if (audioChunksRef.current.length === 0) {
+      setIsProcessing(false);
       return;
     }
 
@@ -128,7 +129,8 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
       });
 
       if (!response.ok) {
-        throw new Error('Error uploading voice note');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Error uploading voice note');
       }
 
       const result = await response.json();
@@ -155,12 +157,21 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
       setRecordingTime(0);
       setIsProcessing(false);
 
-      // Completar check-in
-      onEnergySelect(energy);
+      // Esperar un poco antes de redirigir para que se vea el cambio de estado
+      setTimeout(() => {
+        onEnergySelect(energy);
+      }, 300);
     } catch (error) {
       console.error('Error submitting voice note:', error);
-      alert('Error al procesar la nota de voz. Intenta de nuevo.');
+
+      // Resetear estado de grabación y procesamiento
+      audioChunksRef.current = [];
+      setRecordingTime(0);
+      setIsRecording(false);
       setIsProcessing(false);
+
+      // Mostrar error
+      alert(`Error al procesar la nota de voz: ${error.message}. Por favor intenta de nuevo.`);
     }
   };
 
@@ -446,25 +457,38 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
             {isProcessing && (
               <div style={{
                 textAlign: 'center',
-                padding: '10px'
+                padding: '12px',
+                minHeight: '80px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}>
                 <div style={{
                   display: 'inline-block',
-                  width: '20px',
-                  height: '20px',
-                  border: '2px solid #f0f0f0',
-                  borderTop: '2px solid #D946EF',
+                  width: '28px',
+                  height: '28px',
+                  border: '3px solid #e0e0e0',
+                  borderTop: '3px solid #D946EF',
                   borderRadius: '50%',
-                  animation: 'spin 0.6s linear infinite',
-                  marginBottom: '6px'
+                  animation: 'spin 0.8s linear infinite',
+                  marginBottom: '12px'
                 }} />
                 <p style={{
-                  fontSize: '12px',
-                  color: '#666',
-                  marginTop: '6px',
-                  margin: '6px 0 0 0'
+                  fontSize: '13px',
+                  color: '#1f2937',
+                  fontWeight: '500',
+                  margin: '8px 0 0 0'
                 }}>
-                  Escuchándote...
+                  Escuchándote y guardando
+                </p>
+                <p style={{
+                  fontSize: '13px',
+                  color: '#1f2937',
+                  fontWeight: '500',
+                  margin: '2px 0 0 0'
+                }}>
+                  tu desahogo...
                 </p>
                 <style>{`
                   @keyframes spin {
