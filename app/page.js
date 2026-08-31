@@ -66,23 +66,14 @@ export default function Home() {
       const today = new Date().toDateString();
       const lastCheckInDate = localStorage.getItem('lastCheckInDate');
 
-      // Cargar reto activo desde localStorage si existe
-      let ongoingChallenge = null;
-      const challengeJson = localStorage.getItem('postpartum_active_challenge');
-      if (challengeJson) {
-        try {
-          ongoingChallenge = JSON.parse(challengeJson);
-        } catch (e) {
-          console.error('[CHALLENGE LOAD]', e);
-        }
-      }
-
+      // NO cargar reto activo automáticamente desde localStorage
+      // Solo aparecerá cuando el usuario explícitamente inicie uno en esta sesión
       setState(prev => ({
         ...prev,
         userId,
         userProfile,
         lastCheckInDate,
-        ongoingChallenge,
+        ongoingChallenge: null,
         isReady: true
       }));
     } catch (error) {
