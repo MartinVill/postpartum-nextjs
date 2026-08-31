@@ -51,6 +51,7 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
   const startRecording = async () => {
     try {
       setMicPermissionDenied(false);
+      setProcessingError(null);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
@@ -60,18 +61,29 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
       });
 
       mediaRecorder.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
+        console.log('[VOICE] ondataavailable disparado, data size:', event.data.size);
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onerror = (event) => {
+        console.error('[VOICE] MediaRecorder error:', event.error);
+        setProcessingError(`Error de grabación: ${event.error}`);
+        setIsRecording(false);
       };
 
       mediaRecorderRef.current = mediaRecorder;
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingTime(0);
+      console.log('[VOICE] Grabación iniciada');
 
       // Iniciar temporizador
       timerIntervalRef.current = setInterval(() => {
         setRecordingTime((prev) => {
           if (prev >= MAX_RECORDING_TIME) {
+            console.log('[VOICE] Límite de 3 minutos alcanzado, deteniendo...');
             mediaRecorder.stop();
             clearInterval(timerIntervalRef.current);
             stream.getTracks().forEach(track => track.stop());
@@ -83,48 +95,82 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
         });
       }, 1000);
     } catch (error) {
+      console.error('[VOICE] Error al iniciar grabación:', error);
       if (error.name === 'NotAllowedError') {
         setMicPermissionDenied(true);
+        setProcessingError('Permiso de micrófono denegado');
       } else {
-        console.error('Error accessing microphone:', error);
-        alert('No se pudo acceder al micrófono. Intenta de nuevo.');
+        setProcessingError(`No se pudo acceder al micrófono: ${error.message}`);
       }
+      setIsRecording(false);
     }
   };
 
   const stopRecording = (shouldSubmit = false) => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
-      }
-      clearInterval(timerIntervalRef.current);
-      setIsRecording(false);
+    try {
+      if (mediaRecorderRef.current && isRecording) {
+        console.log('[VOICE] Deteniendo grabación, shouldSubmit:', shouldSubmit);
 
-      if (shouldSubmit) {
-        submitVoiceNote();
-      } else {
-        audioChunksRef.current = [];
-        setRecordingTime(0);
+        if (shouldSubmit) {
+          // Configurar onstop para enviar cuando se complete la grabación
+          mediaRecorderRef.current.onstop = () => {
+            console.log('[VOICE] onstop disparado, chunks:', audioChunksRef.current.length);
+            // Esperar un tick para que ondataavailable se procese completamente
+            setTimeout(() => {
+              submitVoiceNote();
+            }, 100);
+          };
+        } else {
+          // Cancelar grabación
+          mediaRecorderRef.current.onstop = null;
+          audioChunksRef.current = [];
+          setRecordingTime(0);
+        }
+
+        mediaRecorderRef.current.stop();
+
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+        }
+        clearInterval(timerIntervalRef.current);
+        setIsRecording(false);
       }
+    } catch (error) {
+      console.error('[VOICE] Error al detener grabación:', error);
+      setProcessingError(`Error al detener grabación: ${error.message}`);
+      audioChunksRef.current = [];
+      setRecordingTime(0);
+      setIsRecording(false);
     }
   };
 
   const submitVoiceNote = async () => {
-    if (audioChunksRef.current.length === 0) {
-      setIsProcessing(false);
-      return;
-    }
-
-    setIsProcessing(true);
-    setProcessingError(null);
-
     try {
+      if (audioChunksRef.current.length === 0) {
+        console.warn('[VOICE] Sin chunks de audio, abortando');
+        setIsProcessing(false);
+        setProcessingError('No se capturó audio. Vuelve a intentar hablando de nuevo.');
+        return;
+      }
+
+      setIsProcessing(true);
+      setProcessingError(null);
+
       console.log('[VOICE] Enviando nota de voz, tamaño chunks:', audioChunksRef.current.length);
 
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
       console.log('[VOICE] Blob creado, tamaño:', audioBlob.size, 'bytes');
+
+      // Validar que el blob tenga datos
+      if (audioBlob.size === 0) {
+        console.error('[VOICE] Blob vacío (0 bytes)');
+        setIsProcessing(false);
+        setProcessingError('No se capturó audio. Vuelve a intentar hablando de nuevo.');
+        audioChunksRef.current = [];
+        setRecordingTime(0);
+        return;
+      }
 
       const formData = new FormData();
       formData.append('audio', audioBlob, 'voice-note.webm');
@@ -146,6 +192,7 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
           console.error('[VOICE] Error response:', errorData);
         } catch (e) {
           console.error('[VOICE] No se pudo parsear error response');
+          errorMessage = `Error HTTP ${response.status}`;
         }
         throw new Error(errorMessage);
       }
@@ -181,9 +228,9 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
       console.log('[VOICE] Redirigiendo a Home...');
       setTimeout(() => {
         onEnergySelect(energy);
-      }, 300);
+      }, 500);
     } catch (error) {
-      const errorMsg = error?.message || 'Error desconocido';
+      const errorMsg = error?.message || 'Error desconocido al procesar audio';
       console.error('[VOICE] FATAL ERROR:', errorMsg);
 
       // Resetear estado de grabación y procesamiento
