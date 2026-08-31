@@ -199,13 +199,32 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
       }
 
       if (celebrationAudioRef.current) {
-        celebrationAudioRef.current.load();
-        celebrationAudioRef.current.volume = 0;
-        await celebrationAudioRef.current.play().catch(() => {});
-        celebrationAudioRef.current.pause();
-        celebrationAudioRef.current.currentTime = 0;
-        celebrationAudioRef.current.volume = 0.5;
-        console.log('[AUDIO] Celebration audio desbloqueado');
+        const celebAudio = celebrationAudioRef.current;
+
+        // Asegurar que la ruta esté asignada
+        if (!celebAudio.src || celebAudio.src === '') {
+          celebAudio.src = '/sounds/celebration.mp3';
+        }
+
+        // Precarga y desbloqueo
+        celebAudio.load();
+        celebAudio.volume = 0;
+
+        try {
+          const playPromise = celebAudio.play();
+          if (playPromise !== undefined) {
+            await playPromise;
+            celebAudio.pause();
+            celebAudio.currentTime = 0;
+            celebAudio.volume = 0.5;
+            console.log('[AUDIO] Celebration audio desbloqueado y precargado ✓');
+          }
+        } catch (e) {
+          console.warn('[AUDIO] Error precargando celebration:', e.message);
+          celebAudio.pause();
+          celebAudio.currentTime = 0;
+          celebAudio.volume = 0.5;
+        }
       }
 
       // Solicitar permisos de notificación
@@ -466,25 +485,65 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
   // Reproducir sonido de celebración
   const playCelebration = () => {
     try {
-      if (!celebrationAudioRef.current) return;
+      if (!celebrationAudioRef.current) {
+        console.warn('[CELEBRATION] Audio ref no inicializado');
+        return;
+      }
 
       const audio = celebrationAudioRef.current;
+
+      // Verificar estado del audio
+      console.log('[CELEBRATION] Estado del audio:', {
+        src: audio.src,
+        duration: audio.duration,
+        readyState: audio.readyState,
+        networkState: audio.networkState,
+        paused: audio.paused,
+        volume: audio.volume
+      });
+
+      // Resetear posición y volumen
       audio.currentTime = 0;
       audio.volume = 0.5;
       audio.muted = false;
 
+      // Forzar recarga si es necesario
+      if (!audio.src || audio.src === '') {
+        audio.src = '/sounds/celebration.mp3';
+        console.log('[CELEBRATION] Asignada ruta del audio: /sounds/celebration.mp3');
+      }
+
+      // Intentar reproducción con mejor manejo de Promise
       const playPromise = audio.play();
+
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            console.log('[CELEBRATION] Sonido de celebración reproduciendo ✓');
+            console.log('[CELEBRATION] ✓ Sonido de celebración reproduciendo correctamente');
           })
           .catch((error) => {
-            console.warn('[CELEBRATION] Error reproduciendo sonido:', error);
+            console.error('[CELEBRATION] ✗ Error reproduciendo:', {
+              name: error.name,
+              message: error.message,
+              code: error.code
+            });
+
+            // Fallback: intentar reproducción forzada
+            setTimeout(() => {
+              try {
+                audio.play().catch(e => {
+                  console.warn('[CELEBRATION] Fallback también falló:', e.message);
+                });
+              } catch (e) {
+                console.warn('[CELEBRATION] Error en fallback:', e);
+              }
+            }, 100);
           });
+      } else {
+        console.warn('[CELEBRATION] play() no devolvió Promise (navegador antiguo)');
       }
     } catch (error) {
-      console.warn('[CELEBRATION] Error:', error);
+      console.error('[CELEBRATION] Error crítico:', error);
     }
   };
 
