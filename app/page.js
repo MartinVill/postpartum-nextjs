@@ -391,31 +391,15 @@ export default function Home() {
         minHeight: '100vh'
       }}>
         {/* Header personalizado - Sistema de diseño nativo magenta con copy dinámico */}
-        <div className="text-center mt-6 mb-8 px-4 flex flex-col items-center justify-center">
-          <h1
-            style={{
-              fontSize: headerCopy.title.includes('¡Me alegra') ? '24px' : '20px',
-              fontWeight: 'bold',
-              color: headerCopy.title.includes('¡Me alegra') ? '#D946EF' : '#111827',
-              margin: '0',
-              letterSpacing: '-0.5px',
-              lineHeight: '1.2'
-            }}
-            className="sm:text-3xl tracking-tight flex items-center justify-center gap-2"
-          >
+        <div className="w-full max-w-md mx-auto text-center pt-6 pb-2 px-6 flex flex-col items-center justify-center">
+          <h1 className={`font-bold tracking-tight text-center leading-snug max-w-[320px] ${
+            headerCopy.title.includes('¡Me alegra')
+              ? "text-2xl text-[#D946EF]"
+              : "text-xl text-gray-800"
+          }`}>
             {headerCopy.title}
           </h1>
-          <p
-            style={{
-              fontSize: '15px',
-              color: '#6B7280',
-              fontWeight: '500',
-              margin: '10px auto 0',
-              maxWidth: '300px',
-              lineHeight: '1.5',
-              textAlign: 'center'
-            }}
-          >
+          <p className="text-[15px] text-gray-500 font-normal mt-2 leading-relaxed text-center max-w-[280px]">
             {headerCopy.subtitle}
           </p>
         </div>
