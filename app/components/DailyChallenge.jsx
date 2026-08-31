@@ -219,18 +219,14 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart }
       }
     }
 
-    if (stored && stored.date === today) {
-      setChallengeData(stored);
-    } else {
-      const newData = {
-        date: today,
-        completed: [],
-        streak: currentStreak,
-        userPreferences: stored?.userPreferences || { accepted: [], rejected: [], feedback: [] }
-      };
-      localStorage.setItem('dailyChallengeData', JSON.stringify(newData));
-      setChallengeData(newData);
-    }
+    // Inicializar datos locales del componente (sin persistencia en localStorage)
+    const newData = {
+      date: today,
+      completed: [],
+      streak: currentStreak,
+      userPreferences: stored?.userPreferences || { accepted: [], rejected: [], feedback: [] }
+    };
+    setChallengeData(newData);
   }, []);
 
   const handleSelectActivity = (activity) => {
@@ -296,7 +292,6 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart }
         date: new Date().toDateString()
       };
       setChallengeData(updated);
-      localStorage.setItem('dailyChallengeData', JSON.stringify(updated));
 
       // Limpiar challenge en progreso
       localStorage.removeItem('inProgressChallenge');

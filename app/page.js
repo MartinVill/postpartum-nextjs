@@ -45,6 +45,11 @@ export default function Home() {
 
   useEffect(() => {
     try {
+      // Limpiar keys legacy que pueden haber causado el problema
+      localStorage.removeItem('dailyChallengeData');
+      localStorage.removeItem('dailyChallenge');
+      console.log('[INIT] Legacy challenge keys cleaned');
+
       let userId = localStorage.getItem('userId');
       if (!userId) {
         userId = `user_${Math.random().toString(36).substr(2, 20)}`;
