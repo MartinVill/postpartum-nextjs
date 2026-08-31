@@ -319,25 +319,36 @@ export default function Home() {
         paddingBottom: '70px',
         minHeight: '100vh'
       }}>
-        {/* Header personalizado con saludo */}
+        {/* Header personalizado centrado - Único */}
         <div style={{
-          padding: '16px 16px 12px 16px'
+          textAlign: 'center',
+          marginTop: '24px',
+          marginBottom: '32px',
+          paddingLeft: '16px',
+          paddingRight: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center'
         }}>
           <h1 style={{
             fontSize: '24px',
-            fontWeight: '700',
-            color: '#1F2937',
-            margin: '0 0 4px 0',
-            letterSpacing: '-0.5px'
+            fontWeight: '600',
+            color: '#111827',
+            margin: '0',
+            letterSpacing: '-0.5px',
+            lineHeight: '1.1'
           }}>
             ¡Hola, {state.userProfile?.name || 'hermosa'}! 💜
           </h1>
           <p style={{
             fontSize: '13px',
             color: '#6B7280',
-            fontWeight: '500',
-            margin: '0',
-            marginTop: '4px'
+            fontWeight: '400',
+            margin: '8px auto 0',
+            maxWidth: '280px',
+            lineHeight: '1.5',
+            textAlign: 'center'
           }}>
             Vamos a hacer algo para que te sientas mejor. ¿Qué te gustaría hacer?
           </p>

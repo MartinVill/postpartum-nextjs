@@ -9,19 +9,6 @@ export default function HomeGrid({ energy, userProfile, onChat, onCalendar, onBo
       maxWidth: '600px',
       margin: '0 auto'
     }}>
-      {/* Título principal */}
-      <h1 style={{
-        fontSize: '32px',
-        fontWeight: '700',
-        color: '#D946EF',
-        margin: '24px 0 32px 0',
-        letterSpacing: '-0.5px',
-        lineHeight: '1.1',
-        textAlign: 'center'
-      }}>
-        Hola, {userProfile?.name || 'mamá'}
-      </h1>
-
       {/* Grilla 2x2 */}
       <div style={{
         display: 'grid',
