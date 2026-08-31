@@ -26,7 +26,8 @@ export default function Home() {
     activeTab: 'home',
     energyScore: null,
     lastCheckInDate: null,
-    isMenuOpen: false
+    isMenuOpen: false,
+    ongoingChallenge: null // Reto activo: { id, name, started }
   });
 
   // Cerrar menú al hacer click fuera
@@ -263,7 +264,15 @@ export default function Home() {
           <DailyChallenge
             energy={state.energyScore}
             userProfile={state.userProfile}
-            onChallengeStart={() => setState(prev => ({ ...prev, showReto: false }))}
+            onChallengeStart={() => setState(prev => ({
+              ...prev,
+              showReto: false,
+              ongoingChallenge: {
+                id: `challenge_${Date.now()}`,
+                energy: prev.energyScore,
+                started: new Date().toISOString()
+              }
+            }))}
           />
           <BottomNavigationBar activeTab="home" onTabChange={() => {}} />
         </div>
@@ -286,6 +295,65 @@ export default function Home() {
     // Pantalla principal: Home Grid
     return (
       <div style={{ paddingBottom: '70px' }}>
+        {/* Banner de reto activo */}
+        {state.ongoingChallenge && (
+          <div style={{
+            background: 'linear-gradient(135deg, #D946EF 0%, #9333EA 100%)',
+            padding: '16px',
+            margin: '12px 16px 12px 16px',
+            borderRadius: '12px',
+            color: 'white',
+            boxShadow: '0 4px 12px rgba(217, 70, 239, 0.2)'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px'
+            }}>
+              <div>
+                <h3 style={{
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  margin: '0 0 4px 0',
+                  letterSpacing: '0.5px'
+                }}>
+                  🎯 RETO EN PROGRESO
+                </h3>
+                <p style={{
+                  fontSize: '12px',
+                  margin: '0',
+                  opacity: 0.9
+                }}>
+                  Día {Math.ceil(Math.random() * 30)} de 30 • Energía: {state.ongoingChallenge.energy}/10
+                </p>
+              </div>
+              <button
+                onClick={() => setState(prev => ({ ...prev, showReto: true }))}
+                style={{
+                  background: 'white',
+                  color: '#D946EF',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'scale(1)';
+                }}
+              >
+                Continuar
+              </button>
+            </div>
+          </div>
+        )}
+
         <HomeGrid
           energy={state.energyScore}
           userProfile={state.userProfile}
