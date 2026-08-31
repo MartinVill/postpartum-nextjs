@@ -129,16 +129,16 @@ export default function Home() {
 
       if (moodScore && moodScore >= 1 && moodScore <= 4) {
         // Ánimo bajo - Necesita apoyo
-        title = `¡Hola, ${userName}! 💜`;
-        subtitle = `Vamos a hacer algo para que te sientas mejor. ¿Qué te gustaría hacer?`;
+        title = `Vamos a hacer algo para que te sientas mejor`;
+        subtitle = `¿Qué te gustaría hacer hoy?`;
       } else if (moodScore && moodScore >= 8 && moodScore <= 10) {
         // Energía alta - Muy bien
         title = `¡Me alegra verte bien, ${userName}! ✨`;
-        subtitle = `¡Nos encanta verte bien! ¿Qué quieres hacer hoy?`;
+        subtitle = `¿Qué quieres hacer hoy?`;
       } else {
         // Neutral/estable (5-7 o sin score)
-        title = `¡Hola, ${userName}! 💜`;
-        subtitle = `Qué bueno tenerte por aquí. ¿En qué nos enfocamos hoy?`;
+        title = `Qué bueno tenerte por aquí`;
+        subtitle = `¿En qué nos enfocamos hoy?`;
       }
 
       return { title, subtitle };
@@ -392,10 +392,30 @@ export default function Home() {
       }}>
         {/* Header personalizado - Sistema de diseño nativo magenta con copy dinámico */}
         <div className="text-center mt-6 mb-8 px-4 flex flex-col items-center justify-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#D946EF] tracking-tight flex items-center justify-center gap-2">
+          <h1
+            style={{
+              fontSize: headerCopy.title.includes('¡Me alegra') ? '24px' : '20px',
+              fontWeight: 'bold',
+              color: headerCopy.title.includes('¡Me alegra') ? '#D946EF' : '#111827',
+              margin: '0',
+              letterSpacing: '-0.5px',
+              lineHeight: '1.2'
+            }}
+            className="sm:text-3xl tracking-tight flex items-center justify-center gap-2"
+          >
             {headerCopy.title}
           </h1>
-          <p className="text-[#7E6A9A] text-sm font-medium mt-2 max-w-xs text-center leading-relaxed">
+          <p
+            style={{
+              fontSize: '15px',
+              color: '#6B7280',
+              fontWeight: '500',
+              margin: '10px auto 0',
+              maxWidth: '300px',
+              lineHeight: '1.5',
+              textAlign: 'center'
+            }}
+          >
             {headerCopy.subtitle}
           </p>
         </div>
