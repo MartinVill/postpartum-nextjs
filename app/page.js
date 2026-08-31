@@ -315,9 +315,8 @@ export default function Home() {
     // Pantalla principal: Home Grid
     return (
       <div style={{
-        paddingTop: '0px',
+        paddingTop: '12px',
         paddingBottom: '70px',
-        background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
         minHeight: '100vh'
       }}>
         {/* Tarjeta: Reto del día (actividades de autocuidado) */}
