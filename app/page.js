@@ -27,7 +27,9 @@ export default function Home() {
     energyScore: null,
     lastCheckInDate: null,
     isMenuOpen: false,
-    ongoingChallenge: null // Reto activo: { id, name, started }
+    ongoingChallenge: null,
+    showRetoCelebration: false,
+    showRetoFeedbackModal: false
   });
 
   // Cerrar menú al hacer click fuera
@@ -312,8 +314,12 @@ export default function Home() {
 
     // Pantalla principal: Home Grid
     return (
-      <div style={{ paddingBottom: '70px' }}>
-        {/* Tarjeta: Tu reto de hoy */}
+      <div style={{
+        paddingBottom: '70px',
+        background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
+        minHeight: '100vh'
+      }}>
+        {/* Tarjeta: Reto del día (actividades de autocuidado) */}
         {state.ongoingChallenge && (
           <div style={{
             background: 'white',
@@ -323,12 +329,12 @@ export default function Home() {
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
             border: '1px solid #F3F4F6'
           }}>
-            {/* Encabezado */}
+            {/* Encabezado con icono + nombre + progreso */}
             <div style={{
               display: 'flex',
               alignItems: 'flex-start',
               gap: '12px',
-              marginBottom: '12px'
+              marginBottom: '16px'
             }}>
               <div style={{
                 fontSize: '32px',
@@ -337,94 +343,229 @@ export default function Home() {
                 {state.ongoingChallenge.emoji || '🎯'}
               </div>
               <div style={{ flex: 1 }}>
-                <h3 style={{
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#6B7280',
-                  margin: '0 0 2px 0',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}>
-                  Tu reto de hoy
-                </h3>
                 <h2 style={{
-                  fontSize: '18px',
+                  fontSize: '16px',
                   fontWeight: '700',
                   color: '#1F2937',
-                  margin: '0',
+                  margin: '0 0 4px 0',
                   lineHeight: '1.3'
                 }}>
                   {state.ongoingChallenge.title}
                 </h2>
+                <p style={{
+                  fontSize: '12px',
+                  color: '#9CA3AF',
+                  margin: '0',
+                  fontWeight: '500'
+                }}>
+                  Día {Math.ceil(Math.random() * 30)} de 30
+                </p>
               </div>
             </div>
 
-            {/* Indicador de progreso discreto */}
-            <div style={{
-              fontSize: '12px',
-              color: '#9CA3AF',
-              marginBottom: '16px',
-              fontWeight: '500'
-            }}>
-              Día {Math.floor((new Date(state.ongoingChallenge.started).getTime() - new Date(state.ongoingChallenge.started).getTime()) / (1000 * 60 * 60 * 24) + 1) % 30 || Math.ceil(Math.random() * 30)} de 30
-            </div>
+            {/* Botón principal: ¡Lo hice! */}
+            <button
+              onClick={() => {
+                // Reproducir confetti + celebration.mp3
+                const celebrationAudio = new Audio('/sounds/celebration.mp3');
+                celebrationAudio.volume = 0.5;
+                celebrationAudio.play().catch(err => console.error(err));
 
-            {/* Botones */}
-            <div style={{
-              display: 'flex',
-              gap: '8px',
-              flexDirection: 'column'
-            }}>
-              <button
-                onClick={() => setState(prev => ({ ...prev, showBodyAndCalm: true }))}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  background: '#D946EF',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontWeight: '600',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = '#C72BD9';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = '#D946EF';
-                }}
-              >
-                Comenzar ejercicio
-              </button>
-              <button
-                onClick={() => {
-                  localStorage.removeItem('postpartum_active_challenge');
-                  setState(prev => ({ ...prev, ongoingChallenge: null }));
-                }}
-                style={{
-                  width: '100%',
-                  padding: '10px 16px',
-                  background: '#F3F4F6',
-                  color: '#6B7280',
-                  border: '1px solid #E5E7EB',
-                  borderRadius: '10px',
-                  fontWeight: '600',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = '#E5E7EB';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = '#F3F4F6';
-                }}
-              >
-                Completar
-              </button>
-            </div>
+                // Mostrar confetti
+                setState(prev => ({ ...prev, showRetoCelebration: true }));
+                setTimeout(() => {
+                  setState(prev => ({ ...prev, showRetoCelebration: false }));
+                }, 2000);
+
+                // Mostrar modal de feedback emocional
+                setState(prev => ({ ...prev, showRetoFeedbackModal: true }));
+              }}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                background: '#D946EF',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                fontWeight: '600',
+                fontSize: '14px',
+                cursor: 'pointer',
+                marginBottom: '8px',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = '#C72BD9';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = '#D946EF';
+              }}
+            >
+              ¡Lo hice!
+            </button>
+
+            {/* Enlace secundario: Cancelar reto */}
+            <button
+              onClick={() => {
+                localStorage.removeItem('postpartum_active_challenge');
+                setState(prev => ({ ...prev, ongoingChallenge: null }));
+              }}
+              style={{
+                width: '100%',
+                background: 'none',
+                border: 'none',
+                color: '#6B7280',
+                textDecoration: 'underline',
+                fontSize: '12px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                padding: '4px',
+                transition: 'color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.color = '#4B5563';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.color = '#6B7280';
+              }}
+            >
+              Cancelar reto
+            </button>
+
+            {/* Modal de feedback emocional */}
+            {state.showRetoFeedbackModal && (
+              <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 9999
+              }}>
+                <div style={{
+                  background: 'white',
+                  borderRadius: '20px',
+                  padding: '32px 24px',
+                  maxWidth: '380px',
+                  textAlign: 'center',
+                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)'
+                }}>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    color: '#111827',
+                    margin: '0 0 16px 0'
+                  }}>
+                    ¿Cómo te sentiste?
+                  </h3>
+
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: '16px',
+                    marginBottom: '20px'
+                  }}>
+                    {['😴', '😊', '✨'].map(emoji => (
+                      <button
+                        key={emoji}
+                        onClick={() => {
+                          // Limpiar reto activo
+                          localStorage.removeItem('postpartum_active_challenge');
+                          setState(prev => ({
+                            ...prev,
+                            ongoingChallenge: null,
+                            showRetoFeedbackModal: false
+                          }));
+                        }}
+                        style={{
+                          fontSize: '40px',
+                          background: 'none',
+                          border: '2px solid #E5E7EB',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.borderColor = '#D946EF';
+                          e.target.style.transform = 'scale(1.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.borderColor = '#E5E7EB';
+                          e.target.style.transform = 'scale(1)';
+                        }}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem('postpartum_active_challenge');
+                      setState(prev => ({
+                        ...prev,
+                        ongoingChallenge: null,
+                        showRetoFeedbackModal: false
+                      }));
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      background: '#F3F4F6',
+                      color: '#6B7280',
+                      border: 'none',
+                      borderRadius: '10px',
+                      fontWeight: '600',
+                      fontSize: '14px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Confetti animation */}
+            {state.showRetoCelebration && (
+              <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                pointerEvents: 'none',
+                zIndex: 5000
+              }}>
+                {[...Array(30)].map((_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      position: 'absolute',
+                      left: `${Math.random() * 100}%`,
+                      top: '-10px',
+                      width: '10px',
+                      height: '10px',
+                      background: ['#D946EF', '#FFF8DC', '#10B981', '#FFA500'][Math.floor(Math.random() * 4)],
+                      borderRadius: '50%',
+                      animation: `fall ${2 + Math.random()}s linear forwards`,
+                    }}
+                  />
+                ))}
+                <style>{`
+                  @keyframes fall {
+                    to {
+                      transform: translateY(${window.innerHeight + 10}px) rotate(360deg);
+                      opacity: 0;
+                    }
+                  }
+                `}</style>
+              </div>
+            )}
           </div>
         )}
 
