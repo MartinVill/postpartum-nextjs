@@ -369,11 +369,15 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
           {/* Tarjeta de Registro por Voz - Tipo WhatsApp */}
           <div style={{
             background: 'white',
-            padding: '14px',
+            padding: '16px',
             borderRadius: '12px',
             marginTop: '24px',
             border: '1px solid #f0f0f0',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            minHeight: '120px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center'
           }}>
             {/* Mensaje de permiso denegado */}
             {micPermissionDenied && (
@@ -432,12 +436,17 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
             {/* ESTADO REPOSO */}
             {!isRecording && recordingTime === 0 && (
               <div style={{
-                textAlign: 'center'
+                textAlign: 'center',
+                minHeight: '96px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center'
               }}>
                 <p style={{
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#333',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  color: '#374151',
                   marginBottom: '14px',
                   margin: '0 0 14px 0'
                 }}>
@@ -476,12 +485,17 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
             {/* ESTADO GRABANDO */}
             {isRecording && recordingTime > 0 && (
               <div style={{
-                textAlign: 'center'
+                textAlign: 'center',
+                minHeight: '96px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center'
               }}>
                 <p style={{
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#333',
+                  fontSize: '13px',
+                  fontWeight: '400',
+                  color: '#4b5563',
                   marginBottom: '14px',
                   margin: '0 0 14px 0'
                 }}>
@@ -496,9 +510,9 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
                 }}>
                   {/* Temporizador */}
                   <div style={{
-                    fontSize: '16px',
-                    fontWeight: '700',
-                    color: '#333',
+                    fontSize: '14px',
+                    fontWeight: '400',
+                    color: '#4b5563',
                     minWidth: '45px'
                   }}>
                     {formatTime(recordingTime)}
@@ -567,8 +581,7 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
             {isProcessing && (
               <div style={{
                 textAlign: 'center',
-                padding: '12px',
-                minHeight: '80px',
+                minHeight: '96px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -590,15 +603,7 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
                   fontWeight: '500',
                   margin: '8px 0 0 0'
                 }}>
-                  Escuchándote y guardando
-                </p>
-                <p style={{
-                  fontSize: '13px',
-                  color: '#1f2937',
-                  fontWeight: '500',
-                  margin: '2px 0 0 0'
-                }}>
-                  tu desahogo...
+                  Escuchándote y guardando...
                 </p>
                 <style>{`
                   @keyframes spin {

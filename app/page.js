@@ -319,6 +319,30 @@ export default function Home() {
         paddingBottom: '70px',
         minHeight: '100vh'
       }}>
+        {/* Header personalizado con saludo */}
+        <div style={{
+          padding: '16px 16px 12px 16px'
+        }}>
+          <h1 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            color: '#1F2937',
+            margin: '0 0 4px 0',
+            letterSpacing: '-0.5px'
+          }}>
+            ¡Hola, {state.userProfile?.name || 'hermosa'}! 💜
+          </h1>
+          <p style={{
+            fontSize: '13px',
+            color: '#6B7280',
+            fontWeight: '500',
+            margin: '0',
+            marginTop: '4px'
+          }}>
+            Vamos a hacer algo para que te sientas mejor. ¿Qué te gustaría hacer?
+          </p>
+        </div>
+
         {/* Tarjeta: Reto del día (actividades de autocuidado) */}
         {state.ongoingChallenge && (
           <div style={{
