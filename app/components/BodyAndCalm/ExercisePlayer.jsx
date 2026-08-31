@@ -199,32 +199,12 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
       }
 
       if (celebrationAudioRef.current) {
-        const celebAudio = celebrationAudioRef.current;
-
-        // Asegurar que la ruta esté asignada
-        if (!celebAudio.src || celebAudio.src === '') {
-          celebAudio.src = '/sounds/celebration.mp3';
-        }
-
-        // Precarga y desbloqueo
-        celebAudio.load();
-        celebAudio.volume = 0;
-
-        try {
-          const playPromise = celebAudio.play();
-          if (playPromise !== undefined) {
-            await playPromise;
-            celebAudio.pause();
-            celebAudio.currentTime = 0;
-            celebAudio.volume = 0.5;
-            console.log('[AUDIO] Celebration audio desbloqueado y precargado ✓');
-          }
-        } catch (e) {
-          console.warn('[AUDIO] Error precargando celebration:', e.message);
-          celebAudio.pause();
-          celebAudio.currentTime = 0;
-          celebAudio.volume = 0.5;
-        }
+        celebrationAudioRef.current.load();
+        celebrationAudioRef.current.volume = 0;
+        await celebrationAudioRef.current.play().then(() => {
+          celebrationAudioRef.current.pause();
+          celebrationAudioRef.current.currentTime = 0;
+        }).catch(() => {});
       }
 
       // Solicitar permisos de notificación
@@ -482,69 +462,16 @@ export default function ExercisePlayer({ activity, onComplete, onBack }) {
     }
   };
 
-  // Reproducir sonido de celebración
+  // Reproducir sonido de celebración (disparo síncrono con confetti)
   const playCelebration = () => {
-    try {
-      if (!celebrationAudioRef.current) {
-        console.warn('[CELEBRATION] Audio ref no inicializado');
-        return;
-      }
-
-      const audio = celebrationAudioRef.current;
-
-      // Verificar estado del audio
-      console.log('[CELEBRATION] Estado del audio:', {
-        src: audio.src,
-        duration: audio.duration,
-        readyState: audio.readyState,
-        networkState: audio.networkState,
-        paused: audio.paused,
-        volume: audio.volume
-      });
-
-      // Resetear posición y volumen
-      audio.currentTime = 0;
-      audio.volume = 0.5;
-      audio.muted = false;
-
-      // Forzar recarga si es necesario
-      if (!audio.src || audio.src === '') {
-        audio.src = '/sounds/celebration.mp3';
-        console.log('[CELEBRATION] Asignada ruta del audio: /sounds/celebration.mp3');
-      }
-
-      // Intentar reproducción con mejor manejo de Promise
-      const playPromise = audio.play();
-
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log('[CELEBRATION] ✓ Sonido de celebración reproduciendo correctamente');
-          })
-          .catch((error) => {
-            console.error('[CELEBRATION] ✗ Error reproduciendo:', {
-              name: error.name,
-              message: error.message,
-              code: error.code
-            });
-
-            // Fallback: intentar reproducción forzada
-            setTimeout(() => {
-              try {
-                audio.play().catch(e => {
-                  console.warn('[CELEBRATION] Fallback también falló:', e.message);
-                });
-              } catch (e) {
-                console.warn('[CELEBRATION] Error en fallback:', e);
-              }
-            }, 100);
-          });
-      } else {
-        console.warn('[CELEBRATION] play() no devolvió Promise (navegador antiguo)');
-      }
-    } catch (error) {
-      console.error('[CELEBRATION] Error crítico:', error);
+    if (!celebrationAudioRef.current) {
+      return;
     }
+
+    const audio = celebrationAudioRef.current;
+    audio.volume = 0.5;
+    audio.currentTime = 0;
+    audio.play().catch(err => console.error('[CELEBRATION] Error reproduciendo celebración:', err));
   };
 
   // Función para vibración táctil intensa
