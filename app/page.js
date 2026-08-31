@@ -426,16 +426,18 @@ export default function Home() {
             </div>
 
             {/* Nombre del reto centrado */}
-            <h2 style={{
+            <div style={{
               fontSize: '18px',
               fontWeight: '700',
               color: '#D946EF',
               margin: '0 0 16px 0',
               lineHeight: '1.3',
-              textAlign: 'center'
+              textAlign: 'center',
+              display: 'block',
+              width: '100%'
             }}>
               {state.ongoingChallenge.title}
-            </h2>
+            </div>
 
             {/* Botón principal: ¡Lo hice! */}
             <button
