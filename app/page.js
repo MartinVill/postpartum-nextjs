@@ -33,6 +33,29 @@ export default function Home() {
     showRetoFeedbackModal: false
   });
 
+  /**
+   * Centralized navigation handler
+   * Closes all sub-cards/modals and switches to target view
+   * Ensures footer works globally across all screens
+   */
+  const handleNavigate = (targetTab) => {
+    setState(prev => ({
+      ...prev,
+      activeTab: targetTab,
+      // Close all modals/cards
+      showChat: targetTab === 'home' ? prev.showChat : false,
+      showCalendar: targetTab === 'calendar',
+      showProfile: targetTab === 'profile',
+      showBodyAndCalm: false,
+      showReto: false,
+      showReflection: false,
+      // Reset sub-modals
+      showRetoCelebration: false,
+      showRetoFeedbackModal: false,
+      isMenuOpen: false
+    }));
+  };
+
   // Cerrar menú al hacer click fuera
   useEffect(() => {
     if (state.isMenuOpen && state.showChat) {
@@ -220,15 +243,7 @@ export default function Home() {
           />
           <BottomNavigationBar
             activeTab={state.activeTab}
-            onTabChange={(tab) => {
-              if (tab === 'profile') {
-                setState(prev => ({ ...prev, showProfile: true, activeTab: 'profile' }));
-              } else if (tab === 'home') {
-                setState(prev => ({ ...prev, showProfile: false, activeTab: 'home' }));
-              } else if (tab === 'calendar') {
-                setState(prev => ({ ...prev, showProfile: false, showCalendar: true, activeTab: 'calendar' }));
-              }
-            }}
+            onTabChange={handleNavigate}
           />
         </div>
       );
@@ -305,15 +320,7 @@ export default function Home() {
           </div>
           <BottomNavigationBar
             activeTab={state.activeTab}
-            onTabChange={(tab) => {
-              if (tab === 'calendar') {
-                setState(prev => ({ ...prev, showCalendar: true, showChat: false }));
-              } else if (tab === 'profile') {
-                setState(prev => ({ ...prev, showCalendar: false, showChat: false }));
-              } else {
-                setState(prev => ({ ...prev, activeTab: 'home', showChat: false }));
-              }
-            }}
+            onTabChange={handleNavigate}
           />
         </div>
       );
@@ -661,14 +668,7 @@ export default function Home() {
         />
         <BottomNavigationBar
           activeTab={state.activeTab}
-          onTabChange={(tab) => {
-            setState(prev => ({ ...prev, activeTab: tab }));
-            if (tab === 'calendar') {
-              setState(prev => ({ ...prev, showCalendar: true }));
-            } else if (tab === 'profile') {
-              setState(prev => ({ ...prev, showProfile: true }));
-            }
-          }}
+          onTabChange={handleNavigate}
         />
       </div>
     );
