@@ -156,10 +156,10 @@ const ACTIVITIES_DATABASE = {
 };
 
 const CATEGORY_TITLES = {
-  breathing: '🫁 Respiración y Core',
-  stretching: '🧘‍♀️ Estiramiento y Postura',
-  relaxation: '🕊️ Relajación y Pausa',
-  movement: '🌿 Movimiento Suave'
+  breathing: 'Respiración y Core',
+  stretching: 'Estiramiento y Postura',
+  relaxation: 'Relajación y Pausa',
+  movement: 'Movimiento Suave'
 };
 
 const POSTURE_EMOJI = {
@@ -182,19 +182,17 @@ export default function ActivitiesListView({ categoryId, onSelectActivity, onBac
       margin: '0 auto',
       position: 'relative'
     }}>
-      {/* Header con botón absoluto y título centrado */}
+      {/* Header compartido por las cuatro categorías */}
       <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
         marginBottom: '24px',
-        paddingTop: '20px',
-        position: 'relative',
-        textAlign: 'center'
+        padding: '12px 16px'
       }}>
         <button
           onClick={onBack}
           style={{
-            position: 'absolute',
-            left: '0',
-            top: '20px',
             background: 'white',
             border: 'none',
             padding: '8px',
@@ -205,6 +203,7 @@ export default function ActivitiesListView({ categoryId, onSelectActivity, onBac
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            flex: '0 0 40px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
             transition: 'all 0.2s'
           }}
@@ -221,12 +220,15 @@ export default function ActivitiesListView({ categoryId, onSelectActivity, onBac
         </button>
 
         <h1 style={{
-          fontSize: '26px',
+          flex: 1,
+          minWidth: 0,
+          fontSize: '20px',
           fontWeight: '700',
-          color: '#1F2937',
+          color: '#D946EF',
           margin: '0',
-          lineHeight: '1.3',
-          letterSpacing: '-0.5px'
+          lineHeight: '1.25',
+          letterSpacing: '-0.25px',
+          textAlign: 'left'
         }}>
           {categoryTitle}
         </h1>
