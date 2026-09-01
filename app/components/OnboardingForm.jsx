@@ -448,20 +448,20 @@ export default function OnboardingForm({ onComplete }) {
       case 5:
         return (
           <div>
-            <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '28px', color: '#D946EF', lineHeight: '1.3' }}>
-              Respeta tus momentos de descanso 🌙
+            <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '16px', color: '#D946EF', lineHeight: '1.3' }}>
+              ¿A qué hora descansas? 🌙
             </h2>
             <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '28px' }}>
-              Dinos a qué hora sueles dormir para asegurarnos de no enviarte ninguna notificación ni interrumpir tu sueño o lactancia.
+              Jamás te enviaremos notificaciones durante tu horario de sueño o lactancia.
             </p>
 
             <div style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
               gap: '16px',
-              marginBottom: '24px'
+              marginBottom: '0'
             }}>
-              {/* Hora de descanso */}
+              {/* Dormir */}
               <div>
                 <label style={{
                   display: 'block',
@@ -470,7 +470,7 @@ export default function OnboardingForm({ onComplete }) {
                   color: '#4B5563',
                   marginBottom: '8px'
                 }}>
-                  Hora de descanso
+                  Dormir
                 </label>
                 <input
                   type="time"
@@ -500,7 +500,7 @@ export default function OnboardingForm({ onComplete }) {
                 />
               </div>
 
-              {/* Hora de despertar */}
+              {/* Despertar */}
               <div>
                 <label style={{
                   display: 'block',
@@ -509,7 +509,7 @@ export default function OnboardingForm({ onComplete }) {
                   color: '#4B5563',
                   marginBottom: '8px'
                 }}>
-                  Hora de despertar
+                  Despertar
                 </label>
                 <input
                   type="time"
@@ -539,10 +539,6 @@ export default function OnboardingForm({ onComplete }) {
                 />
               </div>
             </div>
-
-            <p style={{ fontSize: '12px', color: '#9CA3AF', fontStyle: 'italic', margin: 0 }}>
-              💡 Tip: Dejamos notificaciones deshabilitadas durante estos horarios para que descanses sin interrupciones.
-            </p>
           </div>
         );
       default:
@@ -683,7 +679,7 @@ export default function OnboardingForm({ onComplete }) {
             }
           }}
         >
-          {isRequestingPermission ? 'Activando...' : step === 5 ? 'Finalizar y activar recordatorios' : 'Siguiente'}
+          {isRequestingPermission ? 'Activando...' : step === 5 ? 'Comenzar ✨' : 'Siguiente'}
         </button>
       </div>
     </div>
