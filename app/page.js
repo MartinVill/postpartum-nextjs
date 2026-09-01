@@ -42,14 +42,14 @@ export default function Home() {
     setState(prev => ({
       ...prev,
       activeTab: targetTab,
-      // Close all modals/cards
-      showChat: targetTab === 'home' ? prev.showChat : false,
+      // FORCE CLOSE all sub-views/modals
+      showChat: targetTab === 'chat',
       showCalendar: targetTab === 'calendar',
       showProfile: targetTab === 'profile',
-      showBodyAndCalm: false,
-      showReto: false,
-      showReflection: false,
-      // Reset sub-modals
+      showBodyAndCalm: false,  // ALWAYS close
+      showReto: false,         // ALWAYS close
+      showReflection: false,   // ALWAYS close
+      // ALWAYS reset sub-modals
       showRetoCelebration: false,
       showRetoFeedbackModal: false,
       isMenuOpen: false
@@ -359,7 +359,7 @@ export default function Home() {
               }));
             }}
           />
-          <BottomNavigationBar activeTab="home" onTabChange={() => {}} />
+          <BottomNavigationBar activeTab={state.activeTab} onTabChange={handleNavigate} />
         </div>
       );
     }
@@ -372,7 +372,7 @@ export default function Home() {
             userProfile={state.userProfile}
             onBack={() => setState(prev => ({ ...prev, showBodyAndCalm: false }))}
           />
-          <BottomNavigationBar activeTab="home" onTabChange={() => {}} />
+          <BottomNavigationBar activeTab={state.activeTab} onTabChange={handleNavigate} />
         </div>
       );
     }
