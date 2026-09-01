@@ -367,11 +367,19 @@ export default function Home() {
     // Sub-pantalla: Cuerpo y Calma
     if (state.showBodyAndCalm) {
       return (
-        <div style={{ paddingBottom: '70px' }}>
-          <BodyAndCalmModule
-            userProfile={state.userProfile}
-            onBack={() => setState(prev => ({ ...prev, showBodyAndCalm: false }))}
-          />
+        <div style={{
+          minHeight: '100vh',
+          background: '#FFF8FE',
+          display: 'flex',
+          flexDirection: 'column',
+          paddingBottom: '70px'
+        }}>
+          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+            <BodyAndCalmModule
+              userProfile={state.userProfile}
+              onBack={() => setState(prev => ({ ...prev, showBodyAndCalm: false }))}
+            />
+          </div>
           <BottomNavigationBar activeTab={state.activeTab} onTabChange={handleNavigate} />
         </div>
       );
