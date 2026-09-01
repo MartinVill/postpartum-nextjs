@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { selectVocative, getRandomGreetings } from '@/app/utils/vocativeManager';
 import ChatSection from './components/ChatSection';
 import OnboardingForm from './components/OnboardingForm';
 import EnergyCheckIn from './components/EnergyCheckIn';
@@ -123,6 +124,7 @@ export default function Home() {
       }
 
       const userName = state.userProfile?.name || 'hermosa';
+      const nicknames = state.userProfile?.favoriteTermsOfEndearment || [];
 
       // Determinar título y subtítulo basado en rango de moodScore
       let title, subtitle;
@@ -132,12 +134,14 @@ export default function Home() {
         title = `Vamos a hacer algo para que te sientas mejor 💜`;
         subtitle = `¿Qué te gustaría hacer hoy?`;
       } else if (moodScore && moodScore >= 8 && moodScore <= 10) {
-        // Energía alta - Muy bien
-        title = `¡Me alegra verte bien, ${userName}! ✨`;
+        // Energía alta - Muy bien (usar vocativo dinámico)
+        const vocative = selectVocative(userName, nicknames);
+        title = vocative ? `¡Me alegra verte bien, ${vocative}! ✨` : `¡Qué alegría! Te ves muy bien hoy ✨`;
         subtitle = `¿Qué quieres hacer hoy?`;
       } else {
-        // Neutral/estable (5-7 o sin score)
-        title = `Qué bueno tenerte por aquí 😊`;
+        // Neutral/estable (5-7 o sin score) - usar greeting dinámico
+        const { greeting } = getRandomGreetings(userName, nicknames);
+        title = greeting;
         subtitle = `¿En qué nos enfocamos hoy?`;
       }
 

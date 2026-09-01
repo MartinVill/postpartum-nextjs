@@ -1,12 +1,18 @@
 import { OpenAI } from 'openai';
+import { buildContextualizedPrompt } from '@/app/utils/vocativeManager';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 function getSystemPrompt(userProfile, emotionalScore) {
   const name = userProfile?.name || 'hermosa';
-  return `Sos amiga de ${name}, pasaste postparto. Validá, escuchá, preguntá. Corto, natural. Energía ${emotionalScore}/10. No ordenes.
+  const nicknames = userProfile?.favoriteTermsOfEndearment || [];
+
+  const basePrompt = `Sos amiga de ${name}, pasaste postparto. Validá, escuchá, preguntá. Corto, natural. Energía ${emotionalScore}/10. No ordenes.
 
 IMPORTANTE: Si hay palabras mal escritas o con errores tipográficos, intenta entenderlas por contexto. Busca palabras similares o correcciones ortográficas. Por ejemplo: "Masonenos" probablemente significa "mas o menos". No asumas que son nombres propios. Entiende la intención real del mensaje.`;
+
+  // Inyectar contexto de usuario y reglas de vocativos
+  return buildContextualizedPrompt(basePrompt, name, nicknames);
 }
 
 const fallbacks = {
