@@ -332,18 +332,27 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
         }
       `}</style>
 
-      {/* Header con botón Volver */}
+      {/* Header con botón Volver - Centrado */}
       <div style={{
         position: 'relative',
+        width: '100%',
+        maxWidth: '600px',
         marginBottom: '20px',
-        paddingTop: '12px'
+        paddingTop: '16px',
+        paddingBottom: '8px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center'
       }}>
+        {/* Back Button - Posicionado absolutamente a la izquierda */}
         <button
           onClick={onBack}
           style={{
             position: 'absolute',
-            left: '0',
-            top: '12px',
+            left: '16px',
+            top: '16px',
             background: 'white',
             border: 'none',
             padding: '8px',
@@ -369,29 +378,35 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
           <span style={{ fontSize: '24px', color: '#D946EF', fontWeight: 'bold' }}>&lt;</span>
         </button>
 
-        <div style={{ paddingLeft: '60px' }}>
-          <h2 style={{
-            fontSize: '20px',
-            fontWeight: '700',
-            color: '#1F2937',
-            margin: '0 0 12px 0'
-          }}>
-            🎯 Reto de Hoy
-          </h2>
-          <div style={{
-            background: '#FFF5E6',
-            border: '1.5px solid #F59E0B',
-            borderRadius: '20px',
-            padding: '8px 14px',
-            fontSize: '14px',
-            fontWeight: '600',
-            color: '#D97706',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px'
-          }}>
-            🔥 <span>{challengeData?.streak || 0}</span> días de racha
-          </div>
+        {/* Centered Magenta Title */}
+        <h2 style={{
+          fontSize: '20px',
+          fontWeight: '700',
+          color: '#D946EF',
+          margin: '0 0 12px 0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}>
+          🎯 Reto de Hoy
+        </h2>
+
+        {/* Centered Streak Badge */}
+        <div style={{
+          background: '#FFF5E6',
+          border: '1.5px solid #F59E0B',
+          borderRadius: '20px',
+          padding: '8px 14px',
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#D97706',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '6px'
+        }}>
+          🔥 <span>{challengeData?.streak || 0}</span> días de racha
         </div>
       </div>
 
