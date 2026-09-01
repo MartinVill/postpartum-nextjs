@@ -15,12 +15,15 @@ const calculateCyclePhase = (lastMenstruationDate) => {
 
 export default function OnboardingForm({ onComplete }) {
   const [step, setStep] = useState(1);
+  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     hobbies: [],
     lastMenstruationDate: '',
     babyBirthDate: '',
-    favoriteTermsOfEndearment: ['Reina', 'Hermosa']
+    favoriteTermsOfEndearment: ['Reina', 'Hermosa'],
+    quietStart: '22:00',
+    quietEnd: '08:00'
   });
   const [currentHobby, setCurrentHobby] = useState('');
   const [currentTerm, setCurrentTerm] = useState('');
@@ -61,22 +64,86 @@ export default function OnboardingForm({ onComplete }) {
     }));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1 && !formData.name.trim()) return;
     if (step === 2 && formData.hobbies.length < 3) return;
     if (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate)) return;
 
-    if (step < 4) {
+    if (step < 5) {
       setStep(step + 1);
     } else {
+      // Step 5 completed - finalize onboarding
+      await handleCompleteOnboarding();
+    }
+  };
+
+  const handleCompleteOnboarding = async () => {
+    setIsRequestingPermission(true);
+
+    try {
+      // Request notification permission
+      const permission = await Notification.requestPermission();
+
+      // Save quiet hours to localStorage regardless of permission
+      localStorage.setItem('quietHours', JSON.stringify({
+        quietStart: formData.quietStart,
+        quietEnd: formData.quietEnd,
+        updatedAt: new Date().toISOString()
+      }));
+
+      // If permission granted, register Service Worker and subscribe
+      if (permission === 'granted') {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+          if (vapidKey && 'PushManager' in window) {
+            await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(vapidKey)
+            });
+
+            // Save subscription to backend
+            await fetch('/api/notifications/subscribe', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                subscription: await registration.pushManager.getSubscription().then(s => s.toJSON()),
+                quietStart: formData.quietStart,
+                quietEnd: formData.quietEnd
+              })
+            });
+          }
+        } catch (swError) {
+          console.warn('[ONBOARDING] SW subscription optional, continuing:', swError);
+        }
+      }
+    } catch (error) {
+      console.warn('[ONBOARDING] Permission request failed, continuing:', error);
+    } finally {
+      setIsRequestingPermission(false);
+
+      // Complete onboarding
       const cyclePhase = calculateCyclePhase(formData.lastMenstruationDate);
       const finalData = {
         ...formData,
-        babyBirthDate: formData.babyBirthDate,
         cyclePhase
       };
       onComplete(finalData);
     }
+  };
+
+  const urlBase64ToUint8Array = (base64String) => {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
   };
 
   const renderStep = () => {
@@ -378,6 +445,106 @@ export default function OnboardingForm({ onComplete }) {
             </div>
           </div>
         );
+      case 5:
+        return (
+          <div>
+            <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '28px', color: '#D946EF', lineHeight: '1.3' }}>
+              Respeta tus momentos de descanso 🌙
+            </h2>
+            <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '28px' }}>
+              Dinos a qué hora sueles dormir para asegurarnos de no enviarte ninguna notificación ni interrumpir tu sueño o lactancia.
+            </p>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '16px',
+              marginBottom: '24px'
+            }}>
+              {/* Hora de descanso */}
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: '#4B5563',
+                  marginBottom: '8px'
+                }}>
+                  Hora de descanso
+                </label>
+                <input
+                  type="time"
+                  value={formData.quietStart}
+                  onChange={(e) => setFormData(prev => ({ ...prev, quietStart: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    border: '1.5px solid #E5E7EB',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: '#1F2937',
+                    boxSizing: 'border-box',
+                    transition: 'all 0.3s',
+                    background: '#F5F5F5',
+                    cursor: 'pointer'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.background = '#EFEFEF';
+                    e.target.style.borderColor = '#D946EF';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.background = '#F5F5F5';
+                    e.target.style.borderColor = '#E5E7EB';
+                  }}
+                />
+              </div>
+
+              {/* Hora de despertar */}
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: '#4B5563',
+                  marginBottom: '8px'
+                }}>
+                  Hora de despertar
+                </label>
+                <input
+                  type="time"
+                  value={formData.quietEnd}
+                  onChange={(e) => setFormData(prev => ({ ...prev, quietEnd: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    border: '1.5px solid #E5E7EB',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: '#1F2937',
+                    boxSizing: 'border-box',
+                    transition: 'all 0.3s',
+                    background: '#F5F5F5',
+                    cursor: 'pointer'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.background = '#EFEFEF';
+                    e.target.style.borderColor = '#D946EF';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.background = '#F5F5F5';
+                    e.target.style.borderColor = '#E5E7EB';
+                  }}
+                />
+              </div>
+            </div>
+
+            <p style={{ fontSize: '12px', color: '#9CA3AF', fontStyle: 'italic', margin: 0 }}>
+              💡 Tip: Dejamos notificaciones deshabilitadas durante estos horarios para que descanses sin interrupciones.
+            </p>
+          </div>
+        );
       default:
         return null;
     }
@@ -400,13 +567,13 @@ export default function OnboardingForm({ onComplete }) {
         marginBottom: '32px'
       }}>
         <p style={{ fontSize: '13px', color: '#9CA3AF', fontWeight: '500' }}>
-          Paso {step} de 4
+          Paso {step} de 5
         </p>
         <div style={{
           display: 'flex',
           gap: '8px'
         }}>
-          {[1, 2, 3, 4].map(s => (
+          {[1, 2, 3, 4, 5].map(s => (
             <div
               key={s}
               style={{
@@ -460,6 +627,7 @@ export default function OnboardingForm({ onComplete }) {
         <button
           onClick={handleNext}
           disabled={
+            isRequestingPermission ||
             (step === 1 && !formData.name.trim()) ||
             (step === 2 && formData.hobbies.length < 3) ||
             (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
@@ -468,6 +636,7 @@ export default function OnboardingForm({ onComplete }) {
             flex: 1,
             padding: '16px',
             background: (
+              isRequestingPermission ||
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
               (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
@@ -476,6 +645,7 @@ export default function OnboardingForm({ onComplete }) {
             border: 'none',
             borderRadius: '20px',
             cursor: (
+              isRequestingPermission ||
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
               (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
@@ -484,6 +654,7 @@ export default function OnboardingForm({ onComplete }) {
             fontSize: '15px',
             transition: 'all 0.2s',
             boxShadow: (
+              isRequestingPermission ||
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
               (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
@@ -491,6 +662,7 @@ export default function OnboardingForm({ onComplete }) {
           }}
           onMouseEnter={(e) => {
             if (!(
+              isRequestingPermission ||
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
               (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
@@ -501,6 +673,7 @@ export default function OnboardingForm({ onComplete }) {
           }}
           onMouseLeave={(e) => {
             if (!(
+              isRequestingPermission ||
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
               (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
@@ -510,7 +683,7 @@ export default function OnboardingForm({ onComplete }) {
             }
           }}
         >
-          {step === 4 ? '¡Empezar!' : 'Siguiente'}
+          {isRequestingPermission ? 'Activando...' : step === 5 ? 'Finalizar y activar recordatorios' : 'Siguiente'}
         </button>
       </div>
     </div>
