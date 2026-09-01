@@ -236,11 +236,73 @@ export default function Home() {
     // Sub-pantalla: Mi Perfil
     if (state.showProfile) {
       return (
-        <div style={{ paddingBottom: '70px' }}>
-          <Profile
-            userProfile={state.userProfile}
-            onBack={() => setState(prev => ({ ...prev, showProfile: false, activeTab: 'home' }))}
-          />
+        <div style={{
+          minHeight: '100vh',
+          background: '#FFFBF0',
+          display: 'flex',
+          flexDirection: 'column',
+          paddingBottom: '70px'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '16px',
+            background: 'white',
+            borderBottom: '1px solid rgba(0,0,0,0.05)',
+            flexShrink: 0,
+            position: 'sticky',
+            top: 0,
+            zIndex: 40
+          }}>
+            <button
+              onClick={() => setState(prev => ({ ...prev, showProfile: false, activeTab: 'home' }))}
+              style={{
+                position: 'absolute',
+                left: '16px',
+                background: 'white',
+                border: 'none',
+                padding: '8px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                width: '40px',
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.15)';
+                e.target.style.background = '#FFF8FE';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+                e.target.style.background = 'white';
+              }}
+            >
+              <span style={{ fontSize: '24px', color: '#D946EF', fontWeight: 'bold' }}>&lt;</span>
+            </button>
+            <h1 style={{
+              fontSize: '32px',
+              fontWeight: '700',
+              color: '#D946EF',
+              margin: '0',
+              letterSpacing: '-0.5px',
+              lineHeight: '1.1',
+              textAlign: 'center',
+              flex: 1
+            }}>
+              Mi Perfil
+            </h1>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+            <Profile
+              userProfile={state.userProfile}
+              onBack={() => setState(prev => ({ ...prev, showProfile: false, activeTab: 'home' }))}
+            />
+          </div>
         </div>
       );
     }
