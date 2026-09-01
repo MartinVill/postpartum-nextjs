@@ -241,10 +241,6 @@ export default function Home() {
             userProfile={state.userProfile}
             onBack={() => setState(prev => ({ ...prev, showProfile: false, activeTab: 'home' }))}
           />
-          <BottomNavigationBar
-            activeTab={state.activeTab}
-            onTabChange={handleNavigate}
-          />
         </div>
       );
     }
@@ -318,10 +314,6 @@ export default function Home() {
               <ChatSection userId={state.userId} initialProfile={state.userProfile} />
             )}
           </div>
-          <BottomNavigationBar
-            activeTab={state.activeTab}
-            onTabChange={handleNavigate}
-          />
         </div>
       );
     }
@@ -331,16 +323,6 @@ export default function Home() {
       return (
         <div style={{ paddingBottom: '70px' }}>
           <Calendar userProfile={state.userProfile} onBack={() => setState(prev => ({ ...prev, showCalendar: false, activeTab: 'home' }))} />
-          <BottomNavigationBar
-            activeTab={state.activeTab}
-            onTabChange={(tab) => {
-              if (tab === 'calendar') {
-                setState(prev => ({ ...prev, activeTab: 'calendar' }));
-              } else if (tab === 'home') {
-                setState(prev => ({ ...prev, showCalendar: false, activeTab: 'home' }));
-              }
-            }}
-          />
         </div>
       );
     }
