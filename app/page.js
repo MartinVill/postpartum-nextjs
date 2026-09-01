@@ -42,14 +42,12 @@ export default function Home() {
     setState(prev => ({
       ...prev,
       activeTab: targetTab,
-      // FORCE CLOSE all sub-views/modals
       showChat: targetTab === 'chat',
       showCalendar: targetTab === 'calendar',
       showProfile: targetTab === 'profile',
-      showBodyAndCalm: false,  // ALWAYS close
-      showReto: false,         // ALWAYS close
-      showReflection: false,   // ALWAYS close
-      // ALWAYS reset sub-modals
+      showBodyAndCalm: targetTab === 'cuerpo-calma',
+      showReto: false,
+      showReflection: false,
       showRetoCelebration: false,
       showRetoFeedbackModal: false,
       isMenuOpen: false
@@ -190,16 +188,6 @@ export default function Home() {
     );
   }
 
-  // Body and Calm Module
-  if (state.showBodyAndCalm && state.energyScore) {
-    return (
-      <BodyAndCalmModule
-        userProfile={state.userProfile}
-        onBack={() => setState(prev => ({ ...prev, showBodyAndCalm: false }))}
-      />
-    );
-  }
-
   // Onboarding
   if (!state.userProfile) {
     return (
@@ -231,8 +219,7 @@ export default function Home() {
     );
   }
 
-  // Pantalla 2: Si hay energía seleccionada
-  if (state.energyScore) {
+  const renderActiveView = () => {
     // Sub-pantalla: Mi Perfil
     if (state.showProfile) {
       return (
@@ -421,7 +408,6 @@ export default function Home() {
               }));
             }}
           />
-          <BottomNavigationBar activeTab={state.activeTab} onTabChange={handleNavigate} />
         </div>
       );
     }
@@ -442,7 +428,6 @@ export default function Home() {
               onBack={() => setState(prev => ({ ...prev, showBodyAndCalm: false }))}
             />
           </div>
-          <BottomNavigationBar activeTab={state.activeTab} onTabChange={handleNavigate} />
         </div>
       );
     }
@@ -718,37 +703,39 @@ export default function Home() {
           onReto={() => setState(prev => ({ ...prev, showReto: true }))}
           onMoreOptions={() => {}}
         />
-        <BottomNavigationBar
-          activeTab={state.activeTab}
-          onTabChange={handleNavigate}
-        />
       </div>
     );
-  }
+  };
 
-  // Pantalla 1: Energy check-in
   return (
-    <>
-      <EnergyCheckIn
-        userProfile={state.userProfile}
-        onEnergySelect={(energy) => {
-          const today = new Date().toDateString();
-          // Guardar check-in con energyScore para que getDynamicHeaderCopy lo lea
-          const checkInData = {
-            date: today,
-            energyMorning: energy,
-            timestamp: new Date().toISOString()
-          };
-          localStorage.setItem('lastCheckInDate', today);
-          localStorage.setItem('dailyCheckIn', JSON.stringify(checkInData));
-          console.log('[SLIDER] Check-in por slider guardado con energyMorning:', energy);
-          setState(prev => ({
-            ...prev,
-            energyScore: energy,
-            lastCheckInDate: today
-          }));
-        }}
-      />
-    </>
+    <div style={{
+      position: 'relative',
+      minHeight: '100vh',
+      background: '#FFFDF6',
+      paddingBottom: '86px'
+    }}>
+      {state.energyScore ? renderActiveView() : (
+        <EnergyCheckIn
+          userProfile={state.userProfile}
+          onEnergySelect={(energy) => {
+            const today = new Date().toDateString();
+            const checkInData = {
+              date: today,
+              energyMorning: energy,
+              timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('lastCheckInDate', today);
+            localStorage.setItem('dailyCheckIn', JSON.stringify(checkInData));
+            console.log('[SLIDER] Check-in por slider guardado con energyMorning:', energy);
+            setState(prev => ({
+              ...prev,
+              energyScore: energy,
+              lastCheckInDate: today
+            }));
+          }}
+        />
+      )}
+      <BottomNavigationBar activeTab={state.activeTab} onTabChange={handleNavigate} />
+    </div>
   );
 }
