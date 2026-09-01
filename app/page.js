@@ -238,7 +238,7 @@ export default function Home() {
       return (
         <div style={{
           minHeight: '100vh',
-          background: '#FFFBF0',
+          background: '#FFFDF6',
           display: 'flex',
           flexDirection: 'column',
           paddingBottom: '70px'
@@ -248,7 +248,7 @@ export default function Home() {
             alignItems: 'center',
             gap: '12px',
             padding: '16px',
-            background: '#FFFBF0',
+            background: '#FFFDF6',
             borderBottom: '1px solid rgba(0,0,0,0.05)',
             flexShrink: 0,
             position: 'sticky',

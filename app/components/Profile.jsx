@@ -142,7 +142,7 @@ export default function Profile({ userProfile, onBack }) {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
+        background: '#FFFDF6',
         paddingBottom: '100px',
         maxWidth: '600px',
         margin: '0 auto'
