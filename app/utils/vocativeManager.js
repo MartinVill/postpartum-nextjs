@@ -50,6 +50,7 @@ export function formatGreetingWithVocative(template = 'Hola, ${vocative}', realN
 /**
  * Build a contextualized system prompt with user identification
  * Includes vocative frequency rules
+ * Nicknames are lowercase and without comma for natural tone
  * @param {string} basePrompt - Base system prompt
  * @param {string} realName - User's real name
  * @param {Array<string>} nicknames - Array of nicknames
@@ -57,44 +58,50 @@ export function formatGreetingWithVocative(template = 'Hola, ${vocative}', realN
  */
 export function buildContextualizedPrompt(basePrompt = '', realName = '', nicknames = []) {
   const primaryNickname = getPrimaryNickname(nicknames);
+  const lowercaseNickname = primaryNickname.toLowerCase();
 
   const userContext = `USER IDENTIFICATION RULES:
 - User Real Name: ${realName || 'Unknown'}
-- User Preferred Nickname(s): ${primaryNickname || 'None'}
+- User Preferred Nickname(s): ${lowercaseNickname || 'none'}
 
 VOCATIVE DYNAMICS & FREQUENCY RULE (60/30/10):
 - 60% of the time: Address the user by her real name ("${realName}") naturally in conversation.
-- 30% of the time: Use her chosen nickname ("${primaryNickname || 'Reina'}") especially during moments of:
-  * Praise or celebration (e.g., "¡Lo hiciste genial hoy, ${primaryNickname || 'Reina'}!")
-  * Empathetic support (e.g., "Tómate una pausa, ${primaryNickname || 'Reina'}")
-  * Milestone completion (e.g., "Muy bien, ${primaryNickname || 'Reina'}!")
+- 30% of the time: Use her chosen nickname ("${lowercaseNickname || 'reina'}") especially during moments of:
+  * Praise or celebration (e.g., "¡Lo hiciste genial hoy ${lowercaseNickname || 'reina'}!")
+  * Empathetic support (e.g., "Tómate una pausa ${lowercaseNickname || 'reina'}")
+  * Milestone completion (e.g., "Muy bien ${lowercaseNickname || 'reina'}!")
 - 10% of the time: Omit vocatives entirely for conversational variety and natural rhythm.
 - CRITICAL: Never repeat the nickname or name back-to-back in consecutive sentences. It must feel organic, warm, and human—like a supportive friend, not a chatbot.
-- TONE: Be warm, encouraging, and authentic. Vary your expressions naturally.`;
+- TONE: Be warm, encouraging, and authentic. Vary your expressions naturally.
+- FORMATTING: Nicknames are always lowercase and without comma before them for natural flow (e.g., "te quiero hermosa" not "te quiero, Hermosa")`;
 
   return `${basePrompt}\n\n${userContext}`;
 }
 
 /**
  * Get a random greeting that uses vocative naturally
+ * Nicknames are lowercase and without comma for natural flow
  * @param {string} realName - User's real name
  * @param {Array<string>} nicknames - User's nicknames
  * @returns {object} Object with greeting templates
  */
 export function getRandomGreetings(realName = 'hermosa', nicknames = []) {
   const greetingTemplates = [
-    '¡Hola, ${vocative}! ✨',
-    '¡Qué bueno verte, ${vocative}! 💜',
-    '¡Bienvenida, ${vocative}! 🌸',
-    '${vocative}, ¡qué alegría verte por aquí! 💕',
-    '¡Hola de nuevo, ${vocative}! 🌙'
+    '¡Hola ${vocative}! ✨',
+    '¡Qué bueno verte ${vocative}! 💜',
+    '¡Bienvenida ${vocative}! 🌸',
+    '¡Qué alegría verte por aquí ${vocative}! 💕',
+    '¡Hola de nuevo ${vocative}! 🌙'
   ];
 
   const selectedTemplate = greetingTemplates[Math.floor(Math.random() * greetingTemplates.length)];
   const vocative = selectVocative(realName, nicknames);
 
+  // Convert nickname to lowercase for natural tone
+  const lowercaseVocative = vocative.toLowerCase();
+
   return {
-    greeting: selectedTemplate.replace('${vocative}', vocative).trim(),
-    vocative
+    greeting: selectedTemplate.replace('${vocative}', lowercaseVocative).trim(),
+    vocative: lowercaseVocative
   };
 }

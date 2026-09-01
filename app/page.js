@@ -136,7 +136,8 @@ export default function Home() {
       } else if (moodScore && moodScore >= 8 && moodScore <= 10) {
         // Energía alta - Muy bien (usar vocativo dinámico)
         const vocative = selectVocative(userName, nicknames);
-        title = vocative ? `¡Me alegra verte bien, ${vocative}! ✨` : `¡Qué alegría! Te ves muy bien hoy ✨`;
+        const lowercaseVocative = vocative.toLowerCase();
+        title = vocative ? `¡Me alegra verte bien ${lowercaseVocative}! ✨` : `¡Qué alegría! Te ves muy bien hoy ✨`;
         subtitle = `¿Qué quieres hacer hoy?`;
       } else {
         // Neutral/estable (5-7 o sin score) - usar greeting dinámico
