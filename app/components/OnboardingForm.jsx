@@ -151,7 +151,7 @@ export default function OnboardingForm({ onComplete }) {
       case 1:
         return (
           <div>
-            <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '28px', color: '#1F2937', lineHeight: '1.3' }}>
+            <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '28px', color: '#D946EF', lineHeight: '1.3' }}>
               ¿Cuál es tu nombre?
             </h2>
             <input
@@ -188,7 +188,7 @@ export default function OnboardingForm({ onComplete }) {
       case 2:
         return (
           <div>
-            <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '28px', color: '#1F2937', lineHeight: '1.3' }}>
+            <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '28px', color: '#D946EF', lineHeight: '1.3' }}>
               ¿Cuáles son tus hobbies?
             </h2>
             <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '20px' }}>Agregá de a uno, al menos 3 cosas que disfrutes</p>
@@ -285,7 +285,7 @@ export default function OnboardingForm({ onComplete }) {
       case 3:
         return (
           <div>
-            <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '28px', color: '#1F2937', lineHeight: '1.3' }}>
+            <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '28px', color: '#D946EF', lineHeight: '1.3' }}>
               ¿Cuándo nació tu bebé?
             </h2>
             <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '20px' }}>Así entiendo si estás en postparto o en ciclo menstrual normal</p>
@@ -316,7 +316,7 @@ export default function OnboardingForm({ onComplete }) {
               }}
             />
 
-            <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '28px', marginTop: '32px', color: '#1F2937', lineHeight: '1.3' }}>
+            <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '28px', marginTop: '32px', color: '#D946EF', lineHeight: '1.3' }}>
               ¿Cuándo fue tu última menstruación?
             </h2>
             <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '20px' }}>Antes del embarazo (si no te acuerdas exacto, aproximado)</p>
@@ -351,7 +351,7 @@ export default function OnboardingForm({ onComplete }) {
       case 4:
         return (
           <div>
-            <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '28px', color: '#1F2937', lineHeight: '1.3' }}>
+            <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '28px', color: '#D946EF', lineHeight: '1.3' }}>
               ¿Cómo te gusta que te digan?
             </h2>
             <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '20px' }}>Agregá apodos si querés (ya tenés Reina y Hermosa)</p>
