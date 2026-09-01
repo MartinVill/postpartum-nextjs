@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 /**
  * Service Worker Registration Component
  * Registers Service Worker in background without showing modals
- * Sleep schedule setup is now handled in Onboarding Step 5
+ * Notification permission is requested when onboarding Step 4 is completed.
  */
 export default function ServiceWorkerRegister() {
   useEffect(() => {

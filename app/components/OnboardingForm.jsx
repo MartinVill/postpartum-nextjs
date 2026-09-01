@@ -69,10 +69,10 @@ export default function OnboardingForm({ onComplete }) {
     if (step === 2 && formData.hobbies.length < 3) return;
     if (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate)) return;
 
-    if (step < 5) {
+    if (step < 4) {
       setStep(step + 1);
     } else {
-      // Step 5 completed - finalize onboarding
+      // Step 4 completed - request permission before opening the dashboard.
       await handleCompleteOnboarding();
     }
   };
@@ -129,6 +129,7 @@ export default function OnboardingForm({ onComplete }) {
         ...formData,
         cyclePhase
       };
+      localStorage.setItem('onboardingComplete', 'true');
       onComplete(finalData);
     }
   };
@@ -445,102 +446,6 @@ export default function OnboardingForm({ onComplete }) {
             </div>
           </div>
         );
-      case 5:
-        return (
-          <div>
-            <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '16px', color: '#D946EF', lineHeight: '1.3' }}>
-              ¿A qué hora descansas? 🌙
-            </h2>
-            <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '28px' }}>
-              Jamás te enviaremos notificaciones durante tu horario de sueño o lactancia.
-            </p>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '16px',
-              marginBottom: '0'
-            }}>
-              {/* Dormir */}
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  color: '#4B5563',
-                  marginBottom: '8px'
-                }}>
-                  Dormir
-                </label>
-                <input
-                  type="time"
-                  value={formData.quietStart}
-                  onChange={(e) => setFormData(prev => ({ ...prev, quietStart: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '12px 14px',
-                    borderRadius: '12px',
-                    border: '1.5px solid #E5E7EB',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: '#1F2937',
-                    boxSizing: 'border-box',
-                    transition: 'all 0.3s',
-                    background: '#F5F5F5',
-                    cursor: 'pointer'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.background = '#EFEFEF';
-                    e.target.style.borderColor = '#D946EF';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.background = '#F5F5F5';
-                    e.target.style.borderColor = '#E5E7EB';
-                  }}
-                />
-              </div>
-
-              {/* Despertar */}
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  color: '#4B5563',
-                  marginBottom: '8px'
-                }}>
-                  Despertar
-                </label>
-                <input
-                  type="time"
-                  value={formData.quietEnd}
-                  onChange={(e) => setFormData(prev => ({ ...prev, quietEnd: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '12px 14px',
-                    borderRadius: '12px',
-                    border: '1.5px solid #E5E7EB',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: '#1F2937',
-                    boxSizing: 'border-box',
-                    transition: 'all 0.3s',
-                    background: '#F5F5F5',
-                    cursor: 'pointer'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.background = '#EFEFEF';
-                    e.target.style.borderColor = '#D946EF';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.background = '#F5F5F5';
-                    e.target.style.borderColor = '#E5E7EB';
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        );
       default:
         return null;
     }
@@ -563,13 +468,13 @@ export default function OnboardingForm({ onComplete }) {
         marginBottom: '32px'
       }}>
         <p style={{ fontSize: '13px', color: '#9CA3AF', fontWeight: '500' }}>
-          Paso {step} de 5
+          Paso {step} de 4
         </p>
         <div style={{
           display: 'flex',
           gap: '8px'
         }}>
-          {[1, 2, 3, 4, 5].map(s => (
+          {[1, 2, 3, 4].map(s => (
             <div
               key={s}
               style={{
@@ -679,7 +584,7 @@ export default function OnboardingForm({ onComplete }) {
             }
           }}
         >
-          {isRequestingPermission ? 'Activando...' : step === 5 ? 'Comenzar ✨' : 'Siguiente'}
+          {isRequestingPermission ? 'Activando...' : step === 4 ? 'Comenzar ✨' : 'Siguiente'}
         </button>
       </div>
     </div>

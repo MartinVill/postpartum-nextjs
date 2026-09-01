@@ -1,7 +1,6 @@
 /**
  * API Route: POST /api/notifications/send-scheduled
- * Sends scheduled push notifications respecting quiet hours
- * Adapts copy based on user's last mood score
+ * Sends the two daily push notifications while respecting quiet hours.
  */
 
 import { NextResponse } from 'next/server';
@@ -28,33 +27,56 @@ function isWithinQuietHours(quietStart = "22:00", quietEnd = "08:00") {
   }
 }
 
-/**
- * Generate notification copy based on mood score
- * Called when sending notifications to personalize message
- */
-function getNotificationCopy(moodScore) {
-  if (moodScore <= 4) {
-    return {
-      title: "Estamos aquí para ti 💜",
-      body: "Sin presiones. Cuando tengas un ratito libre, entra a hacer un chequeo suave."
-    };
-  } else if (moodScore <= 7) {
-    return {
-      title: "Tu pausa del día ✨",
-      body: "¿Cómo te sientes en este momento? Tómate un minuto para ti."
-    };
-  } else {
-    return {
-      title: "¡Qué alegría verte bien! 🌟",
-      body: "Pásate a revisar tu reto del día y celebra cómo te sientes hoy."
-    };
-  }
+const DAILY_TRIGGERS = {
+  morning: {
+    hour: 11,
+    title: 'Tu check-in de hoy 💜',
+    body: '¿Cómo te sientes hoy? 💜',
+  },
+  afternoon: {
+    hour: 18,
+    title: 'Un momento para vos ✨',
+    body: '¿Hacemos una pausa? ✨',
+  },
+};
+
+function getDateInTimeZone(date, timeZone) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+function hasCheckedInToday({ hasLoggedInToday, lastCheckinTimestamp, timeZone }, now) {
+  if (hasLoggedInToday === true) return true;
+  if (!lastCheckinTimestamp) return false;
+
+  const lastCheckin = new Date(lastCheckinTimestamp);
+  if (Number.isNaN(lastCheckin.getTime())) return false;
+
+  const userTimeZone = timeZone || 'America/Argentina/Buenos_Aires';
+  return getDateInTimeZone(lastCheckin, userTimeZone) === getDateInTimeZone(now, userTimeZone);
+}
+
+function resolveTrigger(trigger, now) {
+  if (trigger && DAILY_TRIGGERS[trigger]) return { name: trigger, ...DAILY_TRIGGERS[trigger] };
+
+  const triggerEntry = Object.entries(DAILY_TRIGGERS).find(([, schedule]) => schedule.hour === now.getHours());
+  return triggerEntry ? { name: triggerEntry[0], ...triggerEntry[1] } : null;
 }
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { moodScore = 5, subscriptions = [] } = body;
+    const {
+      subscriptions = [],
+      trigger,
+      hasLoggedInToday,
+      lastCheckinTimestamp,
+      timeZone,
+    } = body;
 
     if (!subscriptions || subscriptions.length === 0) {
       return NextResponse.json({
@@ -63,11 +85,18 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // Generate copy based on mood
-    const notificationCopy = getNotificationCopy(moodScore);
+    const now = new Date();
+    const activeTrigger = resolveTrigger(trigger, now);
+    if (!activeTrigger) {
+      return NextResponse.json({
+        success: false,
+        message: 'No daily notification is scheduled for this hour',
+      }, { status: 400 });
+    }
 
     const results = {
       sent: [],
+      skippedAlreadyCheckedIn: [],
       blockedByQuietHours: [],
       errors: []
     };
@@ -76,6 +105,19 @@ export async function POST(request) {
     for (const sub of subscriptions) {
       try {
         const { subscription, quietStart, quietEnd } = sub;
+        const recipient = {
+          hasLoggedInToday: sub.hasLoggedInToday ?? hasLoggedInToday,
+          lastCheckinTimestamp: sub.lastCheckinTimestamp ?? lastCheckinTimestamp,
+          timeZone: sub.timeZone ?? timeZone,
+        };
+
+        if (activeTrigger.name === 'morning' && hasCheckedInToday(recipient, now)) {
+          results.skippedAlreadyCheckedIn.push({
+            endpoint: subscription?.endpoint?.slice(-10),
+            reason: 'Already logged in or checked in today',
+          });
+          continue;
+        }
 
         // Check quiet hours BEFORE sending
         if (isWithinQuietHours(quietStart, quietEnd)) {
@@ -89,13 +131,13 @@ export async function POST(request) {
 
         // In production: use web-push library to send actual push
         // For MVP: log and simulate
-        console.log(`[SCHEDULER] Would send push to ${subscription.endpoint?.slice(-10)}`, notificationCopy);
+        console.log(`[SCHEDULER] Would send ${activeTrigger.name} push to ${subscription?.endpoint?.slice(-10)}`, activeTrigger);
 
         // Simulate sending (replace with actual web-push.sendNotification() in production)
         results.sent.push({
-          endpoint: subscription.endpoint?.slice(-10),
-          title: notificationCopy.title,
-          body: notificationCopy.body
+          endpoint: subscription?.endpoint?.slice(-10),
+          title: activeTrigger.title,
+          body: activeTrigger.body,
         });
       } catch (error) {
         console.error('[SCHEDULER] Error processing subscription:', error);
@@ -108,7 +150,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      moodScore,
+      trigger: activeTrigger.name,
       results
     });
   } catch (error) {
@@ -126,15 +168,17 @@ export async function POST(request) {
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const moodScore = parseInt(searchParams.get('mood')) || 5;
-
-    const notificationCopy = getNotificationCopy(moodScore);
+    const trigger = searchParams.get('trigger') || 'morning';
+    const notification = DAILY_TRIGGERS[trigger];
+    if (!notification) {
+      return NextResponse.json({ error: 'trigger must be "morning" or "afternoon"' }, { status: 400 });
+    }
 
     return NextResponse.json({
       success: true,
-      moodScore,
-      previewNotification: notificationCopy,
-      message: 'Use POST to send to all subscriptions'
+      trigger,
+      previewNotification: notification,
+      message: 'Use POST with trigger "morning" at 11:00 or "afternoon" at 18:00'
     });
   } catch (error) {
     return NextResponse.json(

@@ -13,7 +13,7 @@ export default function BottomNavigationBar({ activeTab, onTabChange }) {
       bottom: 0,
       left: 0,
       right: 0,
-      background: 'white',
+      background: '#FFFBF0',
       borderTop: '1px solid #F3F4F6',
       display: 'flex',
       justifyContent: 'space-around',

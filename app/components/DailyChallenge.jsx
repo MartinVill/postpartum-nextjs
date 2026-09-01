@@ -279,12 +279,16 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
         }
       `}</style>
 
-      {/* Header con botón Volver - Centrado */}
+      {/* Header con botón Volver - Centrado, fijo al hacer scroll */}
       <div style={{
-        position: 'relative',
-        width: '100%',
-        maxWidth: '600px',
-        marginBottom: '20px',
+        position: 'sticky',
+        top: 0,
+        zIndex: 40,
+        background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
+        margin: '-16px -16px 20px -16px',
+        width: 'auto',
+        paddingLeft: '16px',
+        paddingRight: '16px',
         paddingTop: '16px',
         paddingBottom: '8px',
         display: 'flex',

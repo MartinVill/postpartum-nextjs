@@ -248,7 +248,7 @@ export default function Home() {
             alignItems: 'center',
             gap: '12px',
             padding: '16px',
-            background: 'white',
+            background: '#FFFBF0',
             borderBottom: '1px solid rgba(0,0,0,0.05)',
             flexShrink: 0,
             position: 'sticky',
