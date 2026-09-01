@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { getAccurateEmoji } from '@/app/utils/emojiMapper';
 
 function Confetti() {
   return (
@@ -259,7 +260,7 @@ export default function InProgressChallenge() {
             alignItems: 'center',
             minHeight: '60px'
           }}>
-            {typeof inProgress.emoji === 'string' ? inProgress.emoji : inProgress.emoji}
+            {typeof inProgress.emoji === 'string' ? getAccurateEmoji(inProgress.title, inProgress.emoji) : inProgress.emoji}
           </div>
           <h3 style={{
             fontSize: '18px',

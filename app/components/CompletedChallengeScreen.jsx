@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { getAccurateEmoji } from '@/app/utils/emojiMapper';
 
 export default function CompletedChallengeScreen({ activity, mood, onClose }) {
   const [showFeedback, setShowFeedback] = useState(false);
@@ -48,7 +49,7 @@ export default function CompletedChallengeScreen({ activity, mood, onClose }) {
         fontSize: '72px',
         boxShadow: '0 8px 24px rgba(217, 70, 239, 0.15)'
       }}>
-        {activity?.emoji || '✨'}
+        {getAccurateEmoji(activity?.title, activity?.emoji)}
       </div>
 
       {/* Texto de celebración */}

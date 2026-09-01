@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { getAccurateEmoji } from '@/app/utils/emojiMapper';
 
 const BASE_ACTIVITIES = [
   { id: 'cinema', title: 'Ir al cine', emoji: '🎬' },
@@ -18,63 +19,9 @@ const BASE_ACTIVITIES = [
 ];
 
 function getEmojiForHobby(hobbyTitle) {
-  const title = hobbyTitle.toLowerCase();
-  const emojiMap = {
-    'scrapbook': '📐',
-    'arte': '🎨',
-    'dibujo': '🎨',
-    'pintura': '🖼️',
-    'ceramica': '🏺',
-    'artesania': '🧵',
-    'manualidades': '🧵',
-    'yoga': '🧘‍♀️',
-    'pilates': '🧘‍♀️',
-    'gym': '💪',
-    'correr': '🏃‍♀️',
-    'caminar': '🚶‍♀️',
-    'ciclismo': '🚴‍♀️',
-    'baile': '💃',
-    'danza': '💃',
-    'ejercicio': '🏋️‍♀️',
-    'netflix': '📺',
-    'pelicula': '🎬',
-    'cine': '🎬',
-    'series': '📺',
-    'television': '📺',
-    'musica': '🎵',
-    'lectura': '📚',
-    'leer': '📚',
-    'libros': '📚',
-    'atrapasol': '☀️',
-    'mandalas': '✨',
-    'origami': '📄',
-    'tejido': '🧶',
-    'crochet': '🧶',
-    'costura': '🧵',
-    'meditacion': '🧘‍♀️',
-    'relajacion': '😌',
-    'spa': '💆‍♀️',
-    'masaje': '💆‍♀️',
-    'amigas': '👭',
-    'amiga': '👭',
-    'amigos': '👫',
-    'familia': '👨‍👩‍👧',
-    'cafe': '☕',
-    'vino': '🍷',
-  };
-
-  for (const [key, emoji] of Object.entries(emojiMap)) {
-    if (title.includes(key) || key.includes(title)) {
-      return emoji;
-    }
-  }
-
-  if (title.includes('yoga') || title.includes('deporte') || title.includes('ejercicio')) return '🧘‍♀️';
-  if (title.includes('arte') || title.includes('dibujo') || title.includes('pintura')) return '🎨';
-  if (title.includes('lectura') || title.includes('libro')) return '📚';
-  if (title.includes('musica') || title.includes('cancion')) return '🎵';
-
-  return '✨';
+  // Use the semantic emoji mapper for accurate, context-aware emoji assignment
+  // This replaces the old logic with a more resilient system that handles typos
+  return getAccurateEmoji(hobbyTitle, '✨');
 }
 
 function normalizeForComparison(str) {
@@ -460,7 +407,7 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
               </div>
             )}
             <div style={{ fontSize: '32px', marginBottom: '6px', marginTop: (activity.isHobby && index < 3) ? '12px' : '0', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '40px' }}>
-              {typeof activity.emoji === 'string' ? activity.emoji : activity.emoji}
+              {typeof activity.emoji === 'string' ? getAccurateEmoji(activity.title, activity.emoji) : activity.emoji}
             </div>
             <div style={{
               fontSize: '13px',
