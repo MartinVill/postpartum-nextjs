@@ -58,8 +58,8 @@ export default function CalendarQuickEntry({ onSaved }) {
           style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', padding: '0 12px', fontSize: '14px', color: '#374151', background: 'transparent' }}
         />
         <div style={{ display: 'flex', gap: '3px', padding: '4px', borderRadius: '999px', background: '#F3F4F6', flexShrink: 0 }}>
-          <button onClick={() => setType('evento')} style={{ border: 'none', borderRadius: '999px', padding: '6px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', background: type === 'evento' ? '#10B981' : 'transparent', color: type === 'evento' ? '#FFFFFF' : '#6B7280' }}>Evento</button>
-          <button onClick={() => setType('sintoma')} style={{ border: 'none', borderRadius: '999px', padding: '6px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', background: type === 'sintoma' ? '#FBBF24' : 'transparent', color: type === 'sintoma' ? '#FFFFFF' : '#6B7280' }}>Síntoma</button>
+          <button onClick={() => setType('evento')} style={{ border: 'none', borderRadius: '999px', padding: '6px 10px', fontSize: '10px', fontWeight: 600, cursor: 'pointer', background: type === 'evento' ? '#10B981' : 'transparent', color: type === 'evento' ? '#FFFFFF' : '#6B7280' }}>Evento</button>
+          <button onClick={() => setType('sintoma')} style={{ border: 'none', borderRadius: '999px', padding: '6px 10px', fontSize: '10px', fontWeight: 600, cursor: 'pointer', background: type === 'sintoma' ? '#FBBF24' : 'transparent', color: type === 'sintoma' ? '#FFFFFF' : '#6B7280' }}>Síntoma</button>
         </div>
         <button onClick={handleAdd} aria-label="Agregar entrada" style={{ width: '36px', height: '36px', flexShrink: 0, border: 'none', borderRadius: '50%', background: '#D946EF', color: '#FFFFFF', fontSize: '22px', fontWeight: 700, lineHeight: 1, cursor: 'pointer', boxShadow: '0 2px 6px rgba(217,70,239,0.35)' }}>+</button>
       </div>
