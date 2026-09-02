@@ -31,10 +31,18 @@ export async function GET(request) {
     const db = getAdminDb(), now = new Date();
     // `status` is the current schema. The legacy query keeps reminders made
     // before this migration deliverable until they are handled once.
-    const [pendingSnapshot, legacySnapshot] = await Promise.all([
-      db.collection('scheduled_reminders').where('status', '==', 'pending').where('triggerTimestamp', '<=', now).limit(100).get(),
-      db.collection('scheduled_reminders').where('sent', '==', false).limit(100).get()
-    ]);
+    let pendingSnapshot;
+    try {
+      pendingSnapshot = await db.collection('scheduled_reminders').where('status', '==', 'pending').where('triggerTimestamp', '<=', now).limit(100).get();
+    } catch (error) {
+      // Firestore may still be building the optional composite index. Do not
+      // stop every notification type while that happens: query pending items
+      // and apply the identical UTC timestamp condition below.
+      if (error.code !== 9) throw error;
+      console.warn('[CRON] Pending reminder compound index unavailable; using timestamp-filter fallback', { code: error.code });
+      pendingSnapshot = await db.collection('scheduled_reminders').where('status', '==', 'pending').limit(100).get();
+    }
+    const legacySnapshot = await db.collection('scheduled_reminders').where('sent', '==', false).limit(100).get();
     const pendingById = new Map();
     [...pendingSnapshot.docs, ...legacySnapshot.docs].forEach(document => {
       const reminder = document.data();
