@@ -35,8 +35,7 @@ body {
 }
 
 /* Calendar.jsx owns two fixed background layers. Match both to Home without editing it. */
-.calendar-screen > div:nth-child(1),
-.calendar-screen > div:nth-child(2) {
+.calendar-screen > div:nth-child(1) {
   background: #FFFDF6 !important;
 }
 
@@ -45,6 +44,6 @@ body {
   padding-bottom: 8rem !important;
 }
 
-.calendar-screen > div:nth-child(2) {
+.calendar-screen > div:nth-child(1) > div[style*="bottom: 0px"] {
   display: none !important;
 }
