@@ -108,9 +108,11 @@ export default function OnboardingForm({ onComplete }) {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
+                userId: localStorage.getItem('userId'),
                 subscription: await registration.pushManager.getSubscription().then(s => s.toJSON()),
                 quietStart: formData.quietStart,
-                quietEnd: formData.quietEnd
+                quietEnd: formData.quietEnd,
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
               })
             });
           }

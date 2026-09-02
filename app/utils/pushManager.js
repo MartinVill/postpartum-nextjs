@@ -38,7 +38,7 @@ export function isWithinQuietHours(quietStart = "22:00", quietEnd = "08:00") {
  * @param {Object} quietHours - { quietStart: "HH:MM", quietEnd: "HH:MM" }
  * @returns {Promise<Object>} Subscription object or error
  */
-export async function registerServiceWorkerAndSubscribe(vapidPublicKey, quietHours = {}) {
+export async function registerServiceWorkerAndSubscribe(vapidPublicKey, quietHours = {}, userId = localStorage.getItem('userId')) {
   try {
     // Check browser support
     if (!('serviceWorker' in navigator)) {
@@ -71,9 +71,11 @@ export async function registerServiceWorkerAndSubscribe(vapidPublicKey, quietHou
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        userId,
         subscription: subscription.toJSON(),
         quietStart: quietHours.quietStart || "22:00",
-        quietEnd: quietHours.quietEnd || "08:00"
+        quietEnd: quietHours.quietEnd || "08:00",
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
       })
     });
 

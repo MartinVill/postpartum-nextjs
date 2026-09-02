@@ -24,11 +24,11 @@ self.addEventListener('push', function(event) {
 
   const options = {
     body: data.body || 'Un momento para ti 💜',
-    icon: '/icon-192.png',
-    badge: '/badge.png',
+    icon: data.icon || '/icon-192.png',
+    badge: data.badge || '/badge.png',
     vibrate: [100, 50, 100],
-    data: { url: data.url || '/' },
-    tag: 'postpartum-checkin',
+    data: data.data || { url: data.url || '/' },
+    tag: data.tag || 'postpartum-checkin',
     renotify: false,
     requireInteraction: false
   };
@@ -47,7 +47,7 @@ self.addEventListener('notificationclick', function(event) {
       // Check if app is already open
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
-        if (client.url === '/' && 'focus' in client) {
+        if (client.url === new URL(event.notification.data.url || '/', self.location.origin).href && 'focus' in client) {
           return client.focus();
         }
       }
