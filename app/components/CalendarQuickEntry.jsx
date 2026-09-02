@@ -33,13 +33,12 @@ export default function CalendarQuickEntry({ onSaved }) {
   };
 
   const handleAdd = () => {
-    if (text.trim()) save();
-    else setShowSheet(true);
+    setShowSheet(true);
   };
 
-  const formattedDate = new Intl.DateTimeFormat('es-AR', {
-    day: 'numeric', month: 'long', year: 'numeric'
-  }).format(new Date(`${date}T12:00:00`));
+  const typeLabel = type === 'evento' ? 'Evento' : 'Síntoma';
+  const sheetTitle = text.trim() || typeLabel;
+  const nameLabel = `Nombre del ${type === 'evento' ? 'evento' : 'síntoma'}`;
 
   return (
     <>
@@ -67,15 +66,14 @@ export default function CalendarQuickEntry({ onSaved }) {
       {showSheet && (
         <div onClick={() => setShowSheet(false)} style={{ position: 'fixed', inset: 0, zIndex: 70, display: 'flex', alignItems: 'flex-end', background: 'rgba(0,0,0,0.32)' }}>
           <div onClick={(event) => event.stopPropagation()} style={{ width: '100%', padding: '24px 20px calc(24px + 86px)', borderRadius: '24px 24px 0 0', background: '#FFFDF6', boxShadow: '0 -4px 18px rgba(0,0,0,0.14)' }}>
-            <h2 style={{ margin: 0, color: '#1F2937', fontSize: '19px' }}>{type === 'evento' ? '📅 Evento' : '🟡 Síntoma'}</h2>
-            <p style={{ margin: '6px 0 20px', color: '#6B7280', fontSize: '13px' }}>Fecha: {formattedDate}</p>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#4B5563' }}>Nombre del evento/síntoma</label>
-            <input value={text} onChange={(event) => setText(event.target.value)} placeholder="Nombre del evento/síntoma" style={{ boxSizing: 'border-box', width: '100%', marginBottom: '14px', padding: '12px', border: '1px solid #E5E7EB', borderRadius: '12px', fontSize: '14px', background: '#FFFFFF' }} />
+            <h2 style={{ margin: '0 0 20px', color: '#1F2937', fontSize: '19px' }}>{sheetTitle}</h2>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#4B5563' }}>{nameLabel}</label>
+            <input value={text} onChange={(event) => setText(event.target.value)} placeholder={nameLabel} style={{ boxSizing: 'border-box', width: '100%', marginBottom: '14px', padding: '12px', border: '1px solid #E5E7EB', borderRadius: '12px', fontSize: '14px', background: '#FFFFFF' }} />
             <div style={{ display: 'flex', gap: '10px', marginBottom: '18px' }}>
               <label style={{ flex: 1, fontSize: '13px', fontWeight: 600, color: '#4B5563' }}>Fecha<input type="date" value={date} onChange={(event) => setDate(event.target.value)} style={{ boxSizing: 'border-box', width: '100%', marginTop: '6px', padding: '10px', border: '1px solid #E5E7EB', borderRadius: '10px', background: '#FFFFFF' }} /></label>
               <label style={{ flex: 1, fontSize: '13px', fontWeight: 600, color: '#4B5563' }}>Hora<input type="time" value={time} onChange={(event) => setTime(event.target.value)} style={{ boxSizing: 'border-box', width: '100%', marginTop: '6px', padding: '10px', border: '1px solid #E5E7EB', borderRadius: '10px', background: '#FFFFFF' }} /></label>
             </div>
-            <label style={{ display: 'block', marginBottom: '18px', fontSize: '13px', fontWeight: 600, color: '#4B5563' }}>Recordatorio<select value={reminder} onChange={(event) => setReminder(event.target.value)} style={{ boxSizing: 'border-box', width: '100%', marginTop: '6px', padding: '10px', border: '1px solid #E5E7EB', borderRadius: '10px', background: '#FFFFFF' }}><option value="15min">15 minutos antes</option><option value="30min">30 minutos antes</option><option value="1h">1 hora antes</option><option value="none">Sin recordatorio</option></select></label>
+            <label style={{ display: 'inline-flex', flexDirection: 'column', marginBottom: '18px', fontSize: '13px', fontWeight: 600, color: '#4B5563' }}>Recordatorio<select value={reminder} onChange={(event) => setReminder(event.target.value)} style={{ boxSizing: 'border-box', width: 'fit-content', minWidth: '165px', marginTop: '6px', padding: '10px', border: '1px solid #E5E7EB', borderRadius: '10px', background: '#FFFFFF' }}><option value="15min">15 minutos antes</option><option value="30min">30 minutos antes</option><option value="1h">1 hora antes</option><option value="none">Sin recordatorio</option></select></label>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => setShowSheet(false)} style={{ flex: 1, padding: '13px', border: 'none', borderRadius: '12px', background: '#E5E7EB', color: '#4B5563', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
               <button onClick={() => save()} disabled={!text.trim()} style={{ flex: 1, padding: '13px', border: 'none', borderRadius: '12px', background: text.trim() ? '#D946EF' : '#E5E7EB', color: '#FFFFFF', fontWeight: 700, cursor: text.trim() ? 'pointer' : 'not-allowed' }}>Guardar</button>
