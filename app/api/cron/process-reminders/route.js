@@ -5,6 +5,10 @@ import { isWithinQuietHours, sendPushToUser } from '@/lib/pushServer';
 export const runtime = 'nodejs';
 const dateInZone = (date, timeZone) => new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
 const timeInZone = (date, timeZone) => new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date);
+const asDate = (value) => {
+  const date = value?.toDate?.() || new Date(value);
+  return Number.isNaN(date?.getTime?.()) ? null : date;
+};
 
 async function claimDueReminder(db, reference, now) {
   return db.runTransaction(async (transaction) => {
@@ -97,7 +101,8 @@ export async function GET(request) {
           : null;
       const scheduledTime = trigger === 'morning' ? checkinTime : pauseTime;
       const day = dateInZone(now, zone);
-      const checkedIn = sub.lastCheckinTimestamp && dateInZone(sub.lastCheckinTimestamp.toDate(), zone) === day;
+      const lastCheckin = asDate(sub.lastCheckinTimestamp);
+      const checkedIn = lastCheckin && dateInZone(lastCheckin, zone) === day;
       const dailyDeliveryKey = `${day}:${trigger}:${scheduledTime}`;
       const defaultTime = trigger === 'morning' ? '11:00' : '18:00';
       const isLegacyDefaultDelivery = sub.lastDailyDeliveryKey === `${day}:${trigger}` && scheduledTime === defaultTime;
