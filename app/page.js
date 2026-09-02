@@ -115,7 +115,7 @@ export default function Home() {
         return isSameEvent ? { ...entry, notification } : entry;
       });
       localStorage.setItem('calendarData', JSON.stringify({ ...calendarData, eventLogs }));
-    }, 0);
+    }, 100);
   };
 
   const handleCalendarInteraction = (event) => {
