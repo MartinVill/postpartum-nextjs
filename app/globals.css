@@ -46,5 +46,5 @@ body {
 }
 
 .calendar-screen > div:nth-child(2) {
-  bottom: 86px !important;
+  display: none !important;
 }

@@ -12,6 +12,7 @@ import BodyAndCalmModule from './components/BodyAndCalm/BodyAndCalmModule';
 import BottomNavigationBar from './components/BottomNavigationBar';
 import HomeGrid from './components/HomeGrid';
 import Profile from './components/Profile';
+import CalendarQuickEntry from './components/CalendarQuickEntry';
 
 export default function Home() {
   const [state, setState] = useState({
@@ -30,7 +31,8 @@ export default function Home() {
     isMenuOpen: false,
     ongoingChallenge: null,
     showRetoCelebration: false,
-    showRetoFeedbackModal: false
+    showRetoFeedbackModal: false,
+    calendarKey: 0
   });
 
   /**
@@ -371,7 +373,8 @@ export default function Home() {
     if (state.showCalendar) {
       return (
         <div className="calendar-screen" style={{ paddingBottom: '70px', background: '#FFFDF6' }}>
-          <Calendar userProfile={state.userProfile} onBack={() => setState(prev => ({ ...prev, showCalendar: false, activeTab: 'home' }))} />
+          <Calendar key={state.calendarKey} userProfile={state.userProfile} onBack={() => setState(prev => ({ ...prev, showCalendar: false, activeTab: 'home' }))} />
+          <CalendarQuickEntry onSaved={() => setState(prev => ({ ...prev, calendarKey: prev.calendarKey + 1 }))} />
         </div>
       );
     }
