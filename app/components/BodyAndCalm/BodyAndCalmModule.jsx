@@ -12,6 +12,10 @@ export default function BodyAndCalmModule({ onBack, userProfile }) {
   const [selectedActivity, setSelectedActivity] = useState(null);
 
   useEffect(() => {
+    // Start this section at the top without scroll animations or focus changes.
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
     // Verificar si ya vio el disclaimer
     const hasSeenDisclaimer = localStorage.getItem('hasSeenMedicalDisclaimer');
     if (!hasSeenDisclaimer) {

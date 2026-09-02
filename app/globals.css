@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%);
-  --background-solid: #FFFBF0;
+  --background: #FFFDF6;
+  --background-solid: #FFFDF6;
   --foreground: #171717;
   --color-brand-magenta: #D946EF;
   --color-brand-magenta-light: #FFF8FE;
@@ -17,18 +17,17 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #FFFDF6;
+    --foreground: #171717;
   }
 }
 
 html {
-  background: linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%);
-  background-attachment: fixed;
+  background: #FFFDF6;
 }
 
 body {
-  background: transparent;
+  background: #FFFDF6;
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;

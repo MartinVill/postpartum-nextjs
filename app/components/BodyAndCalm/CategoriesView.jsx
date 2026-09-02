@@ -31,7 +31,7 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
+      background: '#FFFDF6',
       padding: '20px 16px 100px',
       maxWidth: '600px',
       margin: '0 auto',

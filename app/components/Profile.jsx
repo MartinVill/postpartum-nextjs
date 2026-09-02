@@ -515,7 +515,7 @@ export default function Profile({ userProfile, onBack }) {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'white',
+        background: '#FFFDF6',
         paddingBottom: '100px',
         maxWidth: '600px',
         margin: '0 auto',
@@ -527,7 +527,7 @@ export default function Profile({ userProfile, onBack }) {
           position: 'sticky',
           top: 0,
           zIndex: 50,
-          background: 'white',
+          background: '#FFFDF6',
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
           display: 'flex',
           alignItems: 'center',
@@ -908,7 +908,7 @@ export default function Profile({ userProfile, onBack }) {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'white',
+        background: '#FFFDF6',
         paddingBottom: '100px',
         maxWidth: '600px',
         margin: '0 auto',
@@ -920,7 +920,7 @@ export default function Profile({ userProfile, onBack }) {
           position: 'sticky',
           top: 0,
           zIndex: 50,
-          background: 'white',
+          background: '#FFFDF6',
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
           display: 'flex',
           alignItems: 'center',
@@ -1038,7 +1038,7 @@ export default function Profile({ userProfile, onBack }) {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'white',
+        background: '#FFFDF6',
         paddingBottom: '100px',
         maxWidth: '600px',
         margin: '0 auto',
@@ -1050,7 +1050,7 @@ export default function Profile({ userProfile, onBack }) {
           position: 'sticky',
           top: 0,
           zIndex: 50,
-          background: 'white',
+          background: '#FFFDF6',
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
           display: 'flex',
           alignItems: 'center',
@@ -1296,7 +1296,7 @@ export default function Profile({ userProfile, onBack }) {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'white',
+        background: '#FFFDF6',
         paddingBottom: '100px',
         maxWidth: '600px',
         margin: '0 auto',
@@ -1308,7 +1308,7 @@ export default function Profile({ userProfile, onBack }) {
           position: 'sticky',
           top: 0,
           zIndex: 50,
-          background: 'white',
+          background: '#FFFDF6',
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
           display: 'flex',
           alignItems: 'center',

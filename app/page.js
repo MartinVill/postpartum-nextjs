@@ -299,7 +299,7 @@ export default function Home() {
       return (
         <div style={{
           minHeight: '100vh',
-          background: '#FFF8FE',
+          background: '#FFFDF6',
           display: 'flex',
           flexDirection: 'column',
           paddingBottom: '70px'
@@ -309,7 +309,7 @@ export default function Home() {
             alignItems: 'center',
             gap: '12px',
             padding: '16px',
-            background: 'white',
+            background: '#FFFDF6',
             borderBottom: '1px solid rgba(0,0,0,0.05)',
             flexShrink: 0,
             position: 'sticky',
@@ -417,7 +417,7 @@ export default function Home() {
       return (
         <div style={{
           minHeight: '100vh',
-          background: '#FFF8FE',
+          background: '#FFFDF6',
           display: 'flex',
           flexDirection: 'column',
           paddingBottom: '70px'
@@ -440,7 +440,7 @@ export default function Home() {
         minHeight: '100vh'
       }}>
         {/* Header personalizado - Sistema de diseño nativo magenta con copy dinámico */}
-        <div className="w-full max-w-md mx-auto text-center pt-6 pb-2 px-6 flex flex-col items-center justify-center">
+        <div className="w-full max-w-md mx-auto text-center pt-6 pb-2 px-6 flex flex-col items-center justify-center bg-[#FFFDF6]">
           <h1 className={`font-bold tracking-tight text-center leading-snug max-w-[320px] text-[#D946EF] ${
             headerCopy.title.includes('¡Me alegra')
               ? "text-2xl"
