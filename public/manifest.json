@@ -1,17 +1,17 @@
 {
-  "name": "Postpartum Fitness",
-  "short_name": "Postpartum Fitness",
+  "name": "Posparto",
+  "short_name": "Posparto",
   "description": "MVP para mujeres postparto",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#FFFDF6",
   "theme_color": "#C770A4",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23C770A4' width='192' height='192'/><text x='96' y='110' font-size='100' font-weight='bold' fill='white' text-anchor='middle'>♀</text></svg>",
+      "src": "/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

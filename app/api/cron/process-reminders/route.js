@@ -22,7 +22,7 @@ export async function GET(request) {
       const isDue = triggerAt <= now;
       console.info('[CRON] Reminder evaluated', { reminderId: document.id, userId: reminder.userId, eventId: reminder.eventId, reminder: reminder.reminder, triggerTimestampUtc: triggerAt.toISOString(), serverNowUtc: now.toISOString(), timeZone: reminder.timeZone || null, isDue });
       if (!isDue) continue;
-      const delivery = await sendPushToUser(reminder.userId, { title: reminder.eventTitle, body: `Recordatorio: ${reminder.eventTitle}`, icon: '/icon-192.png', badge: '/badge.png', tag: `reminder-${document.id}`, data: { url: '/?tab=calendar' } });
+      const delivery = await sendPushToUser(reminder.userId, { title: reminder.eventTitle, body: `Recordatorio: ${reminder.eventTitle}`, tag: `calendar-reminder-${reminder.eventId}`, data: { url: '/?tab=calendar', reminderId: document.id, snoozeToken: reminder.snoozeToken } });
       if (delivery.delivered > 0) {
         await document.ref.set({ sent: true, sentAt: now, lastDelivery: delivery }, { merge: true });
         reminders += 1;
@@ -39,7 +39,7 @@ export async function GET(request) {
       const checkedIn = sub.lastCheckinTimestamp && dateInZone(sub.lastCheckinTimestamp.toDate(), zone) === day;
       if (!trigger || sub.lastDailyDeliveryKey === `${day}:${trigger}` || isWithinQuietHours(now, sub.quietStart, sub.quietEnd, zone) || (trigger === 'morning' && checkedIn)) continue;
       const payload = trigger === 'morning' ? { title: 'Tu check-in de hoy 💜', body: '¿Cómo te sientes hoy? 💜' } : { title: 'Un momento para vos ✨', body: '¿Hacemos una pausa? ✨' };
-      const delivery = await sendPushToUser(sub.userId, { ...payload, icon: '/icon-192.png', badge: '/badge.png', tag: `daily-${trigger}-${day}`, data: { url: '/' } });
+      const delivery = await sendPushToUser(sub.userId, { ...payload, tag: 'daily-reminder', data: { url: '/' } });
       if (delivery.delivered > 0) {
         await document.ref.set({ lastDailyDeliveryKey: `${day}:${trigger}`, updatedAt: now, lastDailyDelivery: delivery }, { merge: true });
         daily += 1;

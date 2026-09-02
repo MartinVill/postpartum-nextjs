@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import { getAdminDb } from '@/lib/firebaseAdmin';
 
 export const runtime = 'nodejs';
@@ -20,7 +21,7 @@ export async function POST(request) {
       if (!minutes) return;
       const triggerTimestamp = new Date(eventDate.getTime() - minutes * 60000);
       if (triggerTimestamp <= new Date()) return;
-      batch.set(db.collection('scheduled_reminders').doc(`${userId}_${eventId}_${reminder}`), { userId, eventId: String(eventId), eventTitle, eventType, reminder, triggerTimestamp, timeZone, sent: false, createdAt: new Date() });
+      batch.set(db.collection('scheduled_reminders').doc(`${userId}_${eventId}_${reminder}`), { userId, eventId: String(eventId), eventTitle, eventType, reminder, triggerTimestamp, timeZone, snoozeToken: randomUUID(), sent: false, createdAt: new Date() });
       scheduled.push({ reminder, triggerTimestampUtc: triggerTimestamp.toISOString() });
     });
     await batch.commit();

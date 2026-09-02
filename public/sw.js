@@ -24,12 +24,16 @@ self.addEventListener('push', function(event) {
 
   const options = {
     body: data.body || 'Un momento para ti 💜',
-    icon: data.icon || '/icon-192.png',
-    badge: data.badge || '/badge.png',
-    vibrate: [100, 50, 100],
+    icon: data.icon || '/icon-192x192.png',
+    badge: data.badge || '/badge-72x72.png',
+    vibrate: data.vibrate || [200, 100, 200],
     data: data.data || { url: data.url || '/' },
-    tag: data.tag || 'postpartum-checkin',
-    renotify: false,
+    tag: data.tag || 'daily-reminder',
+    renotify: data.renotify ?? true,
+    actions: data.actions || [
+      { action: 'open', title: 'Abrir ahora' },
+      { action: 'snooze', title: 'Recordar en 15m' }
+    ],
     requireInteraction: false
   };
 
@@ -41,23 +45,39 @@ self.addEventListener('push', function(event) {
 });
 
 self.addEventListener('notificationclick', function(event) {
-  console.log('[SW] Notification clicked:', event.notification.tag);
+  console.log('[SW] Notification clicked:', event.notification.tag, event.action || 'open');
   event.notification.close();
 
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+    (async function() {
+      const notificationData = event.notification.data || {};
+      if (event.action === 'snooze' && notificationData.reminderId && notificationData.snoozeToken) {
+        try {
+          const response = await fetch('/api/notifications/snooze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reminderId: notificationData.reminderId, snoozeToken: notificationData.snoozeToken })
+          });
+          console.log('[SW] Snooze request:', response.status);
+        } catch (error) {
+          console.error('[SW] Snooze request failed:', error);
+        }
+      }
+
+      const targetUrl = new URL(notificationData.url || '/', self.location.origin).href;
+      const clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
       // Check if app is already open
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
-        if (client.url === new URL(event.notification.data.url || '/', self.location.origin).href && 'focus' in client) {
+        if (client.url === targetUrl && 'focus' in client) {
           return client.focus();
         }
       }
       // Open app if not already open
       if (clients.openWindow) {
-        return clients.openWindow(event.notification.data.url || '/');
+        return clients.openWindow(targetUrl);
       }
-    })
+    })()
   );
 });
 
