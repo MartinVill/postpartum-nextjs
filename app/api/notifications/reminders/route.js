@@ -7,7 +7,7 @@ const minutesByReminder = { '15min': 15, '30min': 30, '1h': 60, '1day': 1440 };
 
 export async function POST(request) {
   try {
-    const { userId, eventId, eventTitle, eventType = 'evento', eventTimestamp, reminders = [], timeZone = 'America/Argentina/Buenos_Aires' } = await request.json();
+    const { userId, eventId, eventTitle, eventType = 'evento', eventTimestamp, eventTime = '09:00', reminders = [], timeZone = 'America/Argentina/Buenos_Aires' } = await request.json();
     if (!userId || !eventId || !eventTitle || !eventTimestamp) return NextResponse.json({ error: 'Missing event reminder fields' }, { status: 400 });
     const eventDate = new Date(eventTimestamp);
     if (Number.isNaN(eventDate.getTime())) return NextResponse.json({ error: 'Invalid event timestamp' }, { status: 400 });
@@ -21,7 +21,22 @@ export async function POST(request) {
       if (!minutes) return;
       const triggerTimestamp = new Date(eventDate.getTime() - minutes * 60000);
       if (triggerTimestamp <= new Date()) return;
-      batch.set(db.collection('scheduled_reminders').doc(`${userId}_${eventId}_${reminder}`), { userId, eventId: String(eventId), eventTitle, eventType, reminder, triggerTimestamp, timeZone, snoozeToken: randomUUID(), sent: false, createdAt: new Date() });
+      batch.set(db.collection('scheduled_reminders').doc(`${userId}_${eventId}_${reminder}`), {
+        userId,
+        eventId: String(eventId),
+        eventTitle,
+        eventType,
+        eventTime,
+        reminder,
+        eventTimestamp: eventDate,
+        triggerTimestamp,
+        timeZone,
+        snoozeToken: randomUUID(),
+        status: 'pending',
+        sent: false,
+        attemptCount: 0,
+        createdAt: new Date()
+      });
       scheduled.push({ reminder, triggerTimestampUtc: triggerTimestamp.toISOString() });
     });
     await batch.commit();

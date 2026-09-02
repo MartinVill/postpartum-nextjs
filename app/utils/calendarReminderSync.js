@@ -3,9 +3,15 @@
 const reminderValues = new Set(['15min', '30min', '1h', '1day']);
 
 const localEventTimestamp = (event) => {
-  const date = new Date(event.date);
-  const datePart = [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
-  return new Date(`${datePart}T${event.time || '09:00'}:00`).toISOString();
+  // A date-only value (YYYY-MM-DD) is parsed as UTC by JavaScript. Keep that
+  // literal date intact so an event selected locally never shifts one day.
+  const dateOnly = typeof event.date === 'string' && event.date.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  const date = dateOnly ? null : new Date(event.date);
+  const datePart = dateOnly || [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+  const time = /^\d{2}:\d{2}$/.test(event.time || '') ? event.time : '09:00';
+  const localDateTime = new Date(`${datePart}T${time}:00`);
+  if (Number.isNaN(localDateTime.getTime())) throw new Error('La fecha u hora del evento no es válida');
+  return localDateTime.toISOString();
 };
 
 /**
@@ -27,6 +33,7 @@ export async function syncCalendarReminder(event) {
       eventTitle: event.name || 'Evento',
       eventType: event.type || 'evento',
       eventTimestamp: localEventTimestamp(event),
+      eventTime: /^\d{2}:\d{2}$/.test(event.time || '') ? event.time : '09:00',
       reminders,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
     })

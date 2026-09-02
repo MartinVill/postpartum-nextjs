@@ -256,12 +256,15 @@ export default function Home() {
         console.error('[CHALLENGE RESTORE] Error parseando reto guardado:', error);
       }
 
+      const requestedTab = new URLSearchParams(window.location.search).get('tab');
       setState(prev => ({
         ...prev,
         userId,
         userProfile,
         lastCheckInDate,
         ongoingChallenge,
+        activeTab: requestedTab === 'calendar' ? 'calendar' : prev.activeTab,
+        showCalendar: requestedTab === 'calendar',
         isReady: true
       }));
     } catch (error) {
@@ -868,7 +871,7 @@ export default function Home() {
       paddingBottom: state.showChat ? 0 : '86px',
       overflow: state.showChat ? 'hidden' : undefined
     }}>
-      {state.energyScore ? renderActiveView() : (
+      {state.energyScore || state.showCalendar || state.showChat || state.showProfile || state.showBodyAndCalm || state.showReto ? renderActiveView() : (
         <EnergyCheckIn
           userProfile={state.userProfile}
           onEnergySelect={(energy) => {

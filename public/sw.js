@@ -64,7 +64,8 @@ self.addEventListener('notificationclick', function(event) {
         }
       }
 
-      const targetUrl = new URL(notificationData.url || '/', self.location.origin).href;
+      const calendarUrl = notificationData.eventId ? `/?tab=calendar&event=${encodeURIComponent(notificationData.eventId)}` : '/';
+      const targetUrl = new URL(notificationData.url || calendarUrl, self.location.origin).href;
       const clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
       // Check if app is already open
       for (let i = 0; i < clientList.length; i++) {
