@@ -370,7 +370,7 @@ export default function Home() {
     // Sub-pantalla: Calendario
     if (state.showCalendar) {
       return (
-        <div style={{ paddingBottom: '70px' }}>
+        <div className="calendar-screen" style={{ paddingBottom: '70px', background: '#FFFDF6' }}>
           <Calendar userProfile={state.userProfile} onBack={() => setState(prev => ({ ...prev, showCalendar: false, activeTab: 'home' }))} />
         </div>
       );

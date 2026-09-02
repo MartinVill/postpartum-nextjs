@@ -254,7 +254,7 @@ export default function EnergyCheckIn({ userProfile, onEnergySelect }) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
+      background: '#FFFDF6',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
