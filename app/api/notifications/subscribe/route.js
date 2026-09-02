@@ -11,7 +11,9 @@ export async function POST(request) {
     const id = createHash('sha256').update(subscription.endpoint).digest('hex');
     const db = getAdminDb();
     const now = new Date();
-    const subscriptionData = { userId, subscriptionObject: subscription, quietStart, quietEnd, timeZone, updatedAt: now, createdAt: now };
+    const settingsSnapshot = await db.collection('users').doc(userId).collection('settings').doc('notifications').get();
+    const notificationSettings = { dailyWellbeingEnabled: true, checkinTime: '11:00', pauseTime: '18:00', ...(settingsSnapshot.exists ? settingsSnapshot.data() : {}) };
+    const subscriptionData = { userId, subscriptionObject: subscription, quietStart, quietEnd, timeZone, ...notificationSettings, updatedAt: now, createdAt: now };
     await Promise.all([
       db.collection('push_subscriptions').doc(id).set(subscriptionData, { merge: true }),
       // This is the per-user source of truth for the device's Web Push subscription.
