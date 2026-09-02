@@ -206,11 +206,10 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
               const next = [...savedNotifications];
               next[index] = event.target.value;
               updateSavedNotifications(next);
-            }} style={{ width: 'fit-content', minWidth: '165px', padding: '8px', border: '1px solid #D946EF', borderRadius: '8px', background: '#FFFFFF' }}>
+            }} style={{ width: 'fit-content', minWidth: '165px', padding: '8px', border: '1px solid #D946EF', borderRadius: '8px', background: '#FFFFFF', color: '#1F2937', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
               <option value="15min">15 minutos antes</option><option value="30min">30 minutos antes</option><option value="1h">1 hora antes</option><option value="1day">1 día antes</option><option value="none">Sin notificación</option>
             </select>
           ))}
-          <button type="button" onClick={() => updateSavedNotifications([...savedNotifications, '15min'])} style={{ width: 'fit-content', border: 'none', background: 'none', color: '#D946EF', fontWeight: 700, cursor: 'pointer' }}>+ Agregar recordatorio</button>
         </div>,
         savedNotificationHost
       )}
