@@ -70,7 +70,7 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
     const handleCalendarDayTap = (event) => {
       const cell = event.target.closest('.calendar-screen div[style*="cursor: pointer"]');
       if (!cell || !cell.parentElement?.getAttribute('style')?.includes('grid-template-columns')) return;
-      const day = Number(cell.textContent.trim());
+      const day = Number(cell.textContent.trim().match(/^\d+/)?.[0]);
       const heading = document.querySelector('.calendar-screen h2')?.textContent?.trim();
       const match = heading?.match(/([a-záéíóúñ]+) de (\d{4})/i);
       if (!Number.isInteger(day) || day < 1 || day > 31 || !match) return;

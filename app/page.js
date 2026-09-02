@@ -63,7 +63,7 @@ export default function Home() {
     const cell = event.target.closest('div[style*="cursor: pointer"]');
     if (!cell || !cell.parentElement?.getAttribute('style')?.includes('grid-template-columns')) return;
 
-    const day = Number(cell.textContent.trim());
+    const day = Number(cell.textContent.trim().match(/^\d+/)?.[0]);
     const monthHeading = document.querySelector('.calendar-screen h2')?.textContent?.trim();
     const match = monthHeading?.match(/([a-záéíóúñ]+) de (\d{4})/i);
     if (!Number.isInteger(day) || day < 1 || day > 31 || !match) return;
