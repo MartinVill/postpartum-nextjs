@@ -34,6 +34,74 @@ body {
   padding: 0;
 }
 
+/* ChatSection owns its chat logic and remains untouched. These layout-only
+   rules give it a stable full-screen mobile viewport from its parent shell. */
+.app-shell--chat {
+  overscroll-behavior: none;
+}
+
+.chat-view {
+  overscroll-behavior: none;
+}
+
+.chat-shell {
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chat-shell > div {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: hidden !important;
+}
+
+/* Message history is the only scrollable part of the chat. */
+.chat-shell > div > div:first-child {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  padding-bottom: 148px !important;
+}
+
+/* Keep the mood selector visible above the persistent composer. */
+.chat-shell > div > div:nth-child(2) {
+  flex: 0 0 auto !important;
+  background: #FFFDF6;
+  z-index: 2;
+}
+
+/* The existing composer is pinned like a mobile messenger without changing
+   ChatSection's input or send logic. */
+.chat-shell > div > div:nth-child(3) {
+  position: fixed !important;
+  right: 0;
+  bottom: var(--chat-input-bottom, 70px) !important;
+  left: 0;
+  z-index: 60;
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  background: #FFFDF6;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important;
+}
+
+/* Simplify the first-chat state to one warm, direct prompt. */
+.chat-shell > div > div:first-child > div:has(> h3) h3,
+.chat-shell > div > div:first-child > div:has(> h3) p {
+  display: none !important;
+}
+
+.chat-shell > div > div:first-child > div:has(> h3)::after {
+  content: 'Escribe algo abajo';
+  color: #6B7280;
+  font-size: 15px;
+  font-weight: 600;
+}
+
 /* Calendar.jsx owns two fixed background layers. Match both to Home without editing it. */
 .calendar-screen > div:nth-child(1) {
   background: #FFFDF6 !important;

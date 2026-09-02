@@ -17,6 +17,7 @@ import { syncCalendarReminder } from './utils/calendarReminderSync';
 
 export default function Home() {
   const [calendarEntryDate, setCalendarEntryDate] = useState(null);
+  const [chatInputBottom, setChatInputBottom] = useState(70);
   const [state, setState] = useState({
     userId: null,
     userProfile: null,
@@ -182,6 +183,32 @@ export default function Home() {
       return () => document.removeEventListener('click', handleClickOutside);
     }
   }, [state.isMenuOpen, state.showChat]);
+
+  // Keep the chat composer attached to the visible viewport on mobile. Some
+  // browsers overlay the virtual keyboard instead of resizing the layout.
+  useEffect(() => {
+    if (!state.showChat) return;
+
+    const viewport = window.visualViewport;
+    const updateChatViewport = () => {
+      const keyboardHeight = viewport
+        ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+        : 0;
+      setChatInputBottom(keyboardHeight > 0 ? keyboardHeight : 70);
+    };
+
+    window.scrollTo(0, 0);
+    updateChatViewport();
+    viewport?.addEventListener('resize', updateChatViewport);
+    viewport?.addEventListener('scroll', updateChatViewport);
+    window.addEventListener('resize', updateChatViewport);
+
+    return () => {
+      viewport?.removeEventListener('resize', updateChatViewport);
+      viewport?.removeEventListener('scroll', updateChatViewport);
+      window.removeEventListener('resize', updateChatViewport);
+    };
+  }, [state.showChat]);
 
   useEffect(() => {
     try {
@@ -415,12 +442,14 @@ export default function Home() {
     // Sub-pantalla: Chat
     if (state.showChat) {
       return (
-        <div style={{
-          minHeight: '100vh',
+        <div className="chat-view" style={{
+          height: '100%',
+          minHeight: 0,
           background: '#FFFDF6',
           display: 'flex',
           flexDirection: 'column',
-          paddingBottom: '70px'
+          overflow: 'hidden',
+          '--chat-input-bottom': `${chatInputBottom}px`
         }}>
           <div style={{
             display: 'flex',
@@ -430,8 +459,6 @@ export default function Home() {
             background: '#FFFDF6',
             borderBottom: '1px solid rgba(0,0,0,0.05)',
             flexShrink: 0,
-            position: 'sticky',
-            top: 0,
             zIndex: 40
           }}>
             <button
@@ -476,7 +503,7 @@ export default function Home() {
               Hablemos
             </h1>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+          <div className="chat-shell" style={{ flex: 1, minHeight: 0 }}>
             {state.userId && (
               <ChatSection userId={state.userId} initialProfile={state.userProfile} />
             )}
@@ -833,11 +860,13 @@ export default function Home() {
   };
 
   return (
-    <div style={{
+    <div className={state.showChat ? 'app-shell app-shell--chat' : 'app-shell'} style={{
       position: 'relative',
-      minHeight: '100vh',
+      minHeight: state.showChat ? '100dvh' : '100vh',
+      height: state.showChat ? '100dvh' : undefined,
       background: '#FFFDF6',
-      paddingBottom: '86px'
+      paddingBottom: state.showChat ? 0 : '86px',
+      overflow: state.showChat ? 'hidden' : undefined
     }}>
       {state.energyScore ? renderActiveView() : (
         <EnergyCheckIn
