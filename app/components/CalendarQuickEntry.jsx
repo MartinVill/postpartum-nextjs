@@ -72,6 +72,16 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
     onSelectedDateHandled?.();
   }, [selectedDate, onSelectedDateHandled]);
 
+  // Existing calendar entries were originally stored only on this device.
+  // Reconcile them when Calendar opens so reminders created before Web Push
+  // was enabled are also scheduled on the server.
+  useEffect(() => {
+    const calendarData = JSON.parse(localStorage.getItem('calendarData') || '{}');
+    (calendarData.eventLogs || [])
+      .filter(event => event?.type !== 'sintoma' && (event?.notifications?.length || (event?.notification && event.notification !== 'none')))
+      .forEach(event => syncCalendarReminder(event).catch(error => console.warn('[CALENDAR] Existing reminder sync failed:', error)));
+  }, []);
+
   const updateSavedNotifications = (nextNotifications) => {
     const notifications = nextNotifications.filter(value => value && value !== 'none');
     setSavedNotifications(notifications);
