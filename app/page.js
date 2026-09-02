@@ -79,6 +79,50 @@ export default function Home() {
     setCalendarEntryDate(`${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
   };
 
+  const persistCalendarNotification = (event) => {
+    const saveButton = event.target.closest('button');
+    if (!saveButton || saveButton.textContent.trim() !== 'Guardar') return;
+
+    const modal = saveButton.closest('div[style*="z-index: 9999"]');
+    if (!modal || !modal.textContent.includes('Notificación')) return;
+
+    const title = modal.querySelector('h3')?.textContent?.trim();
+    const dateText = Array.from(modal.querySelectorAll('p'))
+      .map(paragraph => paragraph.textContent.trim())
+      .find(value => /^\d{2}\/\d{2}\/\d{2}$/.test(value));
+    const notification = [
+      ['1 día antes', '1day'],
+      ['1 hora antes', '1h'],
+      ['30 minutos antes', '30min'],
+      ['15 minutos antes', '15min']
+    ].find(([label]) => modal.textContent.includes(label))?.[1];
+
+    if (!title || !dateText || !notification) return;
+
+    window.setTimeout(() => {
+      const [day, month, shortYear] = dateText.split('/').map(Number);
+      const year = 2000 + shortYear;
+      const saved = localStorage.getItem('calendarData');
+      if (!saved) return;
+
+      const calendarData = JSON.parse(saved);
+      const eventLogs = (calendarData.eventLogs || []).map(entry => {
+        const entryDate = new Date(entry.date);
+        const isSameEvent = entry.name === title &&
+          entryDate.getFullYear() === year &&
+          entryDate.getMonth() === month - 1 &&
+          entryDate.getDate() === day;
+        return isSameEvent ? { ...entry, notification } : entry;
+      });
+      localStorage.setItem('calendarData', JSON.stringify({ ...calendarData, eventLogs }));
+    }, 0);
+  };
+
+  const handleCalendarInteraction = (event) => {
+    persistCalendarNotification(event);
+    handleCalendarDateClick(event);
+  };
+
   // Cerrar menú al hacer click fuera
   useEffect(() => {
     if (state.isMenuOpen && state.showChat) {
@@ -395,7 +439,7 @@ export default function Home() {
     // Sub-pantalla: Calendario
     if (state.showCalendar) {
       return (
-        <div className="calendar-screen" onClickCapture={handleCalendarDateClick} style={{ paddingBottom: '70px', background: '#FFFDF6' }}>
+        <div className="calendar-screen" onClickCapture={handleCalendarInteraction} style={{ paddingBottom: '70px', background: '#FFFDF6' }}>
           <Calendar key={state.calendarKey} userProfile={state.userProfile} onBack={() => setState(prev => ({ ...prev, showCalendar: false, activeTab: 'home' }))} />
           <CalendarQuickEntry
             selectedDate={calendarEntryDate}
