@@ -81,8 +81,8 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
       event.stopPropagation();
       openSelectedDate(`${match[2]}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
     };
-    document.addEventListener('click', handleCalendarDayTap, true);
-    return () => document.removeEventListener('click', handleCalendarDayTap, true);
+    window.addEventListener('click', handleCalendarDayTap, true);
+    return () => window.removeEventListener('click', handleCalendarDayTap, true);
   });
 
   const openNewEvent = () => {
