@@ -91,21 +91,23 @@ export default function CalendarQuickEntry({ onSaved }) {
               <label style={{ flex: 1, fontSize: '13px', fontWeight: 600, color: '#4B5563' }}>Fecha<input type="date" value={date} onChange={(event) => setDate(event.target.value)} style={{ boxSizing: 'border-box', width: '100%', marginTop: '6px', padding: '10px', border: '1px solid #E5E7EB', borderRadius: '10px', background: '#FFFFFF' }} /></label>
               <label style={{ flex: 1, fontSize: '13px', fontWeight: 600, color: '#4B5563' }}>Hora<input type="time" value={time} onChange={(event) => setTime(event.target.value)} style={{ boxSizing: 'border-box', width: '100%', marginTop: '6px', padding: '10px', border: '1px solid #E5E7EB', borderRadius: '10px', background: '#FFFFFF' }} /></label>
             </div>
-            <div style={{ position: 'relative', display: 'inline-flex', flexDirection: 'column', marginBottom: '18px', fontSize: '13px', fontWeight: 600, color: '#4B5563' }}>
-              <span>Recordatorio</span>
-              <button type="button" onClick={() => setShowReminderOptions(open => !open)} aria-expanded={showReminderOptions} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', minWidth: '165px', marginTop: '6px', padding: '10px', border: '1px solid #E5E7EB', borderRadius: '10px', background: '#FFFFFF', color: '#374151', fontSize: '14px', fontWeight: 400, cursor: 'pointer' }}>
-                {reminderLabel}<span aria-hidden="true">⌄</span>
-              </button>
-              {showReminderOptions && (
-                <div role="listbox" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 80, width: 'max-content', minWidth: '100%', marginTop: '4px', padding: '4px', border: '1px solid #E5E7EB', borderRadius: '10px', background: '#FFFFFF', boxShadow: '0 6px 14px rgba(0,0,0,0.12)' }}>
-                  {reminderOptions.map(option => (
-                    <button key={option.value} type="button" role="option" aria-selected={reminder === option.value} onClick={() => { setReminder(option.value); setShowReminderOptions(false); }} style={{ display: 'block', width: '100%', padding: '9px 10px', border: 'none', borderRadius: '7px', background: reminder === option.value ? '#FFF0FD' : 'transparent', color: '#374151', textAlign: 'left', fontSize: '13px', cursor: 'pointer' }}>
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {type === 'evento' && (
+              <div style={{ position: 'relative', display: 'inline-flex', flexDirection: 'column', marginBottom: '18px', fontSize: '13px', fontWeight: 600, color: '#4B5563' }}>
+                <span>Recordatorio</span>
+                <button type="button" onClick={() => setShowReminderOptions(open => !open)} aria-expanded={showReminderOptions} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', minWidth: '165px', marginTop: '6px', padding: '10px', border: '1px solid #E5E7EB', borderRadius: '10px', background: '#FFFFFF', color: '#374151', fontSize: '14px', fontWeight: 400, cursor: 'pointer' }}>
+                  {reminderLabel}<span aria-hidden="true">⌄</span>
+                </button>
+                {showReminderOptions && (
+                  <div role="listbox" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 80, width: 'max-content', minWidth: '100%', marginTop: '4px', padding: '4px', border: '1px solid #E5E7EB', borderRadius: '10px', background: '#FFFFFF', boxShadow: '0 6px 14px rgba(0,0,0,0.12)' }}>
+                    {reminderOptions.map(option => (
+                      <button key={option.value} type="button" role="option" aria-selected={reminder === option.value} onClick={() => { setReminder(option.value); setShowReminderOptions(false); }} style={{ display: 'block', width: '100%', padding: '9px 10px', border: 'none', borderRadius: '7px', background: reminder === option.value ? '#FFF0FD' : 'transparent', color: '#374151', textAlign: 'left', fontSize: '13px', cursor: 'pointer' }}>
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => setShowSheet(false)} style={{ flex: 1, padding: '13px', border: 'none', borderRadius: '12px', background: '#E5E7EB', color: '#4B5563', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
               <button onClick={() => save()} disabled={!text.trim()} style={{ flex: 1, padding: '13px', border: 'none', borderRadius: '12px', background: text.trim() ? '#D946EF' : '#E5E7EB', color: '#FFFFFF', fontWeight: 700, cursor: text.trim() ? 'pointer' : 'not-allowed' }}>Guardar</button>
