@@ -5,7 +5,7 @@ const BackButton = ({ onClick }) => (
   <button
     onClick={onClick}
     style={{
-      background: 'white',
+      background: '#FFFDF6',
       border: 'none',
       padding: '8px',
       borderRadius: '50%',
@@ -331,7 +331,7 @@ export default function Profile({ userProfile, onBack }) {
               style={{
                 width: '100%',
                 padding: '16px',
-                background: 'white',
+                background: '#FFFDF6',
                 border: '1px solid #E5E7EB',
                 borderRadius: '12px',
                 marginBottom: '12px',
@@ -424,7 +424,7 @@ export default function Profile({ userProfile, onBack }) {
             zIndex: 9999
           }}>
             <div style={{
-              background: 'white',
+              background: '#FFFDF6',
               padding: '24px',
               borderRadius: '16px',
               maxWidth: '320px',
@@ -1118,7 +1118,7 @@ export default function Profile({ userProfile, onBack }) {
                 width: '24px',
                 height: '24px',
                 borderRadius: '50%',
-                background: 'white',
+                background: '#FFFDF6',
                 top: '2px',
                 left: notifications.dailyRoutine ? '22px' : '2px',
                 transition: 'left 0.3s'
@@ -1206,7 +1206,7 @@ export default function Profile({ userProfile, onBack }) {
                 width: '24px',
                 height: '24px',
                 borderRadius: '50%',
-                background: 'white',
+                background: '#FFFDF6',
                 top: '2px',
                 left: notifications.breathing ? '22px' : '2px',
                 transition: 'left 0.3s'
@@ -1260,7 +1260,7 @@ export default function Profile({ userProfile, onBack }) {
                 width: '24px',
                 height: '24px',
                 borderRadius: '50%',
-                background: 'white',
+                background: '#FFFDF6',
                 top: '2px',
                 left: notifications.news ? '22px' : '2px',
                 transition: 'left 0.3s'

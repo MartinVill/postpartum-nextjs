@@ -437,10 +437,12 @@ export default function Home() {
       <div style={{
         paddingTop: '12px',
         paddingBottom: '70px',
-        minHeight: '100vh'
+        minHeight: '100vh',
+        width: '100%',
+        background: '#FFFDF6'
       }}>
         {/* Header personalizado - Sistema de diseño nativo magenta con copy dinámico */}
-        <div className="w-full max-w-md mx-auto text-center pt-6 pb-2 px-6 flex flex-col items-center justify-center bg-[#FFFDF6]">
+        <div className="w-full max-w-md mx-auto text-center pt-6 pb-2 px-6 flex flex-col items-center justify-center">
           <h1 className={`font-bold tracking-tight text-center leading-snug max-w-[320px] text-[#D946EF] ${
             headerCopy.title.includes('¡Me alegra')
               ? "text-2xl"

@@ -54,7 +54,7 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
             position: 'absolute',
             left: '16px',
             zIndex: 10,
-            background: 'white',
+            background: '#FFFDF6',
             border: 'none',
             padding: '8px',
             borderRadius: '50%',
@@ -108,7 +108,7 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
             key={cat.id}
             onClick={() => onSelectCategory(cat.id)}
             style={{
-              background: 'white',
+              background: '#FFFDF6',
               border: '1px solid #E5E7EB',
               borderRadius: '16px',
               padding: '20px 16px',
@@ -155,7 +155,7 @@ export default function CategoriesView({ onSelectCategory, onBack }) {
         bottom: 0,
         left: 0,
         right: 0,
-        background: 'rgba(255, 255, 255, 0.9)',
+        background: '#FFFDF6',
         borderTop: '1px solid #E5E7EB',
         padding: '8px 16px',
         textAlign: 'center',

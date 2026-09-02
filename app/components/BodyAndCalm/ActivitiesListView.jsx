@@ -198,7 +198,7 @@ export default function ActivitiesListView({ categoryId, onSelectActivity, onBac
             position: 'absolute',
             left: '16px',
             zIndex: 10,
-            background: 'white',
+            background: '#FFFDF6',
             border: 'none',
             padding: '8px',
             borderRadius: '50%',
@@ -250,7 +250,7 @@ export default function ActivitiesListView({ categoryId, onSelectActivity, onBac
             key={activity.id}
             onClick={() => onSelectActivity(activity)}
             style={{
-              background: 'white',
+              background: '#FFFDF6',
               border: '1px solid #E5E7EB',
               borderRadius: '14px',
               padding: '16px',
@@ -329,7 +329,7 @@ export default function ActivitiesListView({ categoryId, onSelectActivity, onBac
         bottom: 0,
         left: 0,
         right: 0,
-        background: 'rgba(255, 255, 255, 0.9)',
+        background: '#FFFDF6',
         borderTop: '1px solid #E5E7EB',
         padding: '8px 16px',
         textAlign: 'center',

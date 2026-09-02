@@ -15,7 +15,7 @@ export default function MedicalDisclaimerModal({ onAccept }) {
       zIndex: 9999
     }}>
       <div style={{
-        background: 'white',
+        background: '#FFFDF6',
         borderRadius: '20px',
         padding: '32px 24px',
         maxWidth: '400px',
