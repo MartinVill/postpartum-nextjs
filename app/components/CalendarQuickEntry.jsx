@@ -54,8 +54,12 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
 
     const observer = new MutationObserver(syncSavedNotification);
     observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('calendar-notifications-updated', syncSavedNotification);
     syncSavedNotification();
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('calendar-notifications-updated', syncSavedNotification);
+    };
   }, []);
 
   useEffect(() => {
@@ -93,6 +97,7 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
       } : entry;
     });
     localStorage.setItem('calendarData', JSON.stringify(calendarData));
+    window.dispatchEvent(new Event('calendar-notifications-updated'));
   };
 
   const save = (name = text) => {
@@ -202,13 +207,16 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
       {savedNotificationHost && savedNotifications.length > 0 && createPortal(
         <div data-saved-notification style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
           {savedNotifications.map((value, index) => (
-            <select key={`${value}-${index}`} value={value} onChange={(event) => {
-              const next = [...savedNotifications];
-              next[index] = event.target.value;
-              updateSavedNotifications(next);
-            }} style={{ width: 'fit-content', minWidth: '165px', padding: '8px', border: '1px solid #D946EF', borderRadius: '8px', background: '#FFFFFF', color: '#1F2937', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
-              <option value="15min">15 minutos antes</option><option value="30min">30 minutos antes</option><option value="1h">1 hora antes</option><option value="1day">1 día antes</option><option value="none">Sin notificación</option>
-            </select>
+            <div key={`${value}-${index}`} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <select value={value} onChange={(event) => {
+                const next = [...savedNotifications];
+                next[index] = event.target.value;
+                updateSavedNotifications(next);
+              }} style={{ width: 'auto', minWidth: '140px', padding: '6px', border: '1px solid #D1D5DB', borderRadius: '8px', background: '#FFFFFF', color: '#1F2937', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
+                <option value="15min">15 minutos antes</option><option value="30min">30 minutos antes</option><option value="1h">1 hora antes</option><option value="1day">1 día antes</option><option value="none">Sin notificación</option>
+              </select>
+              <button type="button" aria-label="Eliminar recordatorio" onClick={() => updateSavedNotifications(savedNotifications.filter((_, notificationIndex) => notificationIndex !== index))} style={{ padding: '0 3px', border: 'none', background: 'transparent', color: '#D946EF', fontSize: '22px', lineHeight: 1, cursor: 'pointer' }}>×</button>
+            </div>
           ))}
         </div>,
         savedNotificationHost

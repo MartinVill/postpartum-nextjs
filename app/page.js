@@ -120,7 +120,43 @@ export default function Home() {
     }, 100);
   };
 
+  const addCalendarNotification = (event) => {
+    const addButton = event.target.closest('button');
+    if (!addButton || addButton.textContent.trim() !== '+') return false;
+
+    const modal = addButton.closest('div[style*="z-index: 9999"]');
+    if (!modal || !modal.textContent.includes('Notificación')) return false;
+
+    const title = modal.querySelector('h3')?.textContent?.trim();
+    const dateText = Array.from(modal.querySelectorAll('p'))
+      .map(paragraph => paragraph.textContent.trim())
+      .find(value => /^\d{2}\/\d{2}\/\d{2}$/.test(value));
+    if (!title || !dateText) return false;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const [day, month, shortYear] = dateText.split('/').map(Number);
+    const year = 2000 + shortYear;
+    const calendarData = JSON.parse(localStorage.getItem('calendarData') || '{}');
+    const eventLogs = (calendarData.eventLogs || []).map(entry => {
+      const entryDate = new Date(entry.date);
+      const isSameEvent = entry.name === title &&
+        entryDate.getFullYear() === year &&
+        entryDate.getMonth() === month - 1 &&
+        entryDate.getDate() === day;
+      if (!isSameEvent) return entry;
+
+      const notifications = entry.notifications || (entry.notification && entry.notification !== 'none' ? [entry.notification] : []);
+      return { ...entry, notification: notifications[0] || '15min', notifications: [...notifications, '15min'] };
+    });
+    localStorage.setItem('calendarData', JSON.stringify({ ...calendarData, eventLogs }));
+    window.dispatchEvent(new Event('calendar-notifications-updated'));
+    return true;
+  };
+
   const handleCalendarInteraction = (event) => {
+    if (addCalendarNotification(event)) return;
     persistCalendarNotification(event);
     handleCalendarDateClick(event);
   };
