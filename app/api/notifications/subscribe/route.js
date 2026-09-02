@@ -9,7 +9,15 @@ export async function POST(request) {
     const { userId, subscription, quietStart = '22:00', quietEnd = '08:00', timeZone = 'America/Argentina/Buenos_Aires' } = await request.json();
     if (!userId || !subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) return NextResponse.json({ error: 'userId and a valid push subscription are required' }, { status: 400 });
     const id = createHash('sha256').update(subscription.endpoint).digest('hex');
-    await getAdminDb().collection('push_subscriptions').doc(id).set({ userId, subscriptionObject: subscription, quietStart, quietEnd, timeZone, updatedAt: new Date(), createdAt: new Date() }, { merge: true });
+    const db = getAdminDb();
+    const now = new Date();
+    const subscriptionData = { userId, subscriptionObject: subscription, quietStart, quietEnd, timeZone, updatedAt: now, createdAt: now };
+    await Promise.all([
+      db.collection('push_subscriptions').doc(id).set(subscriptionData, { merge: true }),
+      // This is the per-user source of truth for the device's Web Push subscription.
+      // The app uses Web Push/VAPID, not Firebase Cloud Messaging tokens.
+      db.collection('users').doc(userId).set({ pushSubscription: subscription, notificationStatus: 'active', pushSubscriptionUpdatedAt: now }, { merge: true })
+    ]);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[PUSH] Subscription persistence failed:', error);

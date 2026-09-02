@@ -15,7 +15,6 @@ const calculateCyclePhase = (lastMenstruationDate) => {
 
 export default function OnboardingForm({ onComplete }) {
   const [step, setStep] = useState(1);
-  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     hobbies: [],
@@ -64,7 +63,7 @@ export default function OnboardingForm({ onComplete }) {
     }));
   };
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (step === 1 && !formData.name.trim()) return;
     if (step === 2 && formData.hobbies.length < 3) return;
     if (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate)) return;
@@ -72,81 +71,20 @@ export default function OnboardingForm({ onComplete }) {
     if (step < 4) {
       setStep(step + 1);
     } else {
-      // Step 4 completed - request permission before opening the dashboard.
-      await handleCompleteOnboarding();
+      handleCompleteOnboarding();
     }
   };
 
-  const handleCompleteOnboarding = async () => {
-    setIsRequestingPermission(true);
-
-    try {
-      // Request notification permission
-      const permission = await Notification.requestPermission();
-
-      // Save quiet hours to localStorage regardless of permission
-      localStorage.setItem('quietHours', JSON.stringify({
-        quietStart: formData.quietStart,
-        quietEnd: formData.quietEnd,
-        updatedAt: new Date().toISOString()
-      }));
-
-      // If permission granted, register Service Worker and subscribe
-      if (permission === 'granted') {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-
-          if (vapidKey && 'PushManager' in window) {
-            await registration.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: urlBase64ToUint8Array(vapidKey)
-            });
-
-            // Save subscription to backend
-            await fetch('/api/notifications/subscribe', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                userId: localStorage.getItem('userId'),
-                subscription: await registration.pushManager.getSubscription().then(s => s.toJSON()),
-                quietStart: formData.quietStart,
-                quietEnd: formData.quietEnd,
-                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-              })
-            });
-          }
-        } catch (swError) {
-          console.warn('[ONBOARDING] SW subscription optional, continuing:', swError);
-        }
-      }
-    } catch (error) {
-      console.warn('[ONBOARDING] Permission request failed, continuing:', error);
-    } finally {
-      setIsRequestingPermission(false);
-
-      // Complete onboarding
-      const cyclePhase = calculateCyclePhase(formData.lastMenstruationDate);
-      const finalData = {
-        ...formData,
-        cyclePhase
-      };
-      localStorage.setItem('onboardingComplete', 'true');
-      onComplete(finalData);
-    }
-  };
-
-  const urlBase64ToUint8Array = (base64String) => {
-    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding)
-      .replace(/\-/g, '+')
-      .replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
+  const handleCompleteOnboarding = () => {
+    localStorage.setItem('quietHours', JSON.stringify({
+      quietStart: formData.quietStart,
+      quietEnd: formData.quietEnd,
+      updatedAt: new Date().toISOString()
+    }));
+    const cyclePhase = calculateCyclePhase(formData.lastMenstruationDate);
+    const finalData = { ...formData, cyclePhase };
+    localStorage.setItem('onboardingComplete', 'true');
+    onComplete(finalData);
   };
 
   const renderStep = () => {
@@ -530,7 +468,6 @@ export default function OnboardingForm({ onComplete }) {
         <button
           onClick={handleNext}
           disabled={
-            isRequestingPermission ||
             (step === 1 && !formData.name.trim()) ||
             (step === 2 && formData.hobbies.length < 3) ||
             (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
@@ -539,7 +476,6 @@ export default function OnboardingForm({ onComplete }) {
             flex: 1,
             padding: '16px',
             background: (
-              isRequestingPermission ||
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
               (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
@@ -548,7 +484,6 @@ export default function OnboardingForm({ onComplete }) {
             border: 'none',
             borderRadius: '20px',
             cursor: (
-              isRequestingPermission ||
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
               (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
@@ -557,7 +492,6 @@ export default function OnboardingForm({ onComplete }) {
             fontSize: '15px',
             transition: 'all 0.2s',
             boxShadow: (
-              isRequestingPermission ||
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
               (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
@@ -565,7 +499,6 @@ export default function OnboardingForm({ onComplete }) {
           }}
           onMouseEnter={(e) => {
             if (!(
-              isRequestingPermission ||
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
               (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
@@ -576,7 +509,6 @@ export default function OnboardingForm({ onComplete }) {
           }}
           onMouseLeave={(e) => {
             if (!(
-              isRequestingPermission ||
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
               (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
@@ -586,7 +518,7 @@ export default function OnboardingForm({ onComplete }) {
             }
           }}
         >
-          {isRequestingPermission ? 'Activando...' : step === 4 ? 'Comenzar ✨' : 'Siguiente'}
+          {step === 4 ? 'Comenzar ✨' : 'Siguiente'}
         </button>
       </div>
     </div>

@@ -51,18 +51,31 @@ export async function registerServiceWorkerAndSubscribe(vapidPublicKey, quietHou
       return { success: false, message: 'Push notifications not supported' };
     }
 
+    if (!userId) {
+      return { success: false, message: 'User ID is required to activate notifications' };
+    }
+
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+      return { success: false, message: 'Notification permission must be granted first' };
+    }
+
     // Register Service Worker
     console.log('[PUSH] Registering Service Worker...');
     const registration = await navigator.serviceWorker.register('/sw.js', {
       scope: '/'
     });
 
-    // Subscribe to push notifications
-    console.log('[PUSH] Subscribing to push...');
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
-    });
+    // Reuse an existing subscription when possible. This avoids a second
+    // browser prompt and makes activation idempotent for the same device.
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      if (!vapidPublicKey) return { success: false, message: 'VAPID public key is not configured' };
+      console.log('[PUSH] Subscribing to push...');
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+      });
+    }
 
     console.log('[PUSH] Subscription successful:', subscription);
 
@@ -136,14 +149,23 @@ export function getStoredQuietHours() {
  * @returns {boolean}
  */
 export async function isPushEnabled() {
-  if (!('serviceWorker' in navigator)) return false;
-  if (!('PushManager' in window)) return false;
+  return (await getPushStatus()) === 'active';
+}
+
+/**
+ * Read-only status check. It never requests permission or creates a
+ * subscription, so it is safe to call during component mount.
+ */
+export async function getPushStatus() {
+  if (typeof window === 'undefined' || !('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return 'disabled';
+  if (Notification.permission === 'denied') return 'blocked';
+  if (Notification.permission !== 'granted') return 'disabled';
 
   try {
-    const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
-    return !!subscription;
+    const registration = await navigator.serviceWorker.getRegistration('/');
+    const subscription = await registration?.pushManager.getSubscription();
+    return subscription ? 'active' : 'disabled';
   } catch {
-    return false;
+    return 'disabled';
   }
 }
