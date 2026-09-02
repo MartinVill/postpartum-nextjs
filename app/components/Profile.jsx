@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import NotificationPermissionControl from './NotificationPermissionControl';
+import DailyWellbeingSettings from './DailyWellbeingSettings';
 
 const BackButton = ({ onClick }) => (
   <button
@@ -1074,6 +1075,8 @@ export default function Profile({ userProfile, onBack }) {
         {/* CONTENIDO */}
         <div style={{ padding: '20px 16px', flex: 1 }}>
           <NotificationPermissionControl />
+          <DailyWellbeingSettings />
+          {false && <>
           {/* Toggle 1: Recordatorio diario */}
           <div style={{
             display: 'flex',
@@ -1269,6 +1272,7 @@ export default function Profile({ userProfile, onBack }) {
               }} />
             </button>
           </div>
+          </>}
         </div>
       </div>
     );

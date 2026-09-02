@@ -35,11 +35,11 @@ export async function GET(request) {
     for (const document of subscriptions.docs) {
       const sub = document.data(), zone = sub.timeZone || 'America/Argentina/Buenos_Aires';
       const clock = new Intl.DateTimeFormat('en-GB', { timeZone: zone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(now);
-      const trigger = clock === '11:00' ? 'morning' : clock === '18:00' ? 'afternoon' : null, day = dateInZone(now, zone);
+      const trigger = clock === (sub.checkinTime || '11:00') ? 'morning' : clock === (sub.pauseTime || '18:00') ? 'afternoon' : null, day = dateInZone(now, zone);
       const checkedIn = sub.lastCheckinTimestamp && dateInZone(sub.lastCheckinTimestamp.toDate(), zone) === day;
-      if (!trigger || sub.lastDailyDeliveryKey === `${day}:${trigger}` || isWithinQuietHours(now, sub.quietStart, sub.quietEnd, zone) || (trigger === 'morning' && checkedIn)) continue;
-      const payload = trigger === 'morning' ? { title: 'Tu check-in de hoy 💜', body: '¿Cómo te sientes hoy? 💜' } : { title: 'Un momento para vos ✨', body: '¿Hacemos una pausa? ✨' };
-      const delivery = await sendPushToUser(sub.userId, { ...payload, tag: 'daily-reminder', data: { url: '/' } });
+      if (sub.dailyWellbeingEnabled === false || !trigger || sub.lastDailyDeliveryKey === `${day}:${trigger}` || isWithinQuietHours(now, sub.quietStart, sub.quietEnd, zone) || (trigger === 'morning' && checkedIn)) continue;
+      const payload = trigger === 'morning' ? { title: 'Tu registro de hoy 💜', body: '¿Cómo te sientes en este momento?' } : { title: 'Un momento para ti ✨', body: '¿Hacemos una pausa para respirar?' };
+      const delivery = await sendPushToUser(sub.userId, { ...payload, tag: 'daily-reminder', data: { url: trigger === 'morning' ? '/checkin' : '/respiracion' } });
       if (delivery.delivered > 0) {
         await document.ref.set({ lastDailyDeliveryKey: `${day}:${trigger}`, updatedAt: now, lastDailyDelivery: delivery }, { merge: true });
         daily += 1;

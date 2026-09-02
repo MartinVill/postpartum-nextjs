@@ -851,6 +851,14 @@ export default function Home() {
             };
             localStorage.setItem('lastCheckInDate', today);
             localStorage.setItem('dailyCheckIn', JSON.stringify(checkInData));
+            const userId = localStorage.getItem('userId');
+            if (userId) {
+              fetch('/api/notifications/checkin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, timestamp: checkInData.timestamp })
+              }).catch(error => console.warn('[CHECK-IN] Notification status sync failed:', error));
+            }
             console.log('[SLIDER] Check-in por slider guardado con energyMorning:', energy);
             setState(prev => ({
               ...prev,
