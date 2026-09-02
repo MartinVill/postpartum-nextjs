@@ -17,7 +17,13 @@ export default function CalendarQuickEntry({ onSaved }) {
     const trimmedName = name.trim();
     if (!trimmedName) return;
 
-    const entries = JSON.parse(localStorage.getItem('eventLogs') || '[]');
+    const calendarData = JSON.parse(localStorage.getItem('calendarData') || '{}');
+    const legacyEntries = JSON.parse(localStorage.getItem('eventLogs') || '[]');
+    const savedEntries = calendarData.eventLogs || [];
+    const entries = [...savedEntries];
+    legacyEntries.forEach(entry => {
+      if (!entries.some(saved => saved.id === entry.id)) entries.push(entry);
+    });
     const selectedDate = new Date(`${date}T12:00:00`);
     entries.push({
       id: Date.now(),
@@ -27,7 +33,11 @@ export default function CalendarQuickEntry({ onSaved }) {
       notification: reminder,
       type
     });
-    localStorage.setItem('eventLogs', JSON.stringify(entries));
+    localStorage.setItem('calendarData', JSON.stringify({
+      ...calendarData,
+      eventLogs: entries
+    }));
+    localStorage.removeItem('eventLogs');
     setText('');
     setShowSheet(false);
     onSaved();
