@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const todayValue = () => new Date().toISOString().slice(0, 10);
 
-export default function CalendarQuickEntry({ onSaved }) {
+export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDateHandled }) {
   const [text, setText] = useState('');
   const [type, setType] = useState('evento');
   const [showSheet, setShowSheet] = useState(false);
@@ -12,6 +12,16 @@ export default function CalendarQuickEntry({ onSaved }) {
   const [time, setTime] = useState('09:00');
   const [reminder, setReminder] = useState('15min');
   const [showReminderOptions, setShowReminderOptions] = useState(false);
+  const [openedFromCalendarDate, setOpenedFromCalendarDate] = useState(false);
+
+  useEffect(() => {
+    if (!selectedDate) return;
+    setDate(selectedDate);
+    setText('');
+    setOpenedFromCalendarDate(true);
+    setShowSheet(true);
+    onSelectedDateHandled?.();
+  }, [selectedDate, onSelectedDateHandled]);
 
   const save = (name = text) => {
     const trimmedName = name.trim();
@@ -44,11 +54,12 @@ export default function CalendarQuickEntry({ onSaved }) {
   };
 
   const handleAdd = () => {
+    setOpenedFromCalendarDate(false);
     setShowSheet(true);
   };
 
   const typeLabel = type === 'evento' ? 'Evento' : 'Síntoma';
-  const sheetTitle = text.trim() || typeLabel;
+  const sheetTitle = openedFromCalendarDate ? 'Agrega un evento o síntoma' : (text.trim() || typeLabel);
   const nameLabel = `Nombre del ${type === 'evento' ? 'evento' : 'síntoma'}`;
   const reminderOptions = [
     { value: '15min', label: '15 minutos antes' },
@@ -93,7 +104,7 @@ export default function CalendarQuickEntry({ onSaved }) {
             </div>
             {type === 'evento' && (
               <div style={{ position: 'relative', display: 'inline-flex', flexDirection: 'column', marginBottom: '18px', fontSize: '13px', fontWeight: 600, color: '#4B5563' }}>
-                <span>Recordatorio</span>
+                <span>Recordatorio (opcional)</span>
                 <button type="button" onClick={() => setShowReminderOptions(open => !open)} aria-expanded={showReminderOptions} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', minWidth: '165px', marginTop: '6px', padding: '10px', border: '1px solid #E5E7EB', borderRadius: '10px', background: '#FFFFFF', color: '#374151', fontSize: '14px', fontWeight: 400, cursor: 'pointer' }}>
                   {reminderLabel}<span aria-hidden="true">⌄</span>
                 </button>

@@ -15,6 +15,7 @@ import Profile from './components/Profile';
 import CalendarQuickEntry from './components/CalendarQuickEntry';
 
 export default function Home() {
+  const [calendarEntryDate, setCalendarEntryDate] = useState(null);
   const [state, setState] = useState({
     userId: null,
     userProfile: null,
@@ -54,6 +55,28 @@ export default function Home() {
       showRetoFeedbackModal: false,
       isMenuOpen: false
     }));
+  };
+
+  const handleCalendarDateClick = (event) => {
+    const cell = event.target.closest('div[style*="cursor: pointer"]');
+    if (!cell || !cell.parentElement?.getAttribute('style')?.includes('grid-template-columns')) return;
+
+    const day = Number(cell.textContent.trim());
+    const monthHeading = document.querySelector('.calendar-screen h2')?.textContent?.trim();
+    const match = monthHeading?.match(/([a-záéíóúñ]+) de (\d{4})/i);
+    if (!Number.isInteger(day) || day < 1 || day > 31 || !match) return;
+
+    const months = {
+      enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5,
+      julio: 6, agosto: 7, septiembre: 8, octubre: 9, noviembre: 10, diciembre: 11
+    };
+    const month = months[match[1].toLowerCase()];
+    const year = Number(match[2]);
+    if (month === undefined || !Number.isInteger(year)) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    setCalendarEntryDate(`${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
   };
 
   // Cerrar menú al hacer click fuera
@@ -372,9 +395,13 @@ export default function Home() {
     // Sub-pantalla: Calendario
     if (state.showCalendar) {
       return (
-        <div className="calendar-screen" style={{ paddingBottom: '70px', background: '#FFFDF6' }}>
+        <div className="calendar-screen" onClickCapture={handleCalendarDateClick} style={{ paddingBottom: '70px', background: '#FFFDF6' }}>
           <Calendar key={state.calendarKey} userProfile={state.userProfile} onBack={() => setState(prev => ({ ...prev, showCalendar: false, activeTab: 'home' }))} />
-          <CalendarQuickEntry onSaved={() => setState(prev => ({ ...prev, calendarKey: prev.calendarKey + 1 }))} />
+          <CalendarQuickEntry
+            selectedDate={calendarEntryDate}
+            onSelectedDateHandled={() => setCalendarEntryDate(null)}
+            onSaved={() => setState(prev => ({ ...prev, calendarKey: prev.calendarKey + 1 }))}
+          />
         </div>
       );
     }
