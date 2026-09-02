@@ -91,7 +91,9 @@ export async function GET(request) {
       const day = dateInZone(now, zone);
       const checkedIn = sub.lastCheckinTimestamp && dateInZone(sub.lastCheckinTimestamp.toDate(), zone) === day;
       const dailyDeliveryKey = `${day}:${trigger}:${scheduledTime}`;
-      if (sub.dailyWellbeingEnabled === false || !trigger || sub.lastDailyDeliveryKey === dailyDeliveryKey || isWithinQuietHours(now, sub.quietStart, sub.quietEnd, zone) || (trigger === 'morning' && checkedIn)) continue;
+      const defaultTime = trigger === 'morning' ? '11:00' : '18:00';
+      const isLegacyDefaultDelivery = sub.lastDailyDeliveryKey === `${day}:${trigger}` && scheduledTime === defaultTime;
+      if (sub.dailyWellbeingEnabled === false || !trigger || sub.lastDailyDeliveryKey === dailyDeliveryKey || isLegacyDefaultDelivery || isWithinQuietHours(now, sub.quietStart, sub.quietEnd, zone) || (trigger === 'morning' && checkedIn)) continue;
       const payload = trigger === 'morning' ? { title: 'Tu registro de hoy 💜', body: '¿Cómo te sientes en este momento?' } : { title: 'Un momento para ti ✨', body: '¿Hacemos una pausa para respirar?' };
       const delivery = await sendPushToUser(sub.userId, { ...payload, tag: 'daily-reminder', data: { url: trigger === 'morning' ? '/checkin' : '/respiracion' } });
       if (delivery.delivered > 0) {
