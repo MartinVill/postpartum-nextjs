@@ -39,3 +39,12 @@ body {
 .calendar-screen > div:nth-child(2) {
   background: #FFFDF6 !important;
 }
+
+/* Keep Calendar's existing quick-entry controls above the global navigation. */
+.calendar-screen > div:nth-child(1) {
+  padding-bottom: 8rem !important;
+}
+
+.calendar-screen > div:nth-child(2) {
+  bottom: 86px !important;
+}
