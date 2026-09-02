@@ -90,14 +90,16 @@ export default function Home() {
     const dateText = Array.from(modal.querySelectorAll('p'))
       .map(paragraph => paragraph.textContent.trim())
       .find(value => /^\d{2}\/\d{2}\/\d{2}$/.test(value));
-    const notification = [
-      ['1 día antes', '1day'],
-      ['1 hora antes', '1h'],
-      ['30 minutos antes', '30min'],
-      ['15 minutos antes', '15min']
-    ].find(([label]) => modal.textContent.includes(label))?.[1];
+    // The modal's text includes every option in each <select>, so reading
+    // textContent would incorrectly save all reminders. Persist exactly the
+    // values the user selected instead.
+    const notifications = [...new Set(
+      Array.from(modal.querySelectorAll('select'))
+        .map(select => select.value)
+        .filter(value => value && value !== 'none')
+    )];
 
-    if (!title || !dateText || !notification) return;
+    if (!title || !dateText || notifications.length === 0) return;
 
     window.setTimeout(() => {
       const [day, month, shortYear] = dateText.split('/').map(Number);
@@ -112,7 +114,7 @@ export default function Home() {
           entryDate.getFullYear() === year &&
           entryDate.getMonth() === month - 1 &&
           entryDate.getDate() === day;
-        return isSameEvent ? { ...entry, notification } : entry;
+        return isSameEvent ? { ...entry, notification: notifications[0], notifications } : entry;
       });
       localStorage.setItem('calendarData', JSON.stringify({ ...calendarData, eventLogs }));
     }, 100);

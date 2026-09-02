@@ -15,7 +15,7 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
   const [showReminderOptions, setShowReminderOptions] = useState(false);
   const [openedFromCalendarDate, setOpenedFromCalendarDate] = useState(false);
   const [savedNotificationHost, setSavedNotificationHost] = useState(null);
-  const [savedNotification, setSavedNotification] = useState(null);
+  const [savedNotifications, setSavedNotifications] = useState([]);
 
   useEffect(() => {
     const notificationLabels = {
@@ -36,7 +36,7 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
       const host = notificationLabel?.parentElement?.parentElement;
       if (!title || !dateText || !host) {
         setSavedNotificationHost(null);
-        setSavedNotification(null);
+        setSavedNotifications([]);
         return;
       }
 
@@ -47,11 +47,9 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
         return entry.name === title && entryDate.getFullYear() === 2000 + shortYear &&
           entryDate.getMonth() === month - 1 && entryDate.getDate() === day;
       });
-      const label = notificationLabels[savedEvent?.notification];
-      const isAlreadyShown = label && Array.from(modal.querySelectorAll('p:not([data-saved-notification])'))
-        .some(paragraph => paragraph.textContent.trim() === label);
+      const notifications = savedEvent?.notifications || (savedEvent?.notification ? [savedEvent.notification] : []);
       setSavedNotificationHost(host);
-      setSavedNotification(isAlreadyShown ? null : label || null);
+      setSavedNotifications(notifications.filter(value => notificationLabels[value]));
     };
 
     const observer = new MutationObserver(syncSavedNotification);
@@ -68,6 +66,34 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
     setShowSheet(true);
     onSelectedDateHandled?.();
   }, [selectedDate, onSelectedDateHandled]);
+
+  const updateSavedNotifications = (nextNotifications) => {
+    const notifications = nextNotifications.filter(value => value && value !== 'none');
+    setSavedNotifications(notifications);
+
+    const modal = document.querySelector('.calendar-screen div[style*="z-index: 9999"]');
+    const title = modal?.querySelector('h3')?.textContent?.trim();
+    const dateText = modal && Array.from(modal.querySelectorAll('p'))
+      .map(paragraph => paragraph.textContent.trim())
+      .find(value => /^\d{2}\/\d{2}\/\d{2}$/.test(value));
+    if (!title || !dateText) return;
+
+    const [day, month, shortYear] = dateText.split('/').map(Number);
+    const calendarData = JSON.parse(localStorage.getItem('calendarData') || '{}');
+    calendarData.eventLogs = (calendarData.eventLogs || []).map(entry => {
+      const entryDate = new Date(entry.date);
+      const isSameEvent = entry.name === title &&
+        entryDate.getFullYear() === 2000 + shortYear &&
+        entryDate.getMonth() === month - 1 &&
+        entryDate.getDate() === day;
+      return isSameEvent ? {
+        ...entry,
+        notification: notifications[0] || 'none',
+        notifications
+      } : entry;
+    });
+    localStorage.setItem('calendarData', JSON.stringify(calendarData));
+  };
 
   const save = (name = text) => {
     const trimmedName = name.trim();
@@ -87,6 +113,7 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
       date: selectedDate.toISOString(),
       time,
       notification: reminder,
+      notifications: type === 'evento' && reminder !== 'none' ? [reminder] : [],
       type
     });
     localStorage.setItem('calendarData', JSON.stringify({
@@ -172,10 +199,19 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
           </div>
         </div>
       )}
-      {savedNotificationHost && savedNotification && createPortal(
-        <p data-saved-notification style={{ margin: '8px 0 0', color: '#1F2937', fontSize: '14px', fontWeight: 500 }}>
-          {savedNotification}
-        </p>,
+      {savedNotificationHost && savedNotifications.length > 0 && createPortal(
+        <div data-saved-notification style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+          {savedNotifications.map((value, index) => (
+            <select key={`${value}-${index}`} value={value} onChange={(event) => {
+              const next = [...savedNotifications];
+              next[index] = event.target.value;
+              updateSavedNotifications(next);
+            }} style={{ width: 'fit-content', minWidth: '165px', padding: '8px', border: '1px solid #D946EF', borderRadius: '8px', background: '#FFFFFF' }}>
+              <option value="15min">15 minutos antes</option><option value="30min">30 minutos antes</option><option value="1h">1 hora antes</option><option value="1day">1 día antes</option><option value="none">Sin notificación</option>
+            </select>
+          ))}
+          <button type="button" onClick={() => updateSavedNotifications([...savedNotifications, '15min'])} style={{ width: 'fit-content', border: 'none', background: 'none', color: '#D946EF', fontWeight: 700, cursor: 'pointer' }}>+ Agregar recordatorio</button>
+        </div>,
         savedNotificationHost
       )}
     </>
