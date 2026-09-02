@@ -10,12 +10,26 @@ export async function GET(request) {
   try {
     const db = getAdminDb(), now = new Date();
     const due = await db.collection('scheduled_reminders').where('sent', '==', false).limit(100).get();
+    console.info('[CRON] Pending reminder scan', { nowUtc: now.toISOString(), pendingCount: due.size });
     let reminders = 0, daily = 0;
     for (const document of due.docs) {
       const reminder = document.data();
-      if (reminder.triggerTimestamp.toDate() > now) continue;
-      await sendPushToUser(reminder.userId, { title: reminder.eventTitle, body: `Recordatorio: ${reminder.eventTitle}`, icon: '/icon-192.png', badge: '/badge.png', tag: `reminder-${document.id}`, data: { url: '/?tab=calendar' } });
-      await document.ref.set({ sent: true, sentAt: now }, { merge: true }); reminders += 1;
+      const triggerAt = reminder.triggerTimestamp?.toDate?.();
+      if (!triggerAt) {
+        console.warn('[CRON] Reminder skipped: invalid trigger timestamp', { reminderId: document.id, userId: reminder.userId });
+        continue;
+      }
+      const isDue = triggerAt <= now;
+      console.info('[CRON] Reminder evaluated', { reminderId: document.id, userId: reminder.userId, eventId: reminder.eventId, reminder: reminder.reminder, triggerTimestampUtc: triggerAt.toISOString(), serverNowUtc: now.toISOString(), timeZone: reminder.timeZone || null, isDue });
+      if (!isDue) continue;
+      const delivery = await sendPushToUser(reminder.userId, { title: reminder.eventTitle, body: `Recordatorio: ${reminder.eventTitle}`, icon: '/icon-192.png', badge: '/badge.png', tag: `reminder-${document.id}`, data: { url: '/?tab=calendar' } });
+      if (delivery.delivered > 0) {
+        await document.ref.set({ sent: true, sentAt: now, lastDelivery: delivery }, { merge: true });
+        reminders += 1;
+      } else {
+        await document.ref.set({ lastAttemptAt: now, lastDelivery: delivery }, { merge: true });
+        console.warn('[CRON] Reminder retained for retry because delivery was not accepted', { reminderId: document.id, delivery });
+      }
     }
     const subscriptions = await db.collection('push_subscriptions').limit(500).get();
     for (const document of subscriptions.docs) {
@@ -25,8 +39,13 @@ export async function GET(request) {
       const checkedIn = sub.lastCheckinTimestamp && dateInZone(sub.lastCheckinTimestamp.toDate(), zone) === day;
       if (!trigger || sub.lastDailyDeliveryKey === `${day}:${trigger}` || isWithinQuietHours(now, sub.quietStart, sub.quietEnd, zone) || (trigger === 'morning' && checkedIn)) continue;
       const payload = trigger === 'morning' ? { title: 'Tu check-in de hoy 💜', body: '¿Cómo te sientes hoy? 💜' } : { title: 'Un momento para vos ✨', body: '¿Hacemos una pausa? ✨' };
-      await sendPushToUser(sub.userId, { ...payload, icon: '/icon-192.png', badge: '/badge.png', tag: `daily-${trigger}-${day}`, data: { url: '/' } });
-      await document.ref.set({ lastDailyDeliveryKey: `${day}:${trigger}`, updatedAt: now }, { merge: true }); daily += 1;
+      const delivery = await sendPushToUser(sub.userId, { ...payload, icon: '/icon-192.png', badge: '/badge.png', tag: `daily-${trigger}-${day}`, data: { url: '/' } });
+      if (delivery.delivered > 0) {
+        await document.ref.set({ lastDailyDeliveryKey: `${day}:${trigger}`, updatedAt: now, lastDailyDelivery: delivery }, { merge: true });
+        daily += 1;
+      } else {
+        console.warn('[CRON] Daily reminder not marked delivered', { userId: sub.userId, trigger, delivery });
+      }
     }
     return NextResponse.json({ success: true, reminders, daily });
   } catch (error) {

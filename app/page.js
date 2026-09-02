@@ -13,6 +13,7 @@ import BottomNavigationBar from './components/BottomNavigationBar';
 import HomeGrid from './components/HomeGrid';
 import Profile from './components/Profile';
 import CalendarQuickEntry from './components/CalendarQuickEntry';
+import { syncCalendarReminder } from './utils/calendarReminderSync';
 
 export default function Home() {
   const [calendarEntryDate, setCalendarEntryDate] = useState(null);
@@ -117,6 +118,11 @@ export default function Home() {
         return isSameEvent ? { ...entry, notification: notifications[0], notifications } : entry;
       });
       localStorage.setItem('calendarData', JSON.stringify({ ...calendarData, eventLogs }));
+      const updatedEvent = eventLogs.find(entry => {
+        const entryDate = new Date(entry.date);
+        return entry.name === title && entryDate.getFullYear() === year && entryDate.getMonth() === month - 1 && entryDate.getDate() === day;
+      });
+      if (updatedEvent) syncCalendarReminder(updatedEvent).catch(error => console.warn('[CALENDAR] Reminder sync failed:', error));
     }, 100);
   };
 
@@ -151,6 +157,11 @@ export default function Home() {
       return { ...entry, notification: notifications[0] || '15min', notifications: [...notifications, '15min'] };
     });
     localStorage.setItem('calendarData', JSON.stringify({ ...calendarData, eventLogs }));
+    const updatedEvent = eventLogs.find(entry => {
+      const entryDate = new Date(entry.date);
+      return entry.name === title && entryDate.getFullYear() === year && entryDate.getMonth() === month - 1 && entryDate.getDate() === day;
+    });
+    if (updatedEvent) syncCalendarReminder(updatedEvent).catch(error => console.warn('[CALENDAR] Reminder sync failed:', error));
     window.dispatchEvent(new Event('calendar-notifications-updated'));
     return true;
   };

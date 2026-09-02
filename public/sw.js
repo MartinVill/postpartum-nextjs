@@ -35,6 +35,8 @@ self.addEventListener('push', function(event) {
 
   event.waitUntil(
     self.registration.showNotification(data.title || 'Soporte Postparto', options)
+      .then(() => console.log('[SW] Notification shown:', data.title || 'Soporte Postparto'))
+      .catch((error) => console.error('[SW] Failed to show notification:', error))
   );
 });
 

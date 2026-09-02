@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { syncCalendarReminder } from '@/app/utils/calendarReminderSync';
 
 const todayValue = () => new Date().toISOString().slice(0, 10);
 
@@ -97,10 +98,15 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
       } : entry;
     });
     localStorage.setItem('calendarData', JSON.stringify(calendarData));
+    const savedEvent = calendarData.eventLogs.find(entry => {
+      const entryDate = new Date(entry.date);
+      return entry.name === title && entryDate.getFullYear() === 2000 + shortYear && entryDate.getMonth() === month - 1 && entryDate.getDate() === day;
+    });
+    if (savedEvent) syncCalendarReminder(savedEvent).catch(error => console.warn('[CALENDAR] Reminder sync failed:', error));
     window.dispatchEvent(new Event('calendar-notifications-updated'));
   };
 
-  const save = (name = text) => {
+  const save = async (name = text) => {
     const trimmedName = name.trim();
     if (!trimmedName) return;
 
@@ -112,7 +118,7 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
       if (!entries.some(saved => saved.id === entry.id)) entries.push(entry);
     });
     const selectedDate = new Date(`${date}T12:00:00`);
-    entries.push({
+    const entry = {
       id: Date.now(),
       name: trimmedName,
       date: selectedDate.toISOString(),
@@ -120,12 +126,18 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
       notification: reminder,
       notifications: type === 'evento' && reminder !== 'none' ? [reminder] : [],
       type
-    });
+    };
+    entries.push(entry);
     localStorage.setItem('calendarData', JSON.stringify({
       ...calendarData,
       eventLogs: entries
     }));
     localStorage.removeItem('eventLogs');
+    try {
+      await syncCalendarReminder(entry);
+    } catch (error) {
+      console.warn('[CALENDAR] Reminder sync failed:', error);
+    }
     setText('');
     setShowSheet(false);
     onSaved();
