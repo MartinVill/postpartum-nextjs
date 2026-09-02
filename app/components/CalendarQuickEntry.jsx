@@ -45,19 +45,45 @@ export default function CalendarQuickEntry({ onSaved, selectedDate, onSelectedDa
     return events;
   };
 
+  const openSelectedDate = (selected) => {
+    setDate(selected);
+    const events = refreshDayEvents(selected);
+    setText(''); setEditingEventId(null);
+    setShowSheet(events.length === 0);
+    setShowDayEvents(events.length > 0);
+  };
+
   useEffect(() => {
     readEvents().filter(event => event?.type !== 'sintoma' && (event?.notifications?.length || (event?.notification && event.notification !== 'none'))).forEach(event => syncCalendarReminder(event).catch(error => console.warn('[CALENDAR] Existing reminder sync failed:', error)));
   }, []);
 
   useEffect(() => {
     if (!selectedDate) return;
-    setDate(selectedDate);
-    const events = refreshDayEvents(selectedDate);
-    setText(''); setEditingEventId(null);
-    setShowSheet(events.length === 0);
-    setShowDayEvents(events.length > 0);
+    openSelectedDate(selectedDate);
     onSelectedDateHandled?.();
   }, [selectedDate, onSelectedDateHandled]);
+
+  // Calendar.jsx is deliberately left untouched. Capture its day-cell tap at
+  // the document level so the compact multi-event sheet opens before its
+  // legacy single-event modal is allowed to run.
+  useEffect(() => {
+    const handleCalendarDayTap = (event) => {
+      const cell = event.target.closest('.calendar-screen div[style*="cursor: pointer"]');
+      if (!cell || !cell.parentElement?.getAttribute('style')?.includes('grid-template-columns')) return;
+      const day = Number(cell.textContent.trim());
+      const heading = document.querySelector('.calendar-screen h2')?.textContent?.trim();
+      const match = heading?.match(/([a-záéíóúñ]+) de (\d{4})/i);
+      if (!Number.isInteger(day) || day < 1 || day > 31 || !match) return;
+      const months = { enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5, julio: 6, agosto: 7, septiembre: 8, octubre: 9, noviembre: 10, diciembre: 11 };
+      const month = months[match[1].toLowerCase()];
+      if (month === undefined) return;
+      event.preventDefault();
+      event.stopPropagation();
+      openSelectedDate(`${match[2]}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+    };
+    document.addEventListener('click', handleCalendarDayTap, true);
+    return () => document.removeEventListener('click', handleCalendarDayTap, true);
+  });
 
   const openNewEvent = () => {
     setText(''); setTime('09:00'); setReminder('1h'); setEditingEventId(null);
