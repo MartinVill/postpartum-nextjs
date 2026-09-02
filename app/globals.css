@@ -47,3 +47,8 @@ body {
 .calendar-screen > div:nth-child(1) > div[style*="bottom: 0px"] {
   display: none !important;
 }
+
+/* Internal Calendar modals live within its fixed layer; hide the external quick bar while open. */
+.calendar-screen > div:nth-child(1):has(div[style*="z-index: 9999"]) + div[style*="bottom: 86px"] {
+  display: none !important;
+}
