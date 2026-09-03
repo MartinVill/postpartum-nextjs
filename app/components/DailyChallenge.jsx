@@ -261,10 +261,10 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
   return (
     <div style={{
       padding: '16px',
-      paddingBottom: '80px',
+      paddingBottom: '16px',
       background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
       borderRadius: '16px',
-      marginBottom: '20px'
+      marginBottom: 0
     }}>
       <style>{`
         @keyframes fadeInScale {

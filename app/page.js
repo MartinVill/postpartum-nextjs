@@ -532,7 +532,7 @@ export default function Home() {
     // Sub-pantalla: Reto 30 Días
     if (state.showReto && state.energyScore) {
       return (
-        <div style={{ paddingBottom: '70px' }}>
+        <div>
           <DailyChallenge
             energy={state.energyScore}
             userProfile={state.userProfile}
