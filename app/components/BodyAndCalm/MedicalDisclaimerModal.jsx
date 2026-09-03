@@ -33,8 +33,8 @@ export default function MedicalDisclaimerModal({ onAccept }) {
         </h2>
 
         <p style={{
-          fontSize: '14px',
-          color: '#7A6F67',
+          fontSize: '16px',
+          color: '#4B5563',
           margin: '0 0 24px 0',
           lineHeight: '1.6',
           fontWeight: '400'
