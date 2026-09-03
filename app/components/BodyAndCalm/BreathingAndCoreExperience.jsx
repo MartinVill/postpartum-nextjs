@@ -153,12 +153,13 @@ export default function BreathingAndCoreExperience({ onBack }) {
         <h1 style={styles.title}>Respiración y Core</h1>
       </div>
 
-      <p style={styles.accumulator}>Llevas {weeklyMinutes} minutos de aire para ti esta semana 🌿</p>
+      {weeklyMinutes > 0 && (
+        <p style={styles.accumulator}>Llevas {weeklyMinutes} minutos de aire para ti esta semana 🌿</p>
+      )}
 
       <button onClick={() => startSession('Pausa rápida')} style={styles.quickStart}>
         <span style={styles.quickLabel}>Pausa rápida de 2 minutos</span>
-        <span style={styles.quickSubtitle}>Solo presiona y sigue la guía visual</span>
-        <span aria-hidden="true" style={styles.quickArrow}>→</span>
+        <span aria-hidden="true" style={styles.quickArrow}>&gt;</span>
       </button>
 
       <h2 style={styles.sectionTitle}>Elige según tu necesidad</h2>
@@ -167,7 +168,7 @@ export default function BreathingAndCoreExperience({ onBack }) {
           <button key={exercise.id} onClick={() => startSession(exercise.title)} style={styles.exerciseCard}>
             <span style={styles.exerciseTitle}>{exercise.title}</span>
             <span style={styles.benefit}>{exercise.benefit}</span>
-            <span aria-hidden="true" style={styles.exerciseArrow}>→</span>
+            <span aria-hidden="true" style={styles.exerciseArrow}>&gt;</span>
           </button>
         ))}
       </div>
@@ -182,16 +183,15 @@ const styles = {
   back: { position: 'absolute', left: '0', width: '40px', height: '40px', borderRadius: '50%', border: '1px solid #F3E8F7', background: '#FFFDF6', color: '#D946EF', fontSize: '24px', fontWeight: '700', cursor: 'pointer', lineHeight: 1 },
   title: { color: '#D946EF', fontSize: '20px', lineHeight: 1.25, margin: 0, padding: '0 52px', textAlign: 'center', fontWeight: '700' },
   accumulator: { color: '#4B5563', fontSize: '15px', lineHeight: 1.45, fontWeight: '600', margin: '0 8px 22px', textAlign: 'center' },
-  quickStart: { width: '100%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', gap: '6px', background: 'linear-gradient(135deg, #D946EF, #C026D3)', border: 'none', borderRadius: '20px', color: '#fff', padding: '22px 52px 22px 22px', cursor: 'pointer', boxShadow: '0 8px 18px rgba(217,70,239,0.2)', marginBottom: '28px' },
+  quickStart: { width: '100%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', background: 'linear-gradient(135deg, #D946EF, #C026D3)', border: 'none', borderRadius: '20px', color: '#fff', padding: '24px 52px 24px 22px', cursor: 'pointer', boxShadow: '0 8px 18px rgba(217,70,239,0.2)', marginBottom: '28px' },
   quickLabel: { fontSize: '19px', lineHeight: 1.25, fontWeight: '700' },
-  quickSubtitle: { fontSize: '14px', lineHeight: 1.4, opacity: 0.94 },
-  quickArrow: { position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', fontSize: '28px', fontWeight: '400' },
+  quickArrow: { position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', fontSize: '25px', fontWeight: '400', lineHeight: 1 },
   sectionTitle: { color: '#374151', fontSize: '16px', fontWeight: '700', margin: '0 4px 12px' },
   exerciseList: { display: 'flex', flexDirection: 'column', gap: '12px' },
   exerciseCard: { width: '100%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', gap: '9px', background: '#FFFDF6', border: '1px solid #E5E7EB', borderRadius: '16px', padding: '17px 44px 17px 17px', cursor: 'pointer', boxShadow: '0 2px 7px rgba(17,24,39,0.045)' },
   exerciseTitle: { color: '#1F2937', fontSize: '16px', fontWeight: '700', lineHeight: 1.3 },
   benefit: { color: '#8B3D9C', fontSize: '13px', lineHeight: 1.25, fontWeight: '600', background: '#FBEAFE', borderRadius: '999px', padding: '5px 9px' },
-  exerciseArrow: { position: 'absolute', right: '17px', top: '50%', transform: 'translateY(-50%)', color: '#D946EF', fontSize: '21px' },
+  exerciseArrow: { position: 'absolute', right: '17px', top: '50%', transform: 'translateY(-50%)', color: '#D946EF', fontSize: '20px', fontWeight: '400', lineHeight: 1 },
   disclaimer: { color: '#6B7280', fontSize: '12px', lineHeight: 1.45, margin: '24px 10px 0', textAlign: 'center' }
 };
 
