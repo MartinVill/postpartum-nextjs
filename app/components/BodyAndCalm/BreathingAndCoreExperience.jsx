@@ -4,10 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 
 const SESSION_MINUTES = 2;
 const PHASES = [
-  { label: 'Inhala', duration: 4000, scale: 1.28 },
-  { label: 'Sostén', duration: 2000, scale: 1.28 },
-  { label: 'Exhala', duration: 6000, scale: 0.74 }
+  { label: 'Inhala', duration: 4000, scale: 1.15, ringStart: 0, ringEnd: 1 },
+  { label: 'Sostén', duration: 2000, scale: 1.15, ringStart: 1, ringEnd: 1 },
+  { label: 'Exhala', duration: 6000, scale: 0.4, ringStart: 1, ringEnd: 0 }
 ];
+
+const RING_RADIUS = 112;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 const EXERCISES = [
   { id: 'diaphragmatic', title: 'Respiración Diafragmática', benefit: 'Alivia la presión lumbar' },
@@ -48,6 +51,7 @@ export default function BreathingAndCoreExperience({ onBack }) {
   const [session, setSession] = useState(null);
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [cycle, setCycle] = useState(1);
+  const [ringProgress, setRingProgress] = useState(0);
   const completedRef = useRef(false);
 
   useEffect(() => {
@@ -86,6 +90,14 @@ export default function BreathingAndCoreExperience({ onBack }) {
   }, [cycle, phaseIndex, session]);
 
   useEffect(() => {
+    if (!session || session.status !== 'running') return undefined;
+    const phase = PHASES[phaseIndex];
+    setRingProgress(phase.ringStart);
+    const frame = window.requestAnimationFrame(() => setRingProgress(phase.ringEnd));
+    return () => window.cancelAnimationFrame(frame);
+  }, [phaseIndex, session]);
+
+  useEffect(() => {
     if (!session || session.status !== 'complete' || completedRef.current) return undefined;
     completedRef.current = true;
     const nextMinutes = weeklyMinutes + SESSION_MINUTES;
@@ -115,6 +127,7 @@ export default function BreathingAndCoreExperience({ onBack }) {
     completedRef.current = false;
     setCycle(1);
     setPhaseIndex(0);
+    setRingProgress(0);
     setSession({ title, status: 'running' });
   };
 
@@ -123,7 +136,7 @@ export default function BreathingAndCoreExperience({ onBack }) {
     const isComplete = session.status === 'complete';
     return (
       <div style={sessionStyles.screen} role="dialog" aria-modal="true" aria-label="Guía de respiración">
-        <button onClick={() => setSession(null)} aria-label="Salir de la pausa" style={sessionStyles.close}>×</button>
+        <button className="breathing-close" onClick={() => setSession(null)} aria-label="Salir de la pausa" style={sessionStyles.close}>×</button>
         {isComplete ? (
           <div style={sessionStyles.completion}>
             <div style={sessionStyles.heart}>♡</div>
@@ -134,12 +147,38 @@ export default function BreathingAndCoreExperience({ onBack }) {
           <>
             <p style={sessionStyles.exerciseName}>{session.title}</p>
             <div style={sessionStyles.orbArea}>
-              <div style={{ ...sessionStyles.orbGlow, transform: `scale(${phase.scale})` }} />
+              <svg viewBox="0 0 270 270" aria-hidden="true" style={sessionStyles.progressRing}>
+                <circle cx="135" cy="135" r={RING_RADIUS} style={sessionStyles.ringTrack} />
+                <circle
+                  cx="135"
+                  cy="135"
+                  r={RING_RADIUS}
+                  style={{
+                    ...sessionStyles.ringProgress,
+                    strokeDasharray: RING_CIRCUMFERENCE,
+                    strokeDashoffset: RING_CIRCUMFERENCE * (1 - ringProgress),
+                    transitionDuration: `${phase.duration}ms`
+                  }}
+                />
+              </svg>
+              <div style={{ ...sessionStyles.orbGlow, transform: `scale(${phase.scale})`, transitionDuration: `${phase.duration}ms` }} />
               <div style={{ ...sessionStyles.orb, transform: `scale(${phase.scale})`, transitionDuration: `${phase.duration}ms` }} />
             </div>
-            <h1 style={sessionStyles.phase}>{phase.label}</h1>
+            <h1 key={phase.label} style={sessionStyles.phase}>{phase.label}</h1>
             <p style={sessionStyles.cycle}>Ciclo {cycle} de 10</p>
             <p style={sessionStyles.quiet}>Guía visual silenciosa</p>
+            <div style={sessionStyles.cycleDots} aria-label={`Progreso: ciclo ${cycle} de 10`}>
+              {Array.from({ length: 10 }, (_, index) => (
+                <span
+                  key={index}
+                  style={{
+                    ...sessionStyles.cycleDot,
+                    background: index < cycle - 1 ? '#D946EF' : index === cycle - 1 ? 'rgba(217,70,239,0.38)' : '#F1E7F2'
+                  }}
+                />
+              ))}
+            </div>
+            <style>{`@keyframes breathing-phase-fade { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } } @media (hover: hover) { .breathing-close:hover { opacity: 1 !important; } }`}</style>
           </>
         )}
       </div>
@@ -197,14 +236,19 @@ const styles = {
 
 const sessionStyles = {
   screen: { position: 'fixed', inset: 0, zIndex: 90, minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#FFFDF6', color: '#374151', padding: '32px 24px', boxSizing: 'border-box', overflow: 'hidden' },
-  close: { position: 'absolute', right: '20px', top: 'max(20px, env(safe-area-inset-top))', width: '42px', height: '42px', border: '1px solid #E5E7EB', borderRadius: '50%', background: '#FFFDF6', color: '#6B7280', fontSize: '29px', fontWeight: '300', lineHeight: 1, cursor: 'pointer' },
+  close: { position: 'absolute', right: '20px', top: 'max(20px, env(safe-area-inset-top))', width: '42px', height: '42px', border: '1px solid #E5E7EB', borderRadius: '50%', background: '#FFFDF6', color: '#6B7280', fontSize: '29px', fontWeight: '300', lineHeight: 1, cursor: 'pointer', opacity: 0.6, transition: 'opacity 0.2s ease' },
   exerciseName: { position: 'absolute', top: 'max(28px, env(safe-area-inset-top))', margin: 0, color: '#8B3D9C', fontSize: '15px', fontWeight: '600', textAlign: 'center', padding: '0 62px' },
-  orbArea: { height: '228px', width: '228px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '18px', marginBottom: '34px' },
-  orbGlow: { position: 'absolute', width: '156px', height: '156px', borderRadius: '50%', background: 'rgba(217,70,239,0.12)', transition: 'transform 1s ease-in-out' },
-  orb: { width: '140px', height: '140px', borderRadius: '50%', background: 'radial-gradient(circle at 32% 28%, #F7C7FF 0%, #E879F9 44%, #C026D3 100%)', boxShadow: '0 14px 42px rgba(192,38,211,0.25)', transitionProperty: 'transform', transitionTimingFunction: 'ease-in-out' },
-  phase: { margin: 0, color: '#D946EF', fontSize: '28px', lineHeight: 1.2, fontWeight: '700' },
+  orbArea: { height: '270px', width: '270px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '18px', marginBottom: '34px', flexShrink: 0 },
+  progressRing: { position: 'absolute', inset: 0, width: '270px', height: '270px', transform: 'rotate(-90deg)', overflow: 'visible', pointerEvents: 'none' },
+  ringTrack: { fill: 'none', stroke: 'rgba(217,70,239,0.14)', strokeWidth: 2 },
+  ringProgress: { fill: 'none', stroke: '#D946EF', strokeWidth: 3, strokeLinecap: 'round', transitionProperty: 'stroke-dashoffset', transitionTimingFunction: 'linear' },
+  orbGlow: { position: 'absolute', width: '190px', height: '190px', borderRadius: '50%', background: 'rgba(217,70,239,0.22)', filter: 'blur(18px)', transitionProperty: 'transform', transitionTimingFunction: 'ease-in-out' },
+  orb: { position: 'absolute', width: '172px', height: '172px', borderRadius: '50%', background: 'radial-gradient(circle at 32% 28%, #F7C7FF 0%, #E879F9 44%, #C026D3 100%)', boxShadow: '0 18px 52px rgba(192,38,211,0.28)', transitionProperty: 'transform', transitionTimingFunction: 'ease-in-out' },
+  phase: { margin: 0, color: '#D946EF', fontSize: '34px', lineHeight: 1.2, fontWeight: '700', animation: 'breathing-phase-fade 350ms ease both' },
   cycle: { margin: '10px 0 0', color: '#4B5563', fontSize: '15px', fontWeight: '600' },
-  quiet: { margin: '30px 0 0', color: '#9CA3AF', fontSize: '13px' },
+  quiet: { margin: '26px 0 0', color: '#9CA3AF', fontSize: '13px' },
+  cycleDots: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '11px' },
+  cycleDot: { display: 'block', width: '17px', height: '6px', borderRadius: '999px', transition: 'background 250ms ease' },
   completion: { maxWidth: '310px', textAlign: 'center' },
   heart: { width: '72px', height: '72px', margin: '0 auto 22px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FBEAFE', color: '#D946EF', borderRadius: '50%', fontSize: '45px' },
   completionTitle: { color: '#374151', fontSize: '25px', lineHeight: 1.28, margin: '0 0 12px', fontWeight: '700' },
