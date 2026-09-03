@@ -104,6 +104,38 @@ body {
   font-weight: 600;
 }
 
+/* Preserve ChatSection's feedback behavior while replacing its emoji-only
+   affordances with quiet, line-based thumbs. */
+.chat-shell button[title="Me ayudó"],
+.chat-shell button[title="No me ayudó"] {
+  display: inline-flex !important;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  font-size: 0 !important;
+}
+
+.chat-shell button[title="Me ayudó"]::before,
+.chat-shell button[title="No me ayudó"]::before {
+  width: 16px;
+  height: 16px;
+  content: '';
+  background: #374151;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.chat-shell button[title="Me ayudó"]::before {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 10v10H4V10h3Z'/%3E%3Cpath d='M7 20h9.3a2 2 0 0 0 1.9-1.4l1.5-5A2 2 0 0 0 17.8 11H14l.7-3.4A2 2 0 0 0 12.8 5L7 10Z'/%3E%3C/svg%3E");
+}
+
+.chat-shell button[title="No me ayudó"]::before {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 14V4h3v10h-3Z'/%3E%3Cpath d='M17 4H7.7a2 2 0 0 0-1.9 1.4l-1.5 5A2 2 0 0 0 6.2 13H10l-.7 3.4A2 2 0 0 0 11.2 19l5.8-5Z'/%3E%3C/svg%3E");
+}
+
 /* Calendar.jsx owns two fixed background layers. Match both to Home without editing it. */
 .calendar-screen > div:nth-child(1) {
   background: #FFFDF6 !important;
