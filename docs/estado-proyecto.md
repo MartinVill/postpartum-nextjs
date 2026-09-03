@@ -64,6 +64,7 @@ Posparto es una PWA mobile-first de acompañamiento emocional y bienestar para m
 
 - La tarjeta de reto está centrada, con un único botón “¡Lo hice!”, confeti, sonido de celebración y cierre emocional.
 - Se corrigió el espacio blanco que aparecía al hacer scroll al final, manteniendo intacta la navegación inferior fija.
+- La racha de retos se guarda de forma persistente: cada día completado cuenta una sola vez, se conserva al recargar la Home y aumenta únicamente en días consecutivos.
 
 ---
 
