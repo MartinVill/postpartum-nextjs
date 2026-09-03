@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { getAccurateEmoji } from '@/app/utils/emojiMapper';
+import { getChallengeStreak, recordChallengeCompletion } from '@/app/utils/challengeStreak';
 
 const BASE_ACTIVITIES = [
   { id: 'cinema', title: 'Ir al cine', emoji: '🎬' },
@@ -153,18 +154,7 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
 
     setActivities(dedupedActivities);
 
-    // Lógica de racha suave: no penalizar si faltan 1-2 días
-    let currentStreak = stored?.streak || 0;
-    if (stored && stored.date !== today) {
-      const lastDate = new Date(stored.date);
-      const currentDate = new Date(today);
-      const daysDiff = Math.floor((currentDate - lastDate) / (1000 * 60 * 60 * 24));
-
-      // Solo resetear si pasan más de 7 días
-      if (daysDiff > 7) {
-        currentStreak = 0;
-      }
-    }
+    const currentStreak = getChallengeStreak().streak;
 
     // Inicializar datos locales del componente (sin persistencia en localStorage)
     const newData = {
@@ -227,17 +217,11 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
         emoji: inProgressData.emoji
       };
 
-      // Guardar en historial
-      const history = JSON.parse(localStorage.getItem('completedChallengesHistory') || '[]');
-      history.push(completedChallenge);
-      localStorage.setItem('completedChallengesHistory', JSON.stringify(history));
-
-      // Incrementar racha
-      const updated = {
-        ...challengeData,
-        streak: (challengeData?.streak || 0) + 1,
-        date: new Date().toDateString()
-      };
+      const updated = recordChallengeCompletion({
+        title: completedChallenge.challengeTitle,
+        emoji: completedChallenge.emoji,
+        mood
+      });
       setChallengeData(updated);
 
       // Limpiar challenge en progreso

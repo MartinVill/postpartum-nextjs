@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { getAccurateEmoji } from '@/app/utils/emojiMapper';
+import { getChallengeDayKey, getChallengeStreak, recordChallengeCompletion } from '@/app/utils/challengeStreak';
 
 function Confetti() {
   return (
@@ -142,16 +143,12 @@ export default function InProgressChallenge() {
 
     if (data) {
       setInProgress(JSON.parse(data));
-      if (completedToday) {
+      if (completedToday === getChallengeDayKey()) {
         setIsCompleted(true);
       }
     }
 
-    const challengeData = localStorage.getItem('dailyChallengeData');
-    if (challengeData) {
-      const parsed = JSON.parse(challengeData);
-      setCurrentStreak(parsed.streak || 0);
-    }
+    setCurrentStreak(getChallengeStreak().streak);
   }, []);
 
   const handleComplete = () => {
@@ -171,23 +168,15 @@ export default function InProgressChallenge() {
         emoji: inProgress.emoji
       };
 
-      // Guardar en historial
-      const history = JSON.parse(localStorage.getItem('completedChallengesHistory') || '[]');
-      history.push(completedChallenge);
-      localStorage.setItem('completedChallengesHistory', JSON.stringify(history));
-
-      // Incrementar racha
-      const challengeData = JSON.parse(localStorage.getItem('dailyChallengeData') || '{}');
-      const updated = {
-        ...challengeData,
-        streak: (challengeData.streak || 0) + 1,
-        date: new Date().toDateString()
-      };
+      const updated = recordChallengeCompletion({
+        title: completedChallenge.challengeTitle,
+        emoji: completedChallenge.emoji,
+        mood
+      });
       setCurrentStreak(updated.streak);
-      localStorage.setItem('dailyChallengeData', JSON.stringify(updated));
 
       // Marcar como completado hoy (NO limpiar inProgressChallenge)
-      localStorage.setItem('completedChallengeToday', 'true');
+      localStorage.setItem('completedChallengeToday', getChallengeDayKey());
       setIsCompleted(true);
 
       // Mostrar confirmación

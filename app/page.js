@@ -14,6 +14,7 @@ import HomeGrid from './components/HomeGrid';
 import Profile from './components/Profile';
 import CalendarQuickEntry from './components/CalendarQuickEntry';
 import { syncCalendarReminder } from './utils/calendarReminderSync';
+import { getChallengeStreak, recordChallengeCompletion } from './utils/challengeStreak';
 
 export default function Home() {
   const [calendarEntryDate, setCalendarEntryDate] = useState(null);
@@ -35,6 +36,7 @@ export default function Home() {
     ongoingChallenge: null,
     showRetoCelebration: false,
     showRetoFeedbackModal: false,
+    challengeStreak: 0,
     calendarKey: 0
   });
 
@@ -212,10 +214,9 @@ export default function Home() {
 
   useEffect(() => {
     try {
-      // Limpiar keys legacy que pueden haber causado el problema
-      localStorage.removeItem('dailyChallengeData');
+      // `dailyChallenge` es una clave antigua. La racha actual se conserva
+      // en `dailyChallengeData` y no debe borrarse al cargar la Home.
       localStorage.removeItem('dailyChallenge');
-      console.log('[INIT] Legacy challenge keys cleaned');
 
       let userId = localStorage.getItem('userId');
       if (!userId) {
@@ -263,6 +264,7 @@ export default function Home() {
         userProfile,
         lastCheckInDate,
         ongoingChallenge,
+        challengeStreak: getChallengeStreak().streak,
         activeTab: requestedTab === 'calendar' ? 'calendar' : prev.activeTab,
         showCalendar: requestedTab === 'calendar',
         isReady: true
@@ -643,16 +645,27 @@ export default function Home() {
               {state.ongoingChallenge.title}
             </div>
 
+            {state.challengeStreak > 0 && (
+              <div style={{ color: '#D97706', fontSize: '12px', fontWeight: '600', margin: '-6px 0 14px' }}>
+                🔥 {state.challengeStreak} días de racha
+              </div>
+            )}
+
             {/* Botón principal: ¡Lo hice! */}
             <button
               onClick={() => {
+                const completion = recordChallengeCompletion({
+                  title: state.ongoingChallenge.title,
+                  emoji: state.ongoingChallenge.emoji
+                });
+
                 // Reproducir confetti + celebration.mp3
                 const celebrationAudio = new Audio('/sounds/celebration.mp3');
                 celebrationAudio.volume = 0.5;
                 celebrationAudio.play().catch(err => console.error(err));
 
                 // Mostrar confetti
-                setState(prev => ({ ...prev, showRetoCelebration: true }));
+                setState(prev => ({ ...prev, challengeStreak: completion.streak, showRetoCelebration: true }));
                 setTimeout(() => {
                   setState(prev => ({ ...prev, showRetoCelebration: false }));
                 }, 2000);
