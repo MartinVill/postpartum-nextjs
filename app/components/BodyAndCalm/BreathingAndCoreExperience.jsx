@@ -53,6 +53,31 @@ export default function BreathingAndCoreExperience({ onBack }) {
   const [cycle, setCycle] = useState(1);
   const [ringProgress, setRingProgress] = useState(0);
   const completedRef = useRef(false);
+  const wakeLockRef = useRef(null);
+
+  const requestWakeLock = async () => {
+    if (typeof navigator === 'undefined' || !('wakeLock' in navigator) || document.visibilityState !== 'visible' || wakeLockRef.current) return;
+    try {
+      wakeLockRef.current = await navigator.wakeLock.request('screen');
+      wakeLockRef.current.addEventListener('release', () => {
+        wakeLockRef.current = null;
+      });
+    } catch {
+      // Algunos navegadores no permiten mantener la pantalla activa; la guía continúa normalmente.
+    }
+  };
+
+  const releaseWakeLock = async () => {
+    const wakeLock = wakeLockRef.current;
+    wakeLockRef.current = null;
+    if (wakeLock) {
+      try {
+        await wakeLock.release();
+      } catch {
+        // El navegador puede haber liberado el bloqueo al cambiar de aplicación.
+      }
+    }
+  };
 
   useEffect(() => {
     const id = localStorage.getItem('userId') || '';
@@ -98,6 +123,24 @@ export default function BreathingAndCoreExperience({ onBack }) {
   }, [phaseIndex, session]);
 
   useEffect(() => {
+    if (!session || session.status !== 'running') {
+      releaseWakeLock();
+      return undefined;
+    }
+
+    requestWakeLock();
+    const restoreWakeLock = () => {
+      if (document.visibilityState === 'visible') requestWakeLock();
+    };
+    document.addEventListener('visibilitychange', restoreWakeLock);
+
+    return () => {
+      document.removeEventListener('visibilitychange', restoreWakeLock);
+      releaseWakeLock();
+    };
+  }, [session]);
+
+  useEffect(() => {
     if (!session || session.status !== 'complete' || completedRef.current) return undefined;
     completedRef.current = true;
     const nextMinutes = weeklyMinutes + SESSION_MINUTES;
@@ -124,6 +167,7 @@ export default function BreathingAndCoreExperience({ onBack }) {
   }, [session, userId, weeklyMinutes]);
 
   const startSession = (title) => {
+    requestWakeLock();
     completedRef.current = false;
     setCycle(1);
     setPhaseIndex(0);
