@@ -39,15 +39,14 @@ export default function MedicalDisclaimerModal({ onAccept }) {
           lineHeight: '1.6',
           fontWeight: '400'
         }}>
-          Este espacio está diseñado para acompañarte con gentileza. Avanza a tu propio ritmo y confirma con tu médico que cuentas con el alta médica para realizar actividad física.
+          Te acompañamos con gentileza. Avanza a tu ritmo y recuerda consultar con tu médico antes de ejercitarte.
         </p>
 
         <button
           onClick={onAccept}
           style={{
-            width: '100%',
-            padding: '12px 24px',
-            background: '#C8956D',
+            padding: '11px 20px',
+            background: '#D946EF',
             color: 'white',
             border: 'none',
             borderRadius: '12px',
@@ -56,10 +55,10 @@ export default function MedicalDisclaimerModal({ onAccept }) {
             cursor: 'pointer',
             transition: 'all 0.2s'
           }}
-          onMouseEnter={(e) => e.target.style.background = '#A8755A'}
-          onMouseLeave={(e) => e.target.style.background = '#C8956D'}
+          onMouseEnter={(e) => e.target.style.background = '#C72BD9'}
+          onMouseLeave={(e) => e.target.style.background = '#D946EF'}
         >
-          Entendido, empezar
+          Entendido
         </button>
       </div>
     </div>
