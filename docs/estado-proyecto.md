@@ -1,244 +1,206 @@
-# Estado del Proyecto - Postpartum Health
+# Estado del Proyecto — Posparto
 
-**Última actualización:** 27 Agosto 2026 (Deployment a Vercel completado)
-**Versión:** 2.1 (MVP en producción)
-**Estado General:** ✅ **DEPLOYADO EN VERCEL** | Chat + Calendario = FUNCIONALES Y BLOQUEADOS
-**URL en Vivo:** https://postpartum-nextjs-martinvill.vercel.app
-
----
-
-## 🚀 Deployment & Infraestructura
-
-### Vercel (Producción)
-- **URL:** https://postpartum-nextjs-martinvill.vercel.app
-- **Status:** ✅ ACTIVO
-- **Auto-deploy:** Sí (cada push a main)
-- **Uptime:** 99.9%+
-- **Variables de entorno:** OPENAI_API_KEY configurado
-- **Fecha deployment:** 27 Agosto 2026
-
-### Desarrollo Local
-- `npm run dev` → http://localhost:3000
-- Desde teléfono same-WiFi: http://192.168.1.X:3000
+**Última actualización:** 3 de septiembre de 2026  
+**Versión de trabajo:** 3.0  
+**Estado general:** MVP funcional desplegado en producción  
+**Producción:** https://postpartum-nextjs.vercel.app/
 
 ---
 
-## ✅ Features Completadas
+## Resumen actual
 
-### 1. **Onboarding**
-- ✅ Nombre, hobbies, fecha última menstruación
-- ✅ Edad del bebé (en días)
-- ✅ Término de cariño personalizado
-- ✅ Energy check-in inicial (1-10)
-- **Archivo:** `app/components/OnboardingForm.jsx`
-- **Estado:** ESTABLE
+Posparto es una PWA mobile-first de acompañamiento emocional y bienestar para madres en los primeros 0–12 meses posparto. La experiencia actual prioriza pasos breves, lenguaje cálido y control claro sobre recordatorios.
 
-### 2. **Calendario Integrado**
-- ✅ Vista mensual (Google Calendar style)
-- ✅ Seguimiento de sangrado postparto con color-progresión
-- ✅ Registro de eventos/síntomas con hora (opcional)
-- ✅ Notificaciones opcionales (no por defecto)
-- ✅ Edición de fecha de evento/síntoma
-- ✅ Persistencia en localStorage
-- ✅ Mobile-responsive con teclado virtual optimizado
-- **Archivo:** `app/components/Calendar.jsx` (1000+ líneas)
-- **Estado:** ESTABLE
-- **Notas:** Menstruación marcada con borde punteado rojo por 5 días
-
-### 3. **Daily Check-in Emocional**
-- ✅ Evaluación de energía (slider 1-10)
-- ✅ Historial persistente
-- ✅ Recomendaciones personalizadas
-- **Archivo:** `app/components/DailyCheckIn.jsx`
-- **Estado:** ESTABLE
+- **Framework:** Next.js 16 (App Router) + React 19.
+- **Interfaz:** CSS-in-JS/estilos inline; fondo estándar `#FFFDF6` y magenta `#D946EF` para acciones.
+- **Persistencia local:** `localStorage` para datos de uso inmediato/offline.
+- **Persistencia servidor:** Firebase Admin + Firestore para suscripciones push, preferencias, recordatorios y minutos de respiración.
+- **Producción:** Vercel, con deploy automático al hacer push a `main`.
 
 ---
 
-## 🔨 Features En Progreso
+## Experiencia principal
 
-### 1. **Reto de 30 Días**
-- ⏳ UI de reto diario
-- ⏳ Sistema de progresión
-- ⏳ Badges y recompensas
-- ⏳ Streak tracking
-- **Archivo:** `app/components/DailyChallenge.jsx` (200 líneas, estructura base)
-- **Estado:** ESTRUCTURA LISTA, LÓGICA PENDIENTE
-- **Prioridad:** ALTA (próxima feature)
-- **Spec:** ARQUITECTURA_V2.md líneas 124-145
+### Onboarding y Home
 
-### 2. **Reflexión Nocturna**
-- ⏳ Preguntas reflexivas
-- ⏳ Gratitud diaria
-- **Archivo:** `app/components/NightReflection.jsx`
-- **Estado:** BÁSICO
+- El onboarding se redujo a **4 pasos**; el antiguo paso de horario de sueño ya no forma parte del flujo.
+- Al finalizar, la app solicita permiso de notificaciones desde una acción de la usuaria y abre el dashboard.
+- La Home utiliza `#FFFDF6` de extremo a extremo, sin franjas blancas en el encabezado ni en la grilla.
+- El reto diario conserva un solo gesto de finalización, celebración y modal emocional.
+- La navegación inferior se renderiza una sola vez a nivel raíz y permanece fija en Inicio, Calendario, Perfil, Chat, Reto y Cuerpo y Calma. El contenido tiene espacio inferior para no quedar oculto detrás de ella.
 
-### 3. **Chat Emocional**
-- ✅ Integración OpenAI (gpt-4o-mini)
-- ✅ FAQ integrado con 10 preguntas frecuentes
-- ✅ Rating de respuestas (👍 / 👎)
-- ✅ Historial persistente
-- ✅ Slider de estado emocional (1-10)
-- ✅ Menu desplegable (⋮) con opciones
-- ✅ Limpiar historial del chat
-- **Archivo:** `app/components/ChatSection.jsx` (400+ líneas)
-- **API:** `app/api/chat/route.js`
-- **Estado:** ✅ ESTABLE - BLOQUEADO (no tocar)
+### Check-in emocional
 
----
+- Slider de energía y registro por voz opcional.
+- El check-in local se conserva en `dailyCheckIn` y `lastCheckIn`.
+- Cuando hay una suscripción push activa, el check-in también informa al backend para evitar el recordatorio matutino si ya fue realizado ese día.
+- La pantalla usa el mismo fondo crema de la Home.
 
-## 📋 Pendiente / Roadmap
+### Calendario y eventos
 
-| Feature | Prioridad | Estimado | Notas |
-|---------|-----------|----------|-------|
-| Reto 30 días (completar) | 🔴 ALTA | 2-3 horas | Lógica + persistencia |
-| Chat mejorado | 🟡 MEDIA | 3-4 horas | OpenAI + fallback |
-| Notificaciones push | 🟡 MEDIA | 4-5 horas | PWA setup |
-| Compartir logros | 🟢 BAJA | 2 horas | Social features |
-| Videos embebidos | 🟢 BAJA | 3 horas | YouTube integration |
-| PayPal integration | 🟢 BAJA | 5 horas | Suscripción |
+**Archivo base bloqueado:** `app/components/Calendar.jsx`.
 
----
+- Vista mensual con seguimiento de sangrado posparto y códigos visuales por tipo.
+- Fondo unificado con la Home (`#FFFDF6`).
+- Barra rápida para crear **Evento** o **Síntoma** debajo del calendario, con entrada de texto, selector de tipo y acción `+`.
+- Al tocar una fecha se abre el flujo de creación; si la fecha ya contiene elementos, se muestra primero una lista compacta de los eventos de ese día.
+- Soporta varios eventos en una misma fecha.
+- Las tarjetas de evento usan contorno verde; los síntomas, contorno amarillo. Los síntomas no muestran hora ni recordatorios.
+- Las tarjetas de evento muestran hora, edición directa con lápiz y recordatorios compactos.
+- Se pueden añadir, cambiar o quitar varios recordatorios por evento (`15 min`, `30 min`, `1 h` y `1 día antes`).
+- Los eventos se conservan en `eventLogs`; los recordatorios de eventos también se sincronizan con Firestore para entrega push.
+- Se normalizaron fechas y timestamps para evitar que un evento creado para ayer, hoy o mañana se marque en un día distinto por zona horaria.
 
-## 🔧 Cambios Recientes
+### Chat de apoyo
 
-### Sesión 25 Agosto 2026 (ESTA SESIÓN)
-**Estado del chat y calendario: ✅ COMPLETAMENTE FUNCIONALES Y BLOQUEADOS**
+**Archivos bloqueados:** `app/components/ChatSection.jsx` y `app/api/chat/route.js`.
 
-Cambios realizados:
-- ✅ **Chat completado:** OpenAI API integrado, FAQ implementado, historial persistente, menu (⋮) funcional
-- ✅ **Turbopack deshabilitado:** next.config.ts modificado (webpack más estable)
-- ✅ **.env.local configurado:** OPENAI_API_KEY requerida
-- ✅ **UI ajustes:** Mensaje "Escribiendo..." sin corte, padding dinámico en contenedor
-- ✅ **Menu implementado:** Click outside detection, Preguntas frecuentes + Borrar historial
-- ✅ **README.md mejorado:** Sección "BLOQUEADOS", verificaciones post-startup, .env.local instructions
-- ✅ **docs/estado-proyecto.md actualizado:** Refleja status actual
+- Chat con OpenAI y fallback configurado por la app.
+- Layout móvil de pantalla completa: el área de mensajes se adapta al viewport y el campo de entrada queda fijo sobre la navegación/teclado cuando el navegador lo permite.
+- Estado vacío con la guía “Escribe algo abajo”.
+- Se retiraron los controles visuales de feedback 👍/👎: no existía un circuito de aprendizaje o entrenamiento que aprovechara esas señales, por lo que se evitó presentar un control sin efecto real.
 
-**Problemas resueltos esta sesión:**
-- Turbopack colgaba compilando → Deshabilitado
-- Chat no enviaba mensajes → Implementado handleSend en page.js + ChatSection.jsx
-- OPENAI_API_KEY no configurada → Agregada a .env.local y documentada
-- Menú de 3 puntitos no funcionaba → Conectado onClick con setIsMenuOpen
-- Mensaje "Escribiendo..." cortado → Padding dinámico en contenedor
-- FAQ no desplegaba → Implementado renderizado completo con onClick handlers
+### Reto del día
 
-### Antes (Sesión 24 Agosto 2026)
-**Commit:** 5b589c6
-- ✅ Subido código completo a GitHub
-- ✅ README.md actualizado
-- ✅ Calendar.jsx: Fixed event date editing (timezone issues)
-- ✅ Cleaned up debug files
-- ✅ ARQUITECTURA_V2.md con especificación completa
-
-**Antes:**
-- Calendar: date editing con native HTML input → cambiado a calendar picker
-- Sangrado tracking: color-progresión implementada
-- Event persistence: localStorage working
+- La tarjeta de reto está centrada, con un único botón “¡Lo hice!”, confeti, sonido de celebración y cierre emocional.
+- Se corrigió el espacio blanco que aparecía al hacer scroll al final, manteniendo intacta la navegación inferior fija.
 
 ---
 
-## 🚫 BLOQUEADOS - NO TOCAR
+## Cuerpo y Calma
 
-Estas features fueron completadas y estabilizadas esta sesión. **NO modificar:**
+### Categorías generales
 
-```
-❌ app/components/ChatSection.jsx     — Chat con OpenAI (400+ líneas)
-❌ app/components/Calendar.jsx        — Sangrado + eventos (1000+ líneas)
-❌ app/api/chat/route.js              — OpenAI endpoint (completo)
-❌ next.config.ts                     — Turbopack deshabilitado
-```
+- Cuatro categorías: **Respiración y Core**, **Estiramiento y Postura**, **Relajación y Pausa** y **Movimiento Suave**.
+- Todos los títulos de categorías y actividades están centrados; el botón de regreso queda posicionado de forma independiente a la izquierda para no desplazar el texto.
+- Se eliminan los emojis del texto de los encabezados para evitar solapamientos en móvil.
+- Fondo de toda la sección y de sus tarjetas: `#FFFDF6`.
+- Modal de bienvenida con el mensaje de cuidado médico actualizado, texto oscuro de 16 px y botón magenta “Entendido”.
 
-**Por qué?** Estas features tardaron HORAS en estabilizar. Cambiarlas ahora rompe todo lo que funciona.
+### Respiración y Core
+
+**Vista específica:** `app/components/BodyAndCalm/BreathingAndCoreExperience.jsx`.
+
+- Acceso rápido “Pausa rápida de 2 minutos” y tres tarjetas de necesidad concreta:
+  - Respiración Diafragmática — “Alivia la presión lumbar”.
+  - Activación de Core Suave — “Reconecta tu abdomen”.
+  - Relajación de Suelo Pélvico — “Suelta la tensión acumulada”.
+- La guía visual silenciosa realiza **10 ciclos** exactos: inhala 4 s, sostén 2 s y exhala 6 s; la duración total es 2 minutos.
+- Orbe magenta de alto contraste y escala amplia, anillo SVG de progreso sincronizado, texto de fase grande y diez indicadores de ciclo.
+- Vibración suave en los cambios de fase cuando el dispositivo la admite.
+- Botón `×` discreto para salir sin confirmación ni mensajes de culpa.
+- Al completar se muestra un cierre cálido y se suman 2 minutos al total semanal.
+- El acumulador solo aparece después de la primera sesión completada; se guarda en `users/{userId}/stats/breathing` y cuenta con respaldo local para conexiones intermitentes.
+- Durante una sesión se solicita **Wake Lock** de pantalla para que el teléfono permanezca encendido. Se libera al terminar, cancelar o salir; depende de que el navegador/dispositivo admita esta API.
+
+**Archivo bloqueado:** `app/components/BodyAndCalm/ExercisePlayer.jsx`. Las actividades de las otras categorías siguen usando su reproductor estable.
 
 ---
 
-## 💾 Datos Que Se Guardan (localStorage)
+## Notificaciones Web Push
 
-```javascript
-{
-  userProfile: {
-    name: string,
-    babyBirthDate: ISO date,
-    lastMenstruationDate: ISO date,
-    hobbies: array,
-    endearment: string,
-    createdAt: ISO date
-  },
-  eventLogs: [
-    { 
-      id: timestamp,
-      name: string,
-      time: "HH:MM",
-      notification: "15min" | "1h" | "none",
-      date: ISO date,
-      type: "evento" | "síntoma"
-    }
-  ],
-  sangradoLogs: [
-    {
-      date: ISO date,
-      notes: string
-    }
-  ],
-  dailyChallengeData: {
-    today: { name, completed, reward },
-    completed_count: number,
-    streak: number,
-    points: number
-  }
-}
+### Activación y preferencias
+
+- La app **no solicita permiso automáticamente al montar**. El permiso se pide únicamente al pulsar “Activar notificaciones” en Perfil.
+- El estado visible es: **Activas**, **Bloqueadas** o **Desactivadas**.
+- Tras conceder el permiso, se registra el Service Worker, se crea la suscripción Web Push y se guarda en Firestore.
+- Los ajustes de bienestar diario (interruptor y horarios de registro/pausa) se guardan en `users/{userId}/settings/notifications` y se propagan a las suscripciones, por lo que la interfaz refleja el horario que consulta el backend.
+
+### Tipos de entrega implementados
+
+| Tipo | Regla de entrega | Destino |
+|---|---|---|
+| Recordatorio de evento | Se procesa al llegar `triggerTimestamp` UTC del recordatorio pendiente. | Calendario y evento asociado |
+| Registro diario | Se envía a la hora configurada, salvo que la usuaria ya haya realizado su check-in ese día. | `/checkin` |
+| Pausa diaria | Se envía a la hora configurada si Bienestar diario está activo. | `/respiracion` |
+
+- Copy actual: “Tu registro de hoy 💜 / ¿Cómo te sientes en este momento?” y “Un momento para ti ✨ / ¿Hacemos una pausa para respirar?”.
+- El Service Worker (`public/sw.js`) incorpora ícono, badge, vibración suave, etiquetas para agrupar alertas y acciones “Abrir ahora” / “Recordar en 15m”.
+- La acción de posponer usa `/api/notifications/snooze` cuando la notificación contiene un recordatorio de calendario válido.
+- Las suscripciones se almacenan en `push_subscriptions`; los avisos de calendario en `scheduled_reminders`.
+- `/api/cron/process-reminders` hace la entrega real, registra diagnósticos de recordatorios pendientes, controla reintentos y marca como enviados únicamente los que fueron aceptados por el proveedor push.
+
+### Operación y límites reales
+
+- El procesador de cron requiere una llamada autenticada con `Authorization: Bearer <CRON_SECRET>`. Debe mantenerse una tarea externa recurrente (por ejemplo, Cron-Job.org) para ejecutar `/api/cron/process-reminders`.
+- El endpoint histórico `/api/notifications/send-scheduled` sigue siendo una utilidad de previsualización/simulación; la entrega productiva se realiza desde `/api/cron/process-reminders`.
+- La recepción en segundo plano requiere HTTPS, permiso concedido y una suscripción válida. En iPhone/iPad, Web Push requiere iOS/iPadOS 16.4+ y la PWA instalada en pantalla de inicio.
+- Las pruebas definitivas de notificaciones y Wake Lock se hacen en un teléfono real: un navegador de escritorio no puede simular el apagado físico de la pantalla ni todas las restricciones del sistema operativo.
+
+### Variables de entorno necesarias
+
+No deben guardarse en Git ni copiarse al documento:
+
+```text
+OPENAI_API_KEY
+NEXT_PUBLIC_VAPID_PUBLIC_KEY
+VAPID_PRIVATE_KEY
+VAPID_SUBJECT
+CRON_SECRET
+FIREBASE_PROJECT_ID
+FIREBASE_CLIENT_EMAIL
+FIREBASE_PRIVATE_KEY
 ```
 
 ---
 
-## 📱 Componentes y Responsabilidades
+## Datos y arquitectura
 
-| Archivo | Líneas | Propósito | Estado |
-|---------|--------|----------|--------|
-| OnboardingForm.jsx | ~400 | Setup inicial | ✅ ESTABLE |
-| Calendar.jsx | ~1000 | Sangrado + eventos | ✅ ESTABLE - BLOQUEADO |
-| DailyCheckIn.jsx | ~300 | Energy tracking | ✅ ESTABLE |
-| ChatSection.jsx | ~400 | Chat con OpenAI | ✅ ESTABLE - BLOQUEADO |
-| DailyChallenge.jsx | ~200 | Retos diarios | 🔨 EN PROGRESO |
-| NightReflection.jsx | ~200 | Reflexiones | 🔨 BÁSICO |
-| DynamicFeed.jsx | ~150 | Feed de contenido | 🔨 BÁSICO |
+### LocalStorage principal
 
----
+```text
+userProfile
+userId
+energyScore
+dailyCheckIn
+lastCheckIn
+eventLogs
+sangradoLogs
+postpartum_active_challenge
+postpartum_breathing_minutes_{userId}
+```
 
-## 🎯 Próximo Paso Inmediato
+### Firestore
 
-**Feature:** Reto de 30 Días (completar lógica)
-**Archivo:** `app/components/DailyChallenge.jsx`
-**Tiempo estimado:** 2-3 horas
-**Bloqueador:** Ninguno
+```text
+users/{userId}/settings/notifications
+users/{userId}/stats/breathing
+push_subscriptions/{subscriptionId}
+scheduled_reminders/{reminderId}
+```
 
----
-
-## 📊 Métricas
-
-- **Líneas de código:** ~4,500+
-- **Componentes:** 7 principales
-- **localStorage keys:** 6
-- **API endpoints:** 3 (chat, user profile, extractPreferences)
-- **Test coverage:** ~0% (TODO)
+El uso local sigue siendo el respaldo inmediato para la experiencia offline. Firestore se utiliza donde hace falta sincronización o procesamiento en segundo plano: push, recordatorios y estadísticas semanales de respiración.
 
 ---
 
-## 🔐 Seguridad / Consideraciones
+## Archivos protegidos
 
-- Datos guardados localmente (no enviados a servidor excepto chat OpenAI)
-- Sangrado es información sensible (¡privada!)
-- PWA instalable (offline-first)
-- Sin autenticación aún (TODO)
+No modificar salvo instrucción explícita del responsable del proyecto:
 
----
-
-## 🤝 Notas Para Trabajo Futuro
-
-- **Reto 30 días:** Necesita gamificación mejorada (badges, puntos)
-- **Chat:** Contexto del usuario debe venir de calendar + check-ins
-- **Notificaciones:** Requiere Service Worker setup
-- **Mobile:** Probar en iOS Safari (PWA quirks)
+```text
+app/components/ChatSection.jsx
+app/components/Calendar.jsx
+app/components/BodyAndCalm/ExercisePlayer.jsx
+app/api/chat/route.js
+next.config.ts
+```
 
 ---
 
-**¿Preguntas? Abre una sesión nueva con `/clear` y menciona esta línea del estado.**
+## Verificación de cambios
+
+Para cualquier cambio de código:
+
+1. Ejecutar `npm run build` sin errores.
+2. Hacer commit y `git push origin main`.
+3. Esperar el deploy de Vercel.
+4. Validar la interfaz o el flujo en https://postpartum-nextjs.vercel.app/ cuando sea posible.
+
+---
+
+## Próximos focos recomendados
+
+1. Realizar una matriz de pruebas en teléfonos Android y iOS/PWA para recordatorios, Wake Lock y teclado virtual.
+2. Configurar y monitorizar el cron externo de producción; revisar los logs de Vercel ante fallas de push.
+3. Mantener pruebas de regresión manuales para Calendario, Chat y ExercisePlayer antes de cualquier cambio transversal.
+4. Evaluar nuevas funciones solo si mantienen la promesa de bajo esfuerzo, calidez y control real para la madre posparto.
