@@ -1,8 +1,8 @@
 # Estado del Proyecto — Posparto
 
-**Última actualización:** 3 de septiembre de 2026  
-**Versión de trabajo:** 3.0  
-**Estado general:** MVP funcional desplegado en producción  
+**Última actualización:** 3 de septiembre de 2026
+**Versión de trabajo:** 3.0
+**Estado general:** MVP funcional desplegado en producción
 **Producción:** https://postpartum-nextjs.vercel.app/
 
 ---
