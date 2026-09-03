@@ -4,6 +4,7 @@ import MedicalDisclaimerModal from './MedicalDisclaimerModal';
 import CategoriesView from './CategoriesView';
 import ActivitiesListView from './ActivitiesListView';
 import ExercisePlayer from './ExercisePlayer';
+import BreathingAndCoreExperience from './BreathingAndCoreExperience';
 
 export default function BodyAndCalmModule({ onBack, userProfile }) {
   const [screen, setScreen] = useState('categories');
@@ -30,7 +31,7 @@ export default function BodyAndCalmModule({ onBack, userProfile }) {
 
   const handleSelectCategory = (categoryId) => {
     setSelectedCategory(categoryId);
-    setScreen('activities');
+    setScreen(categoryId === 'breathing' ? 'breathing' : 'activities');
   };
 
   const handleSelectActivity = (activity) => {
@@ -77,6 +78,10 @@ export default function BodyAndCalmModule({ onBack, userProfile }) {
         onBack={handleBackFromActivities}
       />
     );
+  }
+
+  if (screen === 'breathing') {
+    return <BreathingAndCoreExperience onBack={handleBackFromActivities} />;
   }
 
   return (
