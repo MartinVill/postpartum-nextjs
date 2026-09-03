@@ -120,17 +120,34 @@ export async function POST(request) {
   };
 
   try {
-    const formData = await request.formData();
-    const audio = formData.get('audio');
-    const userProfile = JSON.parse(formData.get('userProfile') || '{}');
-    const emotionalContext = JSON.parse(formData.get('emotionalContext') || '{}');
+    const isRealtimeTranscript = request.headers.get('content-type')?.includes('application/json');
+    let audio = null;
+    let transcriptText = '';
+    let userProfile = {};
+    let emotionalContext = {};
 
-    if (!audio || typeof audio === 'string' || audio.size === 0) {
-      return Response.json({ error: 'Audio requerido' }, { status: 400, headers });
-    }
+    if (isRealtimeTranscript) {
+      const body = await request.json();
+      transcriptText = body.transcript?.trim() || '';
+      userProfile = body.userProfile || {};
+      emotionalContext = body.emotionalContext || {};
 
-    if (audio.size > 20 * 1024 * 1024) {
-      return Response.json({ error: 'La nota de voz es demasiado larga. Prueba con una más breve.' }, { status: 413, headers });
+      if (!transcriptText) {
+        return Response.json({ error: 'No logramos escuchar palabras en esa nota.' }, { status: 422, headers });
+      }
+    } else {
+      const formData = await request.formData();
+      audio = formData.get('audio');
+      userProfile = JSON.parse(formData.get('userProfile') || '{}');
+      emotionalContext = JSON.parse(formData.get('emotionalContext') || '{}');
+
+      if (!audio || typeof audio === 'string' || audio.size === 0) {
+        return Response.json({ error: 'Audio requerido' }, { status: 400, headers });
+      }
+
+      if (audio.size > 25 * 1024 * 1024) {
+        return Response.json({ error: 'La nota de voz es demasiado pesada. Intenta grabarla nuevamente.' }, { status: 413, headers });
+      }
     }
 
     if (!process.env.OPENAI_API_KEY && !process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
@@ -140,21 +157,20 @@ export async function POST(request) {
       );
     }
 
-    console.log(`[VOICE] Transcribiendo audio para usuario ${userProfile?.userId || 'anon'} (${audio.type || 'tipo desconocido'}, ${audio.size} bytes)...`);
+    if (!isRealtimeTranscript) {
+      console.log(`[VOICE] Transcribiendo audio de respaldo para usuario ${userProfile?.userId || 'anon'} (${audio.type || 'tipo desconocido'}, ${audio.size} bytes)...`);
 
-    // PASO 1: Transcribir audio con Whisper
-    const transcript = await openai.audio.transcriptions.create({
-      file: audio,
-      model: 'whisper-1',
-      // Sin idioma forzado: Whisper detecta español e inglés de forma automática.
-      temperature: 0,
-    });
+      const transcript = await openai.audio.transcriptions.create({
+        file: audio,
+        model: 'gpt-transcribe',
+      });
 
-    const transcriptText = transcript.text?.trim();
-    if (!transcriptText) {
-      return Response.json({ error: 'No logramos escuchar palabras en esa nota. Intenta hablar un poco más cerca.' }, { status: 422, headers });
+      transcriptText = transcript.text?.trim() || '';
+      if (!transcriptText) {
+        return Response.json({ error: 'No logramos escuchar palabras en esa nota. Intenta hablar un poco más cerca.' }, { status: 422, headers });
+      }
     }
-    console.log(`[VOICE] Transcripción completada (${transcriptText.length} caracteres).`);
+    console.log(`[VOICE] Transcripción lista (${transcriptText.length} caracteres, ${isRealtimeTranscript ? 'Realtime' : 'respaldo'}).`);
 
     // PASO 2: Enviar transcripción a GPT para respuesta personalizada
     const systemPrompt = buildPersonalizedSystemPrompt(userProfile, emotionalContext);
@@ -178,11 +194,11 @@ export async function POST(request) {
 
     const responseText = completion.choices[0].message.content || 'Te escucho. ¿Quieres contarme un poco más?';
 
-    // Calcular costo total (Whisper + GPT)
-    const whisperCost = 0.02; // $0.02 por minuto de audio (aproximado)
+    // El coste final depende de la duración de audio y del modelo de transcripción activo.
+    const transcriptionCost = 0;
     const inputCost = (completion.usage.prompt_tokens / 1_000_000) * 0.15;
     const outputCost = (completion.usage.completion_tokens / 1_000_000) * 0.60;
-    const totalCost = whisperCost + inputCost + outputCost;
+    const totalCost = transcriptionCost + inputCost + outputCost;
 
     console.log(`[VOICE] Respuesta generada | Costo total: $${totalCost.toFixed(4)}`);
 
@@ -196,7 +212,7 @@ export async function POST(request) {
         tokens: completion.usage.total_tokens,
         cost: totalCost.toFixed(4),
         success: true,
-        source: 'openai-whisper-gpt4o-mini',
+        source: isRealtimeTranscript ? 'openai-gpt-live-transcribe-gpt4o-mini' : 'openai-gpt-transcribe-gpt4o-mini',
       },
       { headers }
     );

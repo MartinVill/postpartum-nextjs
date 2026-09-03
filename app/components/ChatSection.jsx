@@ -16,6 +16,11 @@ export default function ChatSection({ userId, initialProfile }) {
   const recordingTimerRef = useRef(null);
   const recordingDurationRef = useRef(0);
   const discardRecordingRef = useRef(false);
+  const realtimePeerRef = useRef(null);
+  const realtimeDataChannelRef = useRef(null);
+  const realtimeTranscriptRef = useRef('');
+  const realtimeTranscriptWaiterRef = useRef(null);
+  const realtimeConnectionPromiseRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isVoiceSending, setIsVoiceSending] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
@@ -88,6 +93,8 @@ export default function ChatSection({ userId, initialProfile }) {
         mediaRecorderRef.current.stop();
       }
       recordingStreamRef.current?.getTracks().forEach(track => track.stop());
+      realtimeDataChannelRef.current?.close();
+      realtimePeerRef.current?.close();
     };
   }, []);
 
@@ -282,6 +289,103 @@ export default function ChatSection({ userId, initialProfile }) {
     ].find(type => MediaRecorder.isTypeSupported(type)) || '';
   };
 
+  const closeRealtimeTranscription = () => {
+    realtimeTranscriptWaiterRef.current?.resolve?.(null);
+    realtimeTranscriptWaiterRef.current = null;
+    realtimeDataChannelRef.current?.close();
+    realtimeDataChannelRef.current = null;
+    realtimePeerRef.current?.close();
+    realtimePeerRef.current = null;
+    realtimeConnectionPromiseRef.current = null;
+  };
+
+  const connectRealtimeTranscription = async (stream) => {
+    if (typeof RTCPeerConnection === 'undefined') return false;
+
+    const peer = new RTCPeerConnection();
+    const dataChannel = peer.createDataChannel('oai-events');
+    realtimePeerRef.current = peer;
+    realtimeDataChannelRef.current = dataChannel;
+    realtimeTranscriptRef.current = '';
+
+    dataChannel.addEventListener('message', (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+
+        if (payload.type === 'conversation.item.input_audio_transcription.delta') {
+          realtimeTranscriptRef.current += payload.delta || '';
+        }
+
+        if (payload.type === 'conversation.item.input_audio_transcription.completed') {
+          realtimeTranscriptRef.current = payload.transcript || realtimeTranscriptRef.current;
+          realtimeTranscriptWaiterRef.current?.resolve?.(realtimeTranscriptRef.current.trim());
+          realtimeTranscriptWaiterRef.current = null;
+        }
+
+        if (payload.type === 'conversation.item.input_audio_transcription.failed' || payload.type === 'error') {
+          realtimeTranscriptWaiterRef.current?.resolve?.(null);
+          realtimeTranscriptWaiterRef.current = null;
+        }
+      } catch (error) {
+        console.warn('[VOICE] Evento Realtime inválido:', error);
+      }
+    });
+
+    peer.addTrack(stream.getAudioTracks()[0], stream);
+    const offer = await peer.createOffer();
+    await peer.setLocalDescription(offer);
+
+    const response = await fetch('/api/chat/voice/realtime', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/sdp',
+        'X-Postpartum-User': userId || 'anonymous'
+      },
+      body: offer.sdp
+    });
+
+    if (!response.ok) {
+      throw new Error('Realtime no disponible');
+    }
+
+    await peer.setRemoteDescription({ type: 'answer', sdp: await response.text() });
+
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Realtime tardó demasiado en conectar')), 6000);
+      dataChannel.addEventListener('open', () => {
+        clearTimeout(timeout);
+        resolve();
+      }, { once: true });
+      dataChannel.addEventListener('error', () => {
+        clearTimeout(timeout);
+        reject(new Error('Realtime no disponible'));
+      }, { once: true });
+    });
+
+    return true;
+  };
+
+  const getRealtimeTranscript = async () => {
+    const dataChannel = realtimeDataChannelRef.current;
+    if (!dataChannel || dataChannel.readyState !== 'open') return null;
+
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        realtimeTranscriptWaiterRef.current = null;
+        resolve(realtimeTranscriptRef.current.trim() || null);
+      }, 5000);
+
+      realtimeTranscriptWaiterRef.current = {
+        resolve: (transcript) => {
+          clearTimeout(timeout);
+          resolve(transcript || realtimeTranscriptRef.current.trim() || null);
+        }
+      };
+
+      dataChannel.send(JSON.stringify({ type: 'input_audio_buffer.commit' }));
+    });
+  };
+
   const startRecording = async () => {
     if (loading || isRecording || isVoiceSending) return;
 
@@ -317,23 +421,45 @@ export default function ChatSection({ userId, initialProfile }) {
         });
         const duration = Math.max(1, recordingDurationRef.current);
 
+        stream.getAudioTracks().forEach(track => {
+          track.enabled = false;
+        });
+        const realtimeReady = await Promise.race([
+          realtimeConnectionPromiseRef.current || Promise.resolve(false),
+          new Promise(resolve => setTimeout(() => resolve(false), 2500))
+        ]);
+        const realtimeTranscript = !discardRecordingRef.current && realtimeReady
+          ? await getRealtimeTranscript()
+          : null;
+
         stream.getTracks().forEach(track => track.stop());
         recordingStreamRef.current = null;
         mediaRecorderRef.current = null;
         clearInterval(recordingTimerRef.current);
         setRecordingSeconds(0);
 
-        if (!discardRecordingRef.current && audioBlob.size > 0) {
-          await sendVoiceMessage(audioBlob, duration);
+        if (!discardRecordingRef.current && (realtimeTranscript || audioBlob.size > 0)) {
+          await sendVoiceMessage({ audioBlob, transcript: realtimeTranscript, duration });
         }
+
+        closeRealtimeTranscription();
       };
 
       mediaRecorder.start(250);
+      realtimeConnectionPromiseRef.current = connectRealtimeTranscription(stream)
+        .catch((error) => {
+          console.info('[VOICE] Realtime no disponible; se usará el envío de respaldo.', error.message);
+          closeRealtimeTranscription();
+          return false;
+        });
       setIsRecording(true);
       setRecordingSeconds(0);
       recordingTimerRef.current = setInterval(() => {
         recordingDurationRef.current += 1;
         setRecordingSeconds(recordingDurationRef.current);
+        if (recordingDurationRef.current >= 180) {
+          stopRecording(false);
+        }
       }, 1000);
     } catch (error) {
       console.error('[VOICE] Error al acceder al micrófono:', error);
@@ -350,15 +476,12 @@ export default function ChatSection({ userId, initialProfile }) {
     }
   };
 
-  const sendVoiceMessage = async (audioBlob, duration) => {
+  const sendVoiceMessage = async ({ audioBlob, transcript, duration }) => {
     setLoading(true);
     setIsVoiceSending(true);
-    const formData = new FormData();
-    const fileExtension = audioBlob.type.includes('mp4') ? 'm4a' : audioBlob.type.includes('ogg') ? 'ogg' : 'webm';
-    formData.append('audio', audioBlob, `nota-de-voz.${fileExtension}`);
 
     const profile = userProfile || {};
-    formData.append('userProfile', JSON.stringify({
+    const voiceProfile = {
       userId: userId || 'user-default',
       name: profile.name || 'Hermosa',
       favoriteTermsOfEndearment: profile.favoriteTermsOfEndearment || ['hermosa'],
@@ -366,14 +489,31 @@ export default function ChatSection({ userId, initialProfile }) {
       cyclePhase: profile.cyclePhase || 'unknown',
       energyLevel: emotionalScore,
       babyAge: profile.babyAge || 0
-    }));
-    formData.append('emotionalContext', JSON.stringify({ todayScore: emotionalScore }));
+    };
 
     try {
-      console.log('[VOICE] Enviando audio...');
+      const requestOptions = transcript
+        ? {
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              transcript,
+              userProfile: voiceProfile,
+              emotionalContext: { todayScore: emotionalScore }
+            })
+          }
+        : (() => {
+            const formData = new FormData();
+            const fileExtension = audioBlob.type.includes('mp4') ? 'm4a' : audioBlob.type.includes('ogg') ? 'ogg' : 'webm';
+            formData.append('audio', audioBlob, `nota-de-voz.${fileExtension}`);
+            formData.append('userProfile', JSON.stringify(voiceProfile));
+            formData.append('emotionalContext', JSON.stringify({ todayScore: emotionalScore }));
+            return { body: formData };
+          })();
+
+      console.log(`[VOICE] Enviando ${transcript ? 'transcripción Realtime' : 'audio de respaldo'}...`);
       const response = await fetch('/api/chat/voice', {
         method: 'POST',
-        body: formData
+        ...requestOptions
       });
 
       const data = await response.json();
@@ -498,7 +638,7 @@ export default function ChatSection({ userId, initialProfile }) {
                 wordBreak: 'break-word',
                 boxShadow: msg.role === 'user' ? '0 2px 8px rgba(217, 70, 239, 0.15)' : '0 2px 8px rgba(0,0,0,0.04)'
               }}>
-                {msg.isVoice && (
+                {msg.isVoice ? (
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -514,8 +654,9 @@ export default function ChatSection({ userId, initialProfile }) {
                     </svg>
                     Nota de voz · {formatVoiceDuration(msg.voiceDuration || 0)}
                   </div>
+                ) : (
+                  msg.text
                 )}
-                {msg.text}
               </div>
             </div>
 
@@ -676,51 +817,65 @@ export default function ChatSection({ userId, initialProfile }) {
         }}
       >
         {isRecording ? (
-          <div style={{
-            width: '100%',
-            minHeight: '48px',
-            padding: '6px 8px 6px 14px',
-            borderRadius: '24px',
-            background: '#FFF7FC',
-            border: '1px solid #F5D0FE',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            boxSizing: 'border-box'
-          }}>
-            <button
-              type="button"
-              onClick={() => stopRecording(true)}
-              aria-label="Cancelar nota de voz"
-              style={{
-                border: 'none', background: 'transparent', color: '#6B7280', cursor: 'pointer',
-                fontSize: '20px', lineHeight: 1, padding: '6px'
-              }}
-            >
-              ×
-            </button>
-            <span style={{ width: '8px', height: '8px', background: '#EF4444', borderRadius: '50%', flex: '0 0 auto' }} />
-            <span style={{ color: '#4B5563', fontSize: '14px', fontVariantNumeric: 'tabular-nums', minWidth: '38px' }}>
-              {formatVoiceDuration(recordingSeconds)}
-            </span>
-            <span style={{ flex: 1, color: '#9CA3AF', fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              Grabando nota de voz
-            </span>
+          <>
+            <div style={{
+              flex: 1,
+              minHeight: '44px',
+              padding: '0 158px 0 10px',
+              borderRadius: '20px',
+              background: '#EFEFEF',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxSizing: 'border-box',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+            }}>
+              <button
+                type="button"
+                onClick={() => stopRecording(true)}
+                aria-label="Cancelar nota de voz"
+                style={{
+                  border: 'none', background: 'transparent', color: '#6B7280', cursor: 'pointer',
+                  fontSize: '21px', lineHeight: 1, padding: '5px 4px'
+                }}
+              >
+                ×
+              </button>
+              <span style={{ width: '8px', height: '8px', background: '#EF4444', borderRadius: '50%', flex: '0 0 auto' }} />
+              <span style={{ color: '#4B5563', fontSize: '14px', fontVariantNumeric: 'tabular-nums', minWidth: '38px' }}>
+                {formatVoiceDuration(recordingSeconds)}
+              </span>
+              <span style={{ color: '#6B7280', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                Grabando...
+              </span>
+            </div>
             <button
               type="button"
               onClick={() => stopRecording(false)}
               aria-label="Enviar nota de voz"
               style={{
-                width: '40px', height: '40px', borderRadius: '50%', border: 'none', background: '#D946EF',
-                color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(217, 70, 239, 0.24)', flex: '0 0 auto'
+                position: 'absolute', right: '56px', width: '44px', height: '44px', padding: '0',
+                background: '#D946EF', color: 'white', border: 'none', borderRadius: '50%', cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(217, 70, 239, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="m5 12 14-7-4 14-3-6-7-1Z" />
               </svg>
             </button>
-          </div>
+            <button
+              type="button"
+              disabled
+              aria-label="Más opciones"
+              style={{
+                position: 'absolute', right: '8px', width: '44px', height: '44px', padding: '0', background: 'transparent',
+                border: 'none', borderRadius: '50%', color: '#999', fontSize: '16px', lineHeight: '1', opacity: 0.45,
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}
+            >
+              ⋮
+            </button>
+          </>
         ) : (
           <>
             <input
