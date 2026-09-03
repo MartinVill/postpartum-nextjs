@@ -532,7 +532,7 @@ export default function Home() {
     // Sub-pantalla: Reto 30 Días
     if (state.showReto && state.energyScore) {
       return (
-        <div>
+        <div style={{ height: 'calc(100dvh - 70px)', overflowY: 'auto', overscrollBehavior: 'contain' }}>
           <DailyChallenge
             energy={state.energyScore}
             userProfile={state.userProfile}
@@ -865,11 +865,11 @@ export default function Home() {
   return (
     <div className={state.showChat ? 'app-shell app-shell--chat' : 'app-shell'} style={{
       position: 'relative',
-      minHeight: state.showChat ? '100dvh' : '100vh',
-      height: state.showChat ? '100dvh' : undefined,
+      minHeight: state.showChat || state.showReto ? '100dvh' : '100vh',
+      height: state.showChat || state.showReto ? '100dvh' : undefined,
       background: '#FFFDF6',
-      paddingBottom: state.showChat ? 0 : '86px',
-      overflow: state.showChat ? 'hidden' : undefined
+      paddingBottom: state.showChat || state.showReto ? 0 : '86px',
+      overflow: state.showChat || state.showReto ? 'hidden' : undefined
     }}>
       {state.energyScore || state.showCalendar || state.showChat || state.showProfile || state.showBodyAndCalm || state.showReto ? renderActiveView() : (
         <EnergyCheckIn
