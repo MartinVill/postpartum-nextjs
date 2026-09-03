@@ -12,7 +12,14 @@ export default function ChatSection({ userId, initialProfile }) {
   const messagesEndRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const recordingStreamRef = useRef(null);
+  const recordingTimerRef = useRef(null);
+  const recordingDurationRef = useRef(0);
+  const discardRecordingRef = useRef(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isVoiceSending, setIsVoiceSending] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [voiceError, setVoiceError] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -72,6 +79,17 @@ export default function ChatSection({ userId, initialProfile }) {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    return () => {
+      clearInterval(recordingTimerRef.current);
+      if (mediaRecorderRef.current?.state === 'recording') {
+        discardRecordingRef.current = true;
+        mediaRecorderRef.current.stop();
+      }
+      recordingStreamRef.current?.getTracks().forEach(track => track.stop());
+    };
+  }, []);
 
   // Guardar historial en localStorage cada que cambian los mensajes
   useEffect(() => {
@@ -247,50 +265,107 @@ export default function ChatSection({ userId, initialProfile }) {
     setIsFaqOpen(false);
   };
 
+  const formatVoiceDuration = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainder = String(seconds % 60).padStart(2, '0');
+    return `${minutes}:${remainder}`;
+  };
+
+  const getPreferredAudioMimeType = () => {
+    if (typeof MediaRecorder === 'undefined') return '';
+
+    return [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/mp4',
+      'audio/ogg;codecs=opus'
+    ].find(type => MediaRecorder.isTypeSupported(type)) || '';
+  };
+
   const startRecording = async () => {
+    if (loading || isRecording || isVoiceSending) return;
+
     try {
+      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+        setVoiceError('Tu navegador no admite notas de voz.');
+        return;
+      }
+
+      setVoiceError('');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = getPreferredAudioMimeType();
       audioChunksRef.current = [];
-      const mediaRecorder = new MediaRecorder(stream);
+      recordingDurationRef.current = 0;
+      discardRecordingRef.current = false;
+
+      const mediaRecorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
+
       mediaRecorderRef.current = mediaRecorder;
+      recordingStreamRef.current = stream;
 
       mediaRecorder.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: mediaRecorder.mimeType || 'audio/webm'
+        });
+        const duration = Math.max(1, recordingDurationRef.current);
+
         stream.getTracks().forEach(track => track.stop());
-        await sendVoiceMessage(audioBlob);
+        recordingStreamRef.current = null;
+        mediaRecorderRef.current = null;
+        clearInterval(recordingTimerRef.current);
+        setRecordingSeconds(0);
+
+        if (!discardRecordingRef.current && audioBlob.size > 0) {
+          await sendVoiceMessage(audioBlob, duration);
+        }
       };
 
-      mediaRecorder.start();
+      mediaRecorder.start(250);
       setIsRecording(true);
+      setRecordingSeconds(0);
+      recordingTimerRef.current = setInterval(() => {
+        recordingDurationRef.current += 1;
+        setRecordingSeconds(recordingDurationRef.current);
+      }, 1000);
     } catch (error) {
       console.error('[VOICE] Error al acceder al micrófono:', error);
-      alert('No puedo acceder al micrófono. Verifica los permisos.');
+      setVoiceError('Para enviar una nota de voz, permite el micrófono en tu navegador.');
     }
   };
 
-  const stopRecording = () => {
+  const stopRecording = (discard = false) => {
     if (mediaRecorderRef.current && isRecording) {
+      discardRecordingRef.current = discard;
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      clearInterval(recordingTimerRef.current);
     }
   };
 
-  const sendVoiceMessage = async (audioBlob) => {
+  const sendVoiceMessage = async (audioBlob, duration) => {
     setLoading(true);
+    setIsVoiceSending(true);
     const formData = new FormData();
-    formData.append('audio', audioBlob, 'audio.wav');
+    const fileExtension = audioBlob.type.includes('mp4') ? 'm4a' : audioBlob.type.includes('ogg') ? 'ogg' : 'webm';
+    formData.append('audio', audioBlob, `nota-de-voz.${fileExtension}`);
+
+    const profile = userProfile || {};
     formData.append('userProfile', JSON.stringify({
-      userId: 'user-default',
-      name: 'Mamá Guerrera',
-      favoriteTermsOfEndearment: ['Reina', 'Mamá Guerrera'],
-      hobbies: ['lectura', 'música', 'pintura'],
-      cyclePhase: 'Fase Folicular',
+      userId: userId || 'user-default',
+      name: profile.name || 'Hermosa',
+      favoriteTermsOfEndearment: profile.favoriteTermsOfEndearment || ['hermosa'],
+      hobbies: profile.hobbies || [],
+      cyclePhase: profile.cyclePhase || 'unknown',
       energyLevel: emotionalScore,
-      babyAge: 30
+      babyAge: profile.babyAge || 0
     }));
     formData.append('emotionalContext', JSON.stringify({ todayScore: emotionalScore }));
 
@@ -302,10 +377,20 @@ export default function ChatSection({ userId, initialProfile }) {
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'No pudimos procesar tu nota de voz.');
+      }
       console.log('[VOICE] Respuesta:', data);
 
       if (data.transcript) {
-        setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: data.transcript, rating: null }]);
+        setMessages(prev => [...prev, {
+          id: Date.now(),
+          role: 'user',
+          text: data.transcript,
+          rating: null,
+          isVoice: true,
+          voiceDuration: duration
+        }]);
       }
 
       if (data.message) {
@@ -316,6 +401,7 @@ export default function ChatSection({ userId, initialProfile }) {
       setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', text: `Error de voz: ${error.message}`, rating: null }]);
     } finally {
       setLoading(false);
+      setIsVoiceSending(false);
     }
   };
 
@@ -412,6 +498,23 @@ export default function ChatSection({ userId, initialProfile }) {
                 wordBreak: 'break-word',
                 boxShadow: msg.role === 'user' ? '0 2px 8px rgba(217, 70, 239, 0.15)' : '0 2px 8px rgba(0,0,0,0.04)'
               }}>
+                {msg.isVoice && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    marginBottom: '6px',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    opacity: 0.9
+                  }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <rect x="9" y="2" width="6" height="12" rx="3" />
+                      <path d="M5 10a7 7 0 0 0 14 0M12 17v4M8 21h8" />
+                    </svg>
+                    Nota de voz · {formatVoiceDuration(msg.voiceDuration || 0)}
+                  </div>
+                )}
                 {msg.text}
               </div>
             </div>
@@ -490,7 +593,7 @@ export default function ChatSection({ userId, initialProfile }) {
                 fontSize: '14px',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
               }}>
-                ✨ Escribiendo...
+                {isVoiceSending ? '🎙️ Procesando tu nota de voz...' : '✨ Escribiendo...'}
               </div>
             </div>
             <div ref={messagesEndRef} />
@@ -572,96 +675,141 @@ export default function ChatSection({ userId, initialProfile }) {
           boxSizing: 'border-box'
         }}
       >
-        <input
-          type="text"
-          placeholder="Cuéntame qué sientes..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          style={{
-            flex: 1,
-            padding: '12px 16px',
-            paddingRight: '110px',
-            border: 'none',
-            borderRadius: '20px',
-            fontSize: '15px',
-            fontFamily: 'inherit',
-            background: '#EFEFEF',
-            transition: 'background 0.2s',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-          }}
-          onFocus={(e) => {
-            e.target.style.background = '#E5E5E5';
-            e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
-          }}
-          onBlur={(e) => {
-            e.target.style.background = '#EFEFEF';
-            e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
-          }}
-        />
-        <button
-          onClick={handleSend}
-          disabled={loading}
-          style={{
-            position: 'absolute',
-            right: '56px',
-            width: '44px',
-            height: '44px',
-            padding: '0',
-            background: '#D946EF',
-            color: 'white',
-            border: 'none',
-            borderRadius: '50%',
-            fontWeight: '600',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            transition: 'all 0.2s',
-            boxShadow: '0 2px 8px rgba(217, 70, 239, 0.2)',
-            fontSize: '24px',
+        {isRecording ? (
+          <div style={{
+            width: '100%',
+            minHeight: '48px',
+            padding: '6px 8px 6px 14px',
+            borderRadius: '24px',
+            background: '#FFF7FC',
+            border: '1px solid #F5D0FE',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            lineHeight: '1',
-            opacity: loading ? 0.6 : 1
-          }}
-          onMouseEnter={(e) => {
-            if (!loading) {
-              e.target.style.background = '#C026D3';
-              e.target.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.3)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!loading) {
-              e.target.style.background = '#D946EF';
-              e.target.style.boxShadow = '0 2px 8px rgba(217, 70, 239, 0.2)';
-            }
-          }}
-        >
-          &gt;
-        </button>
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          style={{
-            position: 'absolute',
-            right: '8px',
-            width: '44px',
-            height: '44px',
-            padding: '0',
-            background: 'transparent',
-            border: 'none',
-            borderRadius: '50%',
-            cursor: 'pointer',
-            color: '#999',
-            fontSize: '16px',
-            lineHeight: '1',
-            transition: 'all 0.2s',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-          title="Más opciones"
-        >
-          ⋮
-        </button>
+            gap: '10px',
+            boxSizing: 'border-box'
+          }}>
+            <button
+              type="button"
+              onClick={() => stopRecording(true)}
+              aria-label="Cancelar nota de voz"
+              style={{
+                border: 'none', background: 'transparent', color: '#6B7280', cursor: 'pointer',
+                fontSize: '20px', lineHeight: 1, padding: '6px'
+              }}
+            >
+              ×
+            </button>
+            <span style={{ width: '8px', height: '8px', background: '#EF4444', borderRadius: '50%', flex: '0 0 auto' }} />
+            <span style={{ color: '#4B5563', fontSize: '14px', fontVariantNumeric: 'tabular-nums', minWidth: '38px' }}>
+              {formatVoiceDuration(recordingSeconds)}
+            </span>
+            <span style={{ flex: 1, color: '#9CA3AF', fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              Grabando nota de voz
+            </span>
+            <button
+              type="button"
+              onClick={() => stopRecording(false)}
+              aria-label="Enviar nota de voz"
+              style={{
+                width: '40px', height: '40px', borderRadius: '50%', border: 'none', background: '#D946EF',
+                color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(217, 70, 239, 0.24)', flex: '0 0 auto'
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="m5 12 14-7-4 14-3-6-7-1Z" />
+              </svg>
+            </button>
+          </div>
+        ) : (
+          <>
+            <input
+              type="text"
+              placeholder="Cuéntame qué sientes..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={loading || isVoiceSending}
+              style={{
+                flex: 1,
+                padding: '12px 16px',
+                paddingRight: '158px',
+                border: 'none',
+                borderRadius: '20px',
+                fontSize: '15px',
+                fontFamily: 'inherit',
+                background: '#EFEFEF',
+                transition: 'background 0.2s',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}
+              onFocus={(e) => {
+                e.target.style.background = '#E5E5E5';
+                e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+              }}
+              onBlur={(e) => {
+                e.target.style.background = '#EFEFEF';
+                e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
+              }}
+            />
+            <button
+              type="button"
+              onClick={startRecording}
+              disabled={loading || isVoiceSending}
+              aria-label="Grabar nota de voz"
+              title="Grabar nota de voz"
+              style={{
+                position: 'absolute', right: '104px', width: '44px', height: '44px', padding: '0',
+                background: 'transparent', color: '#4B5563', border: 'none', borderRadius: '50%',
+                cursor: loading || isVoiceSending ? 'not-allowed' : 'pointer', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', opacity: loading || isVoiceSending ? 0.45 : 1
+              }}
+            >
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="9" y="2" width="6" height="12" rx="3" />
+                <path d="M5 10a7 7 0 0 0 14 0M12 17v4M8 21h8" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={loading || isVoiceSending}
+              aria-label="Enviar mensaje"
+              style={{
+                position: 'absolute', right: '56px', width: '44px', height: '44px', padding: '0',
+                background: '#D946EF', color: 'white', border: 'none', borderRadius: '50%',
+                cursor: loading || isVoiceSending ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
+                boxShadow: '0 2px 8px rgba(217, 70, 239, 0.2)', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', opacity: loading || isVoiceSending ? 0.6 : 1
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="m5 12 14-7-4 14-3-6-7-1Z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Más opciones"
+              style={{
+                position: 'absolute', right: '8px', width: '44px', height: '44px', padding: '0', background: 'transparent',
+                border: 'none', borderRadius: '50%', cursor: 'pointer', color: '#999', fontSize: '16px', lineHeight: '1',
+                transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}
+              title="Más opciones"
+            >
+              ⋮
+            </button>
+          </>
+        )}
+
+        {voiceError && !isRecording && (
+          <div role="status" style={{
+            position: 'absolute', left: '16px', right: '16px', bottom: '-16px', color: '#B45309',
+            fontSize: '12px', textAlign: 'center', lineHeight: 1.25
+          }}>
+            {voiceError}
+          </div>
+        )}
 
         {isFaqOpen && (
           <div

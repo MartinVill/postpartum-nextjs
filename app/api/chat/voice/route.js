@@ -4,11 +4,12 @@
  */
 
 import { OpenAI } from 'openai';
-import { Readable } from 'stream';
+
+export const runtime = 'nodejs';
 
 // Inicializar cliente OpenAI
 const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY,
 });
 
 /**
@@ -121,31 +122,39 @@ export async function POST(request) {
   try {
     const formData = await request.formData();
     const audio = formData.get('audio');
-    const userProfile = JSON.parse(formData.get('userProfile'));
-    const emotionalContext = JSON.parse(formData.get('emotionalContext'));
+    const userProfile = JSON.parse(formData.get('userProfile') || '{}');
+    const emotionalContext = JSON.parse(formData.get('emotionalContext') || '{}');
 
-    if (!audio) {
+    if (!audio || typeof audio === 'string' || audio.size === 0) {
       return Response.json({ error: 'Audio requerido' }, { status: 400, headers });
     }
 
-    if (!process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
+    if (audio.size > 20 * 1024 * 1024) {
+      return Response.json({ error: 'La nota de voz es demasiado larga. Prueba con una más breve.' }, { status: 413, headers });
+    }
+
+    if (!process.env.OPENAI_API_KEY && !process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
       return Response.json(
         { error: 'OpenAI API key no configurada' },
         { status: 500, headers }
       );
     }
 
-    console.log(`[VOICE] Transcribiendo audio para usuario ${userProfile?.userId || 'anon'}...`);
+    console.log(`[VOICE] Transcribiendo audio para usuario ${userProfile?.userId || 'anon'} (${audio.type || 'tipo desconocido'}, ${audio.size} bytes)...`);
 
     // PASO 1: Transcribir audio con Whisper
     const transcript = await openai.audio.transcriptions.create({
       file: audio,
       model: 'whisper-1',
-      language: 'es',
+      // Sin idioma forzado: Whisper detecta español e inglés de forma automática.
+      temperature: 0,
     });
 
-    const transcriptText = transcript.text;
-    console.log(`[VOICE] Transcripción: "${transcriptText}"`);
+    const transcriptText = transcript.text?.trim();
+    if (!transcriptText) {
+      return Response.json({ error: 'No logramos escuchar palabras en esa nota. Intenta hablar un poco más cerca.' }, { status: 422, headers });
+    }
+    console.log(`[VOICE] Transcripción completada (${transcriptText.length} caracteres).`);
 
     // PASO 2: Enviar transcripción a GPT para respuesta personalizada
     const systemPrompt = buildPersonalizedSystemPrompt(userProfile, emotionalContext);
@@ -167,7 +176,7 @@ export async function POST(request) {
       top_p: 0.9,
     });
 
-    const responseText = completion.choices[0].message.content;
+    const responseText = completion.choices[0].message.content || 'Te escucho. ¿Quieres contarme un poco más?';
 
     // Calcular costo total (Whisper + GPT)
     const whisperCost = 0.02; // $0.02 por minuto de audio (aproximado)
