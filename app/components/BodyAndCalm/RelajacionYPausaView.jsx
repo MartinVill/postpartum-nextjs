@@ -18,6 +18,18 @@ function formatTime(seconds) {
   return `${minutes}:${remainingSeconds}`;
 }
 
+function MediaControlIcon({ isPlaying, size = 24 }) {
+  return isPlaying ? (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ display: 'block' }}>
+      <path d="M8.5 6.75v10.5M15.5 6.75v10.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  ) : (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{ display: 'block', marginLeft: '2px' }}>
+      <path d="M8.3 5.8c0-1.02 1.12-1.65 2-1.12l8.15 4.96a2.76 2.76 0 0 1 0 4.72l-8.15 4.96a1.3 1.3 0 0 1-2-1.12V5.8Z" />
+    </svg>
+  );
+}
+
 function TrackArtwork({ track, style }) {
   return (
     <div style={{ ...styles.artwork, ...style }}>
@@ -82,7 +94,7 @@ export default function RelajacionYPausaView({ onBack }) {
             <div style={{ ...styles.modalControls, opacity: nightMode ? 0.3 : 1 }}>
               <h2 style={styles.modalTitle}>{selectedTrack.title}</h2>
               <button onClick={() => restAudioPlayer.toggle()} style={styles.primaryPlay} aria-label={player.isPlaying ? 'Pausar' : 'Reproducir'}>
-                {player.isPlaying ? 'Ⅱ' : '▶'}
+                <MediaControlIcon isPlaying={player.isPlaying} size={30} />
               </button>
               <p style={styles.timerLabel}>Limitar duración</p>
               <div style={styles.timerOptions}>
@@ -143,7 +155,7 @@ const styles = {
   moon: { position: 'absolute', zIndex: 2, top: '20px', left: '20px', width: '40px', height: '40px', border: 'none', borderRadius: '50%', background: 'transparent', color: '#D946EF', fontSize: '30px', lineHeight: 1, cursor: 'pointer' },
   modalControls: { position: 'relative', zIndex: 1, minHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 'calc(42px + env(safe-area-inset-bottom, 0px))', boxSizing: 'border-box', transition: 'opacity 260ms ease' },
   modalTitle: { margin: '0 0 22px', color: '#fff', fontSize: '22px', lineHeight: 1.2, fontWeight: 700, textAlign: 'center', textShadow: '0 2px 8px rgba(0,0,0,0.38)' },
-  primaryPlay: { width: '78px', height: '78px', border: 'none', borderRadius: '50%', background: '#C026D3', color: '#fff', fontSize: '29px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 0 0 7px rgba(192,38,211,0.14), 0 14px 30px rgba(192,38,211,0.42)', transition: 'transform 180ms ease, background 180ms ease' },
+  primaryPlay: { width: '78px', height: '78px', border: 'none', borderRadius: '50%', background: '#C026D3', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 0 0 7px rgba(192,38,211,0.14), 0 14px 30px rgba(192,38,211,0.42)', transition: 'transform 180ms ease, background 180ms ease' },
   timerLabel: { margin: '26px 0 10px', color: '#fff', fontSize: '14px', fontWeight: 400 },
   timerOptions: { display: 'flex', gap: '7px', flexWrap: 'wrap', justifyContent: 'center' },
   timerButton: { padding: '8px 11px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', fontSize: '12px', cursor: 'pointer', backdropFilter: 'blur(12px)' },
