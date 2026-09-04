@@ -6,6 +6,7 @@ const DEFAULT_TIMER_MINUTES = 30;
 let audio = null;
 let detachAudioListeners = null;
 let tickId = null;
+let fadeInId = null;
 let timerEndsAt = null;
 let timerRemainingMs = null;
 let finishingTimer = false;
@@ -14,7 +15,10 @@ let snapshot = {
   track: null,
   isPlaying: false,
   timerMinutes: DEFAULT_TIMER_MINUTES,
+  timerTotalSeconds: DEFAULT_TIMER_MINUTES * 60,
   remainingSeconds: null,
+  currentTime: 0,
+  duration: 0,
   error: ''
 };
 
@@ -29,8 +33,26 @@ function clearTimer() {
   timerEndsAt = null;
 }
 
+function clearFadeIn() {
+  if (fadeInId) window.clearInterval(fadeInId);
+  fadeInId = null;
+}
+
+function fadeInAudio(player) {
+  clearFadeIn();
+  const fadeDuration = 4500;
+  const startedAt = Date.now();
+  player.volume = 0;
+  fadeInId = window.setInterval(() => {
+    const progress = Math.min(1, (Date.now() - startedAt) / fadeDuration);
+    player.volume = progress;
+    if (progress === 1) clearFadeIn();
+  }, 100);
+}
+
 function stopAndDisposeAudio() {
   clearTimer();
+  clearFadeIn();
   if (!audio) return;
   if (detachAudioListeners) detachAudioListeners();
   detachAudioListeners = null;
@@ -42,16 +64,22 @@ function stopAndDisposeAudio() {
 }
 
 function runTimer() {
-  if (!timerEndsAt || !audio) return;
-  const remainingMs = Math.max(0, timerEndsAt - Date.now());
-  timerRemainingMs = remainingMs;
-  const remainingSeconds = Math.ceil(remainingMs / 1000);
+  if (!audio) return;
+  const currentTime = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+  const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+  const remainingMs = timerEndsAt ? Math.max(0, timerEndsAt - Date.now()) : null;
+  const remainingSeconds = remainingMs == null ? null : Math.ceil(remainingMs / 1000);
+
+  if (remainingMs != null) timerRemainingMs = remainingMs;
+
+  publish({ currentTime, duration, remainingSeconds });
+
+  if (remainingMs == null) return;
 
   if (remainingMs <= 10000) {
+    clearFadeIn();
     audio.volume = Math.max(0, remainingMs / 10000);
   }
-
-  publish({ remainingSeconds });
 
   if (remainingMs > 0) return;
 
@@ -67,14 +95,16 @@ function runTimer() {
 
 function startTimer() {
   clearTimer();
-  if (snapshot.timerMinutes == null || !audio) {
+  if (!audio) return;
+
+  if (snapshot.timerMinutes == null) {
     timerRemainingMs = null;
     publish({ remainingSeconds: null });
-    return;
+  } else {
+    const duration = timerRemainingMs ?? snapshot.timerMinutes * 60 * 1000;
+    timerEndsAt = Date.now() + duration;
   }
 
-  const duration = timerRemainingMs ?? snapshot.timerMinutes * 60 * 1000;
-  timerEndsAt = Date.now() + duration;
   runTimer();
   tickId = window.setInterval(runTimer, 250);
 }
@@ -97,16 +127,19 @@ function prepareAudio(track) {
     publish({ isPlaying: false });
   };
   const onError = () => publish({ isPlaying: false, error: 'No pudimos reproducir este sonido. Inténtalo otra vez.' });
+  const onLoadedMetadata = () => publish({ duration: Number.isFinite(audio?.duration) ? audio.duration : 0 });
   audio.addEventListener('play', onPlay);
   audio.addEventListener('pause', onPause);
   audio.addEventListener('error', onError);
+  audio.addEventListener('loadedmetadata', onLoadedMetadata);
   detachAudioListeners = () => {
     audio?.removeEventListener('play', onPlay);
     audio?.removeEventListener('pause', onPause);
     audio?.removeEventListener('error', onError);
+    audio?.removeEventListener('loadedmetadata', onLoadedMetadata);
   };
   timerRemainingMs = null;
-  publish({ track, isPlaying: false, remainingSeconds: null, error: '' });
+  publish({ track, isPlaying: false, remainingSeconds: null, currentTime: 0, duration: 0, error: '' });
   return audio;
 }
 
@@ -124,9 +157,9 @@ export const restAudioPlayer = {
   async play(track) {
     const player = track ? prepareAudio(track) : audio;
     if (!player) return;
-    player.volume = 1;
     try {
       await player.play();
+      fadeInAudio(player);
       startTimer();
     } catch {
       publish({ isPlaying: false, error: 'El sonido necesita un toque para comenzar. Inténtalo otra vez.' });
@@ -135,6 +168,7 @@ export const restAudioPlayer = {
 
   pause() {
     audio?.pause();
+    clearFadeIn();
     if (audio) audio.volume = 1;
   },
 
@@ -146,14 +180,14 @@ export const restAudioPlayer = {
   setTimer(minutes) {
     const normalized = minutes === null ? null : Number(minutes);
     timerRemainingMs = normalized == null ? null : normalized * 60 * 1000;
-    publish({ timerMinutes: normalized, remainingSeconds: normalized == null ? null : normalized * 60 });
+    publish({ timerMinutes: normalized, timerTotalSeconds: normalized == null ? null : normalized * 60, remainingSeconds: normalized == null ? null : normalized * 60 });
     if (snapshot.isPlaying) startTimer();
   },
 
   stop() {
     stopAndDisposeAudio();
     timerRemainingMs = null;
-    publish({ track: null, isPlaying: false, remainingSeconds: null, error: '' });
+    publish({ track: null, isPlaying: false, remainingSeconds: null, currentTime: 0, duration: 0, error: '' });
   }
 };
 
