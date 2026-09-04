@@ -12,10 +12,14 @@ const TIMER_OPTIONS = [
 ];
 
 function TrackArtwork({ track, withOverlay = true }) {
-  const [failed, setFailed] = useState(false);
   return (
-    <div style={{ ...styles.artwork, ...(failed ? styles.artworkFallback : {}) }}>
-      {!failed && <img src={track.imageUrl} alt="" onError={() => setFailed(true)} style={styles.image} />}
+    <div style={styles.artwork}>
+      <img
+        src={track.imageUrl}
+        alt={track.title}
+        className="rest-audio-artwork"
+        style={styles.image}
+      />
       {withOverlay && <div style={styles.overlay} />}
     </div>
   );
@@ -97,7 +101,6 @@ const styles = {
   grid: { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' },
   card: { position: 'relative', overflow: 'hidden', minHeight: '170px', padding: 0, border: 'none', borderRadius: '18px', background: '#21152A', color: '#fff', cursor: 'pointer', textAlign: 'left', boxShadow: '0 5px 14px rgba(44, 31, 47, 0.13)' },
   artwork: { position: 'absolute', inset: 0, overflow: 'hidden', background: '#1D1825' },
-  artworkFallback: { background: 'linear-gradient(135deg, #3B0764 0%, #171717 100%)' },
   image: { width: '100%', height: '100%', display: 'block', objectFit: 'cover' },
   overlay: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' },
   cardText: { position: 'relative', zIndex: 1, minHeight: '170px', boxSizing: 'border-box', padding: '16px 13px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '5px' },
