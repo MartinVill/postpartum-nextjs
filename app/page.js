@@ -582,6 +582,7 @@ export default function Home() {
             <BodyAndCalmModule
               userProfile={state.userProfile}
               onBack={() => setState(prev => ({ ...prev, showBodyAndCalm: false }))}
+              onBreathingComplete={() => setState(prev => ({ ...prev, showBodyAndCalm: false, activeTab: 'home' }))}
             />
           </div>
         </div>

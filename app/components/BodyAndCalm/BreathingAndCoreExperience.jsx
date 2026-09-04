@@ -45,13 +45,15 @@ function saveLocalMinutes(userId, minutes) {
   localStorage.setItem(localStorageKey(userId), JSON.stringify({ weekKey: getLocalWeekKey(), minutes }));
 }
 
-export default function BreathingAndCoreExperience({ onBack }) {
+export default function BreathingAndCoreExperience({ onBack, onComplete }) {
   const [userId, setUserId] = useState('');
   const [weeklyMinutes, setWeeklyMinutes] = useState(0);
   const [session, setSession] = useState(null);
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [cycle, setCycle] = useState(1);
   const [ringProgress, setRingProgress] = useState(0);
+  const [preparationSeconds, setPreparationSeconds] = useState(10);
+  const [completionSeconds, setCompletionSeconds] = useState(5);
   const completedRef = useRef(false);
   const wakeLockRef = useRef(null);
 
@@ -97,6 +99,23 @@ export default function BreathingAndCoreExperience({ onBack }) {
   }, []);
 
   useEffect(() => {
+    if (!session || session.status !== 'preparing') return undefined;
+
+    const countdown = window.setInterval(() => {
+      setPreparationSeconds(current => {
+        if (current <= 1) {
+          window.clearInterval(countdown);
+          setSession(active => active ? { ...active, status: 'running' } : active);
+          return 0;
+        }
+        return current - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(countdown);
+  }, [session]);
+
+  useEffect(() => {
     if (!session || session.status !== 'running') return undefined;
     if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(18);
 
@@ -123,7 +142,7 @@ export default function BreathingAndCoreExperience({ onBack }) {
   }, [phaseIndex, session]);
 
   useEffect(() => {
-    if (!session || session.status !== 'running') {
+    if (!session || !['preparing', 'running'].includes(session.status)) {
       releaseWakeLock();
       return undefined;
     }
@@ -143,9 +162,12 @@ export default function BreathingAndCoreExperience({ onBack }) {
   useEffect(() => {
     if (!session || session.status !== 'complete' || completedRef.current) return undefined;
     completedRef.current = true;
-    const nextMinutes = weeklyMinutes + SESSION_MINUTES;
-    setWeeklyMinutes(nextMinutes);
-    saveLocalMinutes(userId, nextMinutes);
+    let nextMinutes = SESSION_MINUTES;
+    setWeeklyMinutes(current => {
+      nextMinutes = current + SESSION_MINUTES;
+      saveLocalMinutes(userId, nextMinutes);
+      return nextMinutes;
+    });
 
     if (userId) {
       fetch('/api/breathing/stats', {
@@ -162,30 +184,53 @@ export default function BreathingAndCoreExperience({ onBack }) {
         .catch(() => undefined);
     }
 
-    const returnTimeout = window.setTimeout(() => setSession(null), 2000);
-    return () => window.clearTimeout(returnTimeout);
-  }, [session, userId, weeklyMinutes]);
+    setCompletionSeconds(5);
+    const countdown = window.setInterval(() => {
+      setCompletionSeconds(current => Math.max(0, current - 1));
+    }, 1000);
+    const returnTimeout = window.setTimeout(() => {
+      if (onComplete) onComplete();
+      else setSession(null);
+    }, 5000);
+    return () => {
+      window.clearInterval(countdown);
+      window.clearTimeout(returnTimeout);
+    };
+  }, [session, userId, onComplete]);
 
-  const startSession = (title) => {
+  const startSession = (title, needsPreparation = false) => {
     requestWakeLock();
     completedRef.current = false;
     setCycle(1);
     setPhaseIndex(0);
     setRingProgress(0);
-    setSession({ title, status: 'running' });
+    setPreparationSeconds(10);
+    setCompletionSeconds(5);
+    setSession({ title, status: needsPreparation ? 'preparing' : 'running' });
   };
+
+  const closeSession = () => setSession(null);
 
   if (session) {
     const phase = PHASES[phaseIndex];
     const isComplete = session.status === 'complete';
     return (
       <div style={sessionStyles.screen} role="dialog" aria-modal="true" aria-label="Guía de respiración">
-        <button className="breathing-close" onClick={() => setSession(null)} aria-label="Salir de la pausa" style={sessionStyles.close}>×</button>
+        <button className="breathing-close" onClick={closeSession} aria-label="Salir de la pausa" style={sessionStyles.close}>×</button>
         {isComplete ? (
           <div style={sessionStyles.completion}>
-            <div style={sessionStyles.heart}>♡</div>
-            <h2 style={sessionStyles.completionTitle}>Hiciste algo hermoso por ti hoy 🤍</h2>
-            <p style={sessionStyles.completionText}>Sumamos 2 minutos de aire para ti esta semana.</p>
+            <div style={sessionStyles.heart}>😍</div>
+            <h2 style={sessionStyles.completionTitle}>Hiciste algo hermoso<br />por ti hoy 😍</h2>
+            <p style={sessionStyles.completionText}>Sumaste 2 minutos de amor propio hoy</p>
+            <p style={sessionStyles.autoExit}>Saliendo en {completionSeconds}</p>
+          </div>
+        ) : session.status === 'preparing' ? (
+          <div style={sessionStyles.preparation}>
+            <p style={sessionStyles.exerciseName}>{session.title}</p>
+            <p style={sessionStyles.preparationEyebrow}>Este momento es para ti</p>
+            <p style={sessionStyles.preparationCopy}>Acomódate con calma. Relaja los hombros y la espalda, y deja tus preocupaciones a un lado por un momento.</p>
+            <p aria-live="polite" style={sessionStyles.preparationCountdown}>{preparationSeconds}</p>
+            <p style={sessionStyles.preparationHint}>Prepárate para respirar al ritmo de la pantalla.</p>
           </div>
         ) : (
           <>
@@ -210,7 +255,6 @@ export default function BreathingAndCoreExperience({ onBack }) {
             </div>
             <h1 key={phase.label} style={sessionStyles.phase}>{phase.label}</h1>
             <p style={sessionStyles.cycle}>Ciclo {cycle} de 10</p>
-            <p style={sessionStyles.quiet}>Guía visual silenciosa</p>
             <div style={sessionStyles.cycleDots} aria-label={`Progreso: ciclo ${cycle} de 10`}>
               {Array.from({ length: 10 }, (_, index) => (
                 <span
@@ -222,7 +266,7 @@ export default function BreathingAndCoreExperience({ onBack }) {
                 />
               ))}
             </div>
-            <style>{`@keyframes breathing-phase-fade { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } } @media (hover: hover) { .breathing-close:hover { opacity: 1 !important; } }`}</style>
+            <style>{`@keyframes breathing-phase-fade { 0% { opacity: 0; transform: translateY(9px) scale(0.97); filter: blur(1px); } 100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } } @media (hover: hover) { .breathing-close:hover { opacity: 1 !important; } }`}</style>
           </>
         )}
       </div>
@@ -240,7 +284,7 @@ export default function BreathingAndCoreExperience({ onBack }) {
         <p style={styles.accumulator}>Llevas {weeklyMinutes} minutos de aire para ti esta semana 🌿</p>
       )}
 
-      <button onClick={() => startSession('Pausa rápida')} style={styles.quickStart}>
+      <button onClick={() => startSession('Pausa rápida', true)} style={styles.quickStart}>
         <span style={styles.quickLabel}>Pausa rápida de 2 minutos</span>
         <span aria-hidden="true" style={styles.quickArrow}>&gt;</span>
       </button>
@@ -255,7 +299,7 @@ export default function BreathingAndCoreExperience({ onBack }) {
           </button>
         ))}
       </div>
-      <p style={styles.disclaimer}>Escucha a tu cuerpo y consulta con tu médico antes de ejercitarte.</p>
+      <p style={styles.disclaimer}>Recuerda asegurar tu alta médica antes de ejercitarte.</p>
     </div>
   );
 }
@@ -280,21 +324,26 @@ const styles = {
 
 const sessionStyles = {
   screen: { position: 'fixed', inset: 0, zIndex: 90, minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#FFFDF6', color: '#374151', padding: '32px 24px', boxSizing: 'border-box', overflow: 'hidden' },
-  close: { position: 'absolute', right: '20px', top: 'max(20px, env(safe-area-inset-top))', width: '42px', height: '42px', border: '1px solid #E5E7EB', borderRadius: '50%', background: '#FFFDF6', color: '#6B7280', fontSize: '29px', fontWeight: '300', lineHeight: 1, cursor: 'pointer', opacity: 0.6, transition: 'opacity 0.2s ease' },
-  exerciseName: { position: 'absolute', top: 'max(28px, env(safe-area-inset-top))', margin: 0, color: '#8B3D9C', fontSize: '15px', fontWeight: '600', textAlign: 'center', padding: '0 62px' },
+  close: { position: 'absolute', right: '20px', top: 'max(34px, calc(env(safe-area-inset-top) + 8px))', width: '42px', height: '42px', border: '1px solid #D1D5DB', borderRadius: '50%', background: '#FFFDF6', color: '#6B7280', fontSize: '29px', fontWeight: '300', lineHeight: 1, cursor: 'pointer', opacity: 0.9, transition: 'opacity 0.2s ease' },
+  exerciseName: { position: 'absolute', top: 'max(34px, calc(env(safe-area-inset-top) + 8px))', margin: 0, color: '#8B3D9C', fontSize: '17px', fontWeight: '600', textAlign: 'center', padding: '0 68px' },
   orbArea: { height: '270px', width: '270px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '18px', marginBottom: '34px', flexShrink: 0 },
   progressRing: { position: 'absolute', inset: 0, width: '270px', height: '270px', transform: 'rotate(-90deg)', overflow: 'visible', pointerEvents: 'none' },
   ringTrack: { fill: 'none', stroke: 'rgba(217,70,239,0.14)', strokeWidth: 2 },
   ringProgress: { fill: 'none', stroke: '#D946EF', strokeWidth: 3, strokeLinecap: 'round', transitionProperty: 'stroke-dashoffset', transitionTimingFunction: 'linear' },
   orbGlow: { position: 'absolute', width: '190px', height: '190px', borderRadius: '50%', background: 'rgba(217,70,239,0.22)', filter: 'blur(18px)', transitionProperty: 'transform', transitionTimingFunction: 'ease-in-out' },
   orb: { position: 'absolute', width: '172px', height: '172px', borderRadius: '50%', background: 'radial-gradient(circle at 32% 28%, #F7C7FF 0%, #E879F9 44%, #C026D3 100%)', boxShadow: '0 18px 52px rgba(192,38,211,0.28)', transitionProperty: 'transform', transitionTimingFunction: 'ease-in-out' },
-  phase: { margin: 0, color: '#D946EF', fontSize: '34px', lineHeight: 1.2, fontWeight: '700', animation: 'breathing-phase-fade 350ms ease both' },
+  phase: { margin: 0, color: '#D946EF', fontSize: '34px', lineHeight: 1.2, fontWeight: '700', animation: 'breathing-phase-fade 600ms cubic-bezier(0.22, 1, 0.36, 1) both' },
   cycle: { margin: '10px 0 0', color: '#4B5563', fontSize: '15px', fontWeight: '600' },
-  quiet: { margin: '26px 0 0', color: '#9CA3AF', fontSize: '13px' },
-  cycleDots: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '11px' },
+  cycleDots: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '26px' },
   cycleDot: { display: 'block', width: '17px', height: '6px', borderRadius: '999px', transition: 'background 250ms ease' },
   completion: { maxWidth: '310px', textAlign: 'center' },
   heart: { width: '72px', height: '72px', margin: '0 auto 22px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FBEAFE', color: '#D946EF', borderRadius: '50%', fontSize: '45px' },
-  completionTitle: { color: '#374151', fontSize: '25px', lineHeight: 1.28, margin: '0 0 12px', fontWeight: '700' },
-  completionText: { color: '#6B7280', fontSize: '15px', lineHeight: 1.45, margin: 0 }
+  completionTitle: { color: '#374151', fontSize: '28px', lineHeight: 1.28, margin: '0 0 12px', fontWeight: '700' },
+  completionText: { color: '#6B7280', fontSize: '15px', lineHeight: 1.45, margin: 0 },
+  autoExit: { color: '#D946EF', fontSize: '15px', lineHeight: 1.45, fontWeight: '400', margin: '10px 0 0' },
+  preparation: { maxWidth: '320px', textAlign: 'center', paddingTop: '44px' },
+  preparationEyebrow: { color: '#8B3D9C', fontSize: '16px', fontWeight: '600', margin: 0 },
+  preparationCopy: { color: '#4B5563', fontSize: '17px', lineHeight: 1.55, margin: '24px 0 30px' },
+  preparationCountdown: { color: '#D946EF', fontSize: '76px', lineHeight: 1, fontWeight: '700', margin: 0, fontVariantNumeric: 'tabular-nums' },
+  preparationHint: { color: '#6B7280', fontSize: '15px', lineHeight: 1.45, margin: '24px 0 0' }
 };

@@ -7,7 +7,7 @@ import ExercisePlayer from './ExercisePlayer';
 import BreathingAndCoreExperience from './BreathingAndCoreExperience';
 import RelajacionYPausaView from './RelajacionYPausaView';
 
-export default function BodyAndCalmModule({ onBack, userProfile }) {
+export default function BodyAndCalmModule({ onBack, onBreathingComplete, userProfile }) {
   const [screen, setScreen] = useState('categories');
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -86,7 +86,7 @@ export default function BodyAndCalmModule({ onBack, userProfile }) {
   }
 
   if (screen === 'breathing') {
-    return <BreathingAndCoreExperience onBack={handleBackFromActivities} />;
+    return <BreathingAndCoreExperience onBack={handleBackFromActivities} onComplete={onBreathingComplete || onBack} />;
   }
 
   return (
