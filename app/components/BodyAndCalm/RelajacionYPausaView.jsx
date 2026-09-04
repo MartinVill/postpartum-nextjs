@@ -145,7 +145,7 @@ const styles = {
   cardTitle: { fontSize: '15px', lineHeight: 1.2, color: '#1E293B', fontWeight: 600 },
   cardSubtitle: { display: '-webkit-box', overflow: 'hidden', color: '#64748B', fontSize: '13px', lineHeight: 1.25, WebkitBoxOrient: 'vertical', WebkitLineClamp: 2 },
   modalBackdrop: { position: 'fixed', inset: 0, zIndex: 80, overflow: 'hidden', background: 'rgba(15, 23, 42, 0.42)', touchAction: 'none', overscrollBehavior: 'contain' },
-  modal: { position: 'relative', width: '100%', minHeight: '100dvh', height: '100dvh', boxSizing: 'border-box', padding: 'calc(42px + env(safe-area-inset-top, 0px)) 24px calc(32px + env(safe-area-inset-bottom, 0px))', background: '#172033', color: '#fff', overflow: 'hidden', overscrollBehavior: 'contain', animation: 'restPlayerFadeIn 220ms ease-out both', transition: 'background 260ms ease, color 260ms ease' },
+  modal: { position: 'relative', width: '100%', minHeight: '100dvh', height: '100dvh', boxSizing: 'border-box', padding: 'calc(42px + env(safe-area-inset-top, 0px)) 24px calc(32px + env(safe-area-inset-bottom, 0px))', background: '#172033', color: '#fff', overflow: 'hidden', overscrollBehavior: 'contain', animation: 'restPlayerFadeIn 420ms ease-out both', transition: 'background 260ms ease, color 260ms ease' },
   modalNight: { background: '#020617', color: '#fff' },
   modalBackground: { position: 'absolute', inset: 0, overflow: 'hidden' },
   modalBackgroundImage: { width: '100%', height: '100%', objectFit: 'cover', opacity: 1 },
