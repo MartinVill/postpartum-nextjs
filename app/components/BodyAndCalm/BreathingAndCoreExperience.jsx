@@ -219,6 +219,7 @@ export default function BreathingAndCoreExperience({ onBack, onComplete }) {
     return (
       <div style={{ ...sessionStyles.screen, ...(session.status === 'preparing' ? sessionStyles.preparationScreen : {}) }} role="dialog" aria-modal="true" aria-label="Guía de respiración">
         <button className="breathing-close" onClick={closeSession} aria-label="Salir de la pausa" style={sessionStyles.close}>×</button>
+        {!isComplete && <p style={sessionStyles.exerciseName}>{session.title}</p>}
         {isComplete ? (
           <div style={sessionStyles.completion}>
             <div style={sessionStyles.heart}>😍</div>
@@ -228,7 +229,6 @@ export default function BreathingAndCoreExperience({ onBack, onComplete }) {
           </div>
         ) : session.status === 'preparing' ? (
           <div style={sessionStyles.preparation}>
-            <p style={sessionStyles.exerciseName}>{session.title}</p>
             <p style={sessionStyles.preparationEyebrow}>Este momento es para ti</p>
             <p style={sessionStyles.preparationTitle}>Unos segundos para acomodarte.</p>
             <p style={sessionStyles.preparationCopy}>Relaja los hombros y la espalda. Deja lo demás afuera por un momento.</p>
@@ -252,12 +252,10 @@ export default function BreathingAndCoreExperience({ onBack, onComplete }) {
                 <span style={sessionStyles.preparationSecondsLabel}>segundos</span>
               </div>
             </div>
-            <p style={sessionStyles.preparationHint}>Enseguida comenzamos</p>
             <style>{`@keyframes preparation-fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } @keyframes preparation-pulse { 0%, 100% { transform: scale(0.92); opacity: 0.35; } 50% { transform: scale(1.08); opacity: 0.72; } } @keyframes preparation-count { from { opacity: 0.35; transform: scale(0.82); } to { opacity: 1; transform: scale(1); } }`}</style>
           </div>
         ) : (
           <>
-            <p style={sessionStyles.exerciseName}>{session.title}</p>
             <div style={sessionStyles.orbArea}>
               <svg viewBox="0 0 270 270" aria-hidden="true" style={sessionStyles.progressRing}>
                 <circle cx="135" cy="135" r={RING_RADIUS} style={sessionStyles.ringTrack} />
@@ -368,7 +366,7 @@ const sessionStyles = {
   preparation: { width: '100%', maxWidth: '336px', textAlign: 'center', padding: '32px 24px 27px', boxSizing: 'border-box', borderRadius: '28px', background: 'rgba(255,253,246,0.78)', border: '1px solid rgba(232,121,249,0.16)', boxShadow: '0 18px 46px rgba(139,61,156,0.10)', animation: 'preparation-fade 620ms cubic-bezier(0.22, 1, 0.36, 1) both' },
   preparationEyebrow: { color: '#A739B9', fontSize: '16px', fontWeight: '700', margin: 0, animation: 'preparation-fade 520ms 80ms ease both' },
   preparationTitle: { color: '#374151', fontSize: '21px', lineHeight: 1.3, fontWeight: '700', margin: '10px 0 0', animation: 'preparation-fade 520ms 150ms ease both' },
-  preparationCopy: { color: '#5B6470', fontSize: '16px', lineHeight: 1.52, margin: '13px auto 22px', maxWidth: '264px', animation: 'preparation-fade 520ms 230ms ease both' },
+  preparationCopy: { color: '#465160', fontSize: '16px', lineHeight: 1.52, margin: '13px auto 22px', maxWidth: '264px', animation: 'preparation-fade 520ms 230ms ease both' },
   preparationTimer: { position: 'relative', width: '176px', height: '176px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'preparation-fade 600ms 300ms ease both' },
   preparationGlow: { position: 'absolute', width: '126px', height: '126px', borderRadius: '50%', background: 'rgba(217,70,239,0.20)', filter: 'blur(18px)', animation: 'preparation-pulse 3.2s ease-in-out infinite' },
   preparationRing: { position: 'absolute', inset: 0, width: '176px', height: '176px', transform: 'rotate(-90deg)', overflow: 'visible' },
@@ -376,6 +374,5 @@ const sessionStyles = {
   preparationRingProgress: { fill: 'none', stroke: '#D946EF', strokeWidth: 5, strokeLinecap: 'round', transition: 'stroke-dashoffset 900ms cubic-bezier(0.22, 1, 0.36, 1)' },
   preparationCounterContent: { position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
   preparationCountdown: { color: '#D946EF', fontSize: '70px', lineHeight: 0.92, fontWeight: '700', margin: 0, fontVariantNumeric: 'tabular-nums', animation: 'preparation-count 420ms cubic-bezier(0.22, 1, 0.36, 1) both' },
-  preparationSecondsLabel: { color: '#9C579F', fontSize: '12px', letterSpacing: '0.04em', marginTop: '7px' },
-  preparationHint: { color: '#7A657D', fontSize: '14px', lineHeight: 1.45, margin: '21px 0 0', animation: 'preparation-fade 500ms 370ms ease both' }
+  preparationSecondsLabel: { color: '#9C579F', fontSize: '12px', letterSpacing: '0.04em', marginTop: '7px' }
 };
