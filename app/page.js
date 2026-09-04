@@ -9,6 +9,7 @@ import Calendar from './components/Calendar';
 import NightReflection from './components/NightReflection';
 import DailyChallenge from './components/DailyChallenge';
 import BodyAndCalmModule from './components/BodyAndCalm/BodyAndCalmModule';
+import RestAudioMiniPlayer from './components/BodyAndCalm/RestAudioMiniPlayer';
 import BottomNavigationBar from './components/BottomNavigationBar';
 import HomeGrid from './components/HomeGrid';
 import Profile from './components/Profile';
@@ -913,6 +914,7 @@ export default function Home() {
           }}
         />
       )}
+      <RestAudioMiniPlayer />
       <BottomNavigationBar activeTab={state.activeTab} onTabChange={handleNavigate} />
     </div>
   );

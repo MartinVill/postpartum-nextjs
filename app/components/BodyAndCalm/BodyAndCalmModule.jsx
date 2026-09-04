@@ -5,6 +5,7 @@ import CategoriesView from './CategoriesView';
 import ActivitiesListView from './ActivitiesListView';
 import ExercisePlayer from './ExercisePlayer';
 import BreathingAndCoreExperience from './BreathingAndCoreExperience';
+import RelajacionYPausaView from './RelajacionYPausaView';
 
 export default function BodyAndCalmModule({ onBack, userProfile }) {
   const [screen, setScreen] = useState('categories');
@@ -68,6 +69,10 @@ export default function BodyAndCalmModule({ onBack, userProfile }) {
         onBack={handleBackFromExercise}
       />
     );
+  }
+
+  if (screen === 'activities' && selectedCategory === 'relaxation') {
+    return <RelajacionYPausaView onBack={handleBackFromActivities} />;
   }
 
   if (screen === 'activities' && selectedCategory) {
