@@ -11,12 +11,12 @@ const TIMER_OPTIONS = [
   { value: null, label: 'Sin límite' }
 ];
 
-function TrackArtwork({ track }) {
+function TrackArtwork({ track, withOverlay = true }) {
   const [failed, setFailed] = useState(false);
   return (
     <div style={{ ...styles.artwork, ...(failed ? styles.artworkFallback : {}) }}>
       {!failed && <img src={track.imageUrl} alt="" onError={() => setFailed(true)} style={styles.image} />}
-      <div style={styles.overlay} />
+      {withOverlay && <div style={styles.overlay} />}
     </div>
   );
 }
@@ -63,7 +63,7 @@ export default function RelajacionYPausaView({ onBack }) {
             <button onClick={closePlayer} style={{ ...styles.modalClose, opacity: nightMode ? 0.3 : 0.65 }} aria-label="Cerrar reproductor">×</button>
             <button onClick={() => setNightMode(value => !value)} style={{ ...styles.moon, opacity: nightMode ? 1 : 0.65 }} aria-pressed={nightMode} aria-label="Oscurecer pantalla">☾</button>
             <div style={{ ...styles.modalControls, opacity: nightMode ? 0.3 : 1 }}>
-              <div style={styles.modalArtwork}><TrackArtwork track={selectedTrack} /></div>
+              <div style={styles.modalArtwork}><TrackArtwork track={selectedTrack} withOverlay={false} /></div>
               <p style={styles.nowPlaying}>Sonido para descansar</p>
               <h2 style={styles.modalTitle}>{selectedTrack.title}</h2>
               <button onClick={() => restAudioPlayer.toggle()} style={styles.primaryPlay} aria-label={player.isPlaying ? 'Pausar' : 'Reproducir'}>
@@ -104,19 +104,19 @@ const styles = {
   cardTitle: { fontSize: '15px', lineHeight: 1.18, color: '#fff' },
   cardSubtitle: { color: '#E5E7EB', fontSize: '11px', lineHeight: 1.28 },
   modalBackdrop: { position: 'fixed', inset: 0, zIndex: 80, display: 'flex', alignItems: 'flex-end', background: 'rgba(17, 24, 39, 0.45)' },
-  modal: { position: 'relative', width: '100%', minHeight: '510px', boxSizing: 'border-box', padding: '32px 24px calc(94px + env(safe-area-inset-bottom, 0px))', borderRadius: '28px 28px 0 0', background: '#FFFDF6', overflow: 'hidden', transition: 'background 260ms ease, color 260ms ease' },
-  modalNight: { background: '#0A0A0A', color: '#F9FAFB' },
+  modal: { position: 'relative', width: '100%', minHeight: '510px', boxSizing: 'border-box', padding: '32px 24px calc(94px + env(safe-area-inset-bottom, 0px))', borderRadius: '28px 28px 0 0', background: '#111827', color: '#fff', overflow: 'hidden', transition: 'background 260ms ease, color 260ms ease' },
+  modalNight: { background: '#020617', color: '#fff' },
   modalClose: { position: 'absolute', zIndex: 2, top: '17px', right: '18px', width: '36px', height: '36px', border: 'none', background: 'transparent', color: '#D946EF', fontSize: '31px', lineHeight: 1, cursor: 'pointer' },
   moon: { position: 'absolute', zIndex: 2, top: '20px', left: '20px', width: '32px', height: '32px', border: 'none', borderRadius: '50%', background: 'transparent', color: '#D946EF', fontSize: '24px', lineHeight: 1, cursor: 'pointer' },
   modalControls: { position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'opacity 260ms ease' },
-  modalArtwork: { position: 'relative', width: '120px', height: '120px', margin: '4px 0 18px', overflow: 'hidden', borderRadius: '50%', boxShadow: '0 8px 20px rgba(0,0,0,0.18)' },
-  nowPlaying: { margin: 0, color: '#9CA3AF', fontSize: '12px', fontWeight: 600 },
-  modalTitle: { margin: '7px 0 18px', color: 'inherit', fontSize: '24px', lineHeight: 1.2, textAlign: 'center' },
-  primaryPlay: { width: '66px', height: '66px', border: 'none', borderRadius: '50%', background: '#D946EF', color: '#fff', fontSize: '26px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 8px 16px rgba(217,70,239,0.28)' },
-  timerLabel: { margin: '26px 0 10px', color: 'inherit', fontSize: '14px', fontWeight: 650 },
+  modalArtwork: { position: 'relative', width: '192px', height: '192px', margin: '4px 0 18px', overflow: 'hidden', borderRadius: '16px', boxShadow: '0 18px 34px rgba(0,0,0,0.45)' },
+  nowPlaying: { margin: 0, color: '#A3A3A3', fontSize: '12px', fontWeight: 600 },
+  modalTitle: { margin: '7px 0 18px', color: '#fff', fontSize: '24px', lineHeight: 1.2, textAlign: 'center' },
+  primaryPlay: { width: '76px', height: '76px', border: '1px solid rgba(255,255,255,0.16)', borderRadius: '50%', background: '#C026D3', color: '#fff', fontSize: '29px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 0 0 7px rgba(192,38,211,0.11), 0 14px 28px rgba(192,38,211,0.38)', transition: 'transform 180ms ease, box-shadow 180ms ease' },
+  timerLabel: { margin: '26px 0 10px', color: '#fff', fontSize: '14px', fontWeight: 650 },
   timerOptions: { display: 'flex', gap: '7px', flexWrap: 'wrap', justifyContent: 'center' },
-  timerButton: { padding: '8px 11px', borderRadius: '999px', border: '1px solid #D1D5DB', background: 'transparent', color: 'inherit', fontSize: '12px', cursor: 'pointer' },
-  timerButtonActive: { borderColor: '#D946EF', background: '#D946EF', color: '#fff', fontWeight: 700 },
-  remaining: { marginTop: '13px', color: '#9CA3AF', fontSize: '12px' },
+  timerButton: { padding: '8px 11px', borderRadius: '999px', border: '1px solid #404040', background: '#262626', color: '#D4D4D4', fontSize: '12px', cursor: 'pointer' },
+  timerButtonActive: { borderColor: '#C026D3', background: '#C026D3', color: '#fff', fontWeight: 700 },
+  remaining: { marginTop: '13px', color: '#E879F9', fontSize: '12px', fontWeight: 500 },
   error: { margin: '14px 0 0', color: '#DC2626', fontSize: '12px', textAlign: 'center' }
 };
