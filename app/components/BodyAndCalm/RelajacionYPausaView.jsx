@@ -103,8 +103,8 @@ export default function RelajacionYPausaView({ onBack }) {
                 </div>
                 <span style={styles.progressCopy}>
                   {player.timerMinutes != null
-                    ? `${player.timerMinutes} min seleccionados · faltan ${formatTime(player.remainingSeconds ?? player.timerTotalSeconds)}`
-                    : `Sin límite · ${formatTime(player.currentTime)} transcurridos`}
+                    ? `Faltan ${formatTime(player.remainingSeconds ?? player.timerTotalSeconds)}`
+                    : `Faltan ${formatTime(Math.max(0, (player.duration || 0) - player.currentTime))}`}
                 </span>
               </div>
               {player.error && <p style={styles.error}>{player.error}</p>}
