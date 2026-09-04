@@ -132,7 +132,7 @@ const styles = {
   screen: { minHeight: '100vh', boxSizing: 'border-box', background: '#FFFDF6', color: '#374151', padding: '20px 16px 168px', maxWidth: '600px', margin: '0 auto' },
   header: { position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '8px 0 22px' },
   back: { position: 'absolute', top: '3px', left: '0', width: '40px', height: '40px', borderRadius: '50%', border: 'none', background: '#FFFDF6', color: '#D946EF', fontWeight: 700, fontSize: '24px', lineHeight: 1, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
-  headerCopy: { width: '100%', maxWidth: '340px', boxSizing: 'border-box', padding: '0 0 0 48px', textAlign: 'center' },
+  headerCopy: { width: '100%', maxWidth: '320px', boxSizing: 'border-box', padding: '0 8px', textAlign: 'center' },
   heading: { margin: 0, color: '#D946EF', fontSize: '21px', lineHeight: 1.2, fontWeight: 700, whiteSpace: 'nowrap' },
   subheading: { margin: '9px 0 0', color: '#5F6670', fontSize: '14px', lineHeight: 1.45 },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' },
