@@ -127,7 +127,7 @@ const styles = {
   timerLabel: { margin: '26px 0 10px', color: '#fff', fontSize: '14px', fontWeight: 650 },
   timerOptions: { display: 'flex', gap: '7px', flexWrap: 'wrap', justifyContent: 'center' },
   timerButton: { padding: '8px 11px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', fontSize: '12px', cursor: 'pointer', backdropFilter: 'blur(12px)' },
-  timerButtonActive: { borderColor: '#C026D3', background: '#C026D3', color: '#fff', fontWeight: 700 },
+  timerButtonActive: { border: '1px solid #C026D3', background: '#C026D3', color: '#fff', fontWeight: 700 },
   remaining: { marginTop: '13px', color: '#F0ABFC', fontSize: '12px', fontWeight: 500 },
   error: { margin: '14px 0 0', color: '#DC2626', fontSize: '12px', textAlign: 'center' }
 };
