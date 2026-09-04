@@ -11,16 +11,15 @@ const TIMER_OPTIONS = [
   { value: null, label: 'Sin límite' }
 ];
 
-function TrackArtwork({ track, withOverlay = true }) {
+function TrackArtwork({ track, style }) {
   return (
-    <div style={styles.artwork}>
+    <div style={{ ...styles.artwork, ...style }}>
       <img
         src={track.imageUrl}
         alt={track.title}
         className="rest-audio-artwork"
         style={styles.image}
       />
-      {withOverlay && <div style={styles.overlay} />}
     </div>
   );
 }
@@ -45,14 +44,15 @@ export default function RelajacionYPausaView({ onBack }) {
         <button onClick={onBack} style={styles.back} aria-label="Volver a Cuerpo y Calma">&lt;</button>
         <div style={styles.headerCopy}>
           <h1 style={styles.heading}>Sonidos para descansar</h1>
-          <p style={styles.subheading}>Elige un sonido, activa el temporizador si deseas y tómate una pausa.</p>
+          <p style={styles.subheading}>Encuentra tu momento de calma. Selecciona un ambiente para acompañar tu descanso.</p>
         </div>
       </header>
 
       <main style={styles.grid}>
         {REST_AUDIO_TRACKS.map(track => (
           <button key={track.id} onClick={() => openPlayer(track)} style={styles.card} aria-label={`Abrir ${track.title}`}>
-            <TrackArtwork track={track} />
+            <TrackArtwork track={track} style={styles.cardArtwork} />
+            <span style={styles.playBadge} aria-hidden="true">▶</span>
             <span style={styles.cardText}>
               <strong style={styles.cardTitle}>{track.title}</strong>
               <span style={styles.cardSubtitle}>{track.subtitle}</span>
@@ -64,10 +64,14 @@ export default function RelajacionYPausaView({ onBack }) {
       {selectedTrack && (
         <div style={styles.modalBackdrop} role="dialog" aria-modal="true" aria-label={`Reproductor de ${selectedTrack.title}`}>
           <section style={{ ...styles.modal, ...(nightMode ? styles.modalNight : {}) }}>
+            <div style={styles.modalBackground} aria-hidden="true">
+              <img src={selectedTrack.imageUrl} alt="" style={styles.modalBackgroundImage} />
+              <div style={styles.modalBackgroundShade} />
+            </div>
             <button onClick={closePlayer} style={{ ...styles.modalClose, opacity: nightMode ? 0.3 : 0.65 }} aria-label="Cerrar reproductor">×</button>
             <button onClick={() => setNightMode(value => !value)} style={{ ...styles.moon, opacity: nightMode ? 1 : 0.65 }} aria-pressed={nightMode} aria-label="Oscurecer pantalla">☾</button>
             <div style={{ ...styles.modalControls, opacity: nightMode ? 0.3 : 1 }}>
-              <div style={styles.modalArtwork}><TrackArtwork track={selectedTrack} withOverlay={false} /></div>
+              <TrackArtwork track={selectedTrack} style={styles.modalArtwork} />
               <p style={styles.nowPlaying}>Sonido para descansar</p>
               <h2 style={styles.modalTitle}>{selectedTrack.title}</h2>
               <button onClick={() => restAudioPlayer.toggle()} style={styles.primaryPlay} aria-label={player.isPlaying ? 'Pausar' : 'Reproducir'}>
@@ -99,27 +103,31 @@ const styles = {
   heading: { margin: 0, color: '#D946EF', fontSize: '23px', lineHeight: 1.2, fontWeight: 700 },
   subheading: { margin: '9px 0 0', color: '#5F6670', fontSize: '14px', lineHeight: 1.45 },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' },
-  card: { position: 'relative', overflow: 'hidden', minHeight: '170px', padding: 0, border: 'none', borderRadius: '18px', background: '#21152A', color: '#fff', cursor: 'pointer', textAlign: 'left', boxShadow: '0 5px 14px rgba(44, 31, 47, 0.13)' },
-  artwork: { position: 'absolute', inset: 0, overflow: 'hidden', background: '#1D1825' },
+  card: { position: 'relative', display: 'flex', flexDirection: 'column', height: '214px', overflow: 'hidden', padding: 0, border: '1px solid rgba(148, 163, 184, 0.16)', borderRadius: '18px', background: '#fff', color: '#1E293B', cursor: 'pointer', textAlign: 'left', boxShadow: '0 5px 14px rgba(44, 31, 47, 0.09)' },
+  artwork: { position: 'relative', overflow: 'hidden', background: '#FCE7F3' },
+  cardArtwork: { width: '100%', height: '65%', flexShrink: 0 },
   image: { width: '100%', height: '100%', display: 'block', objectFit: 'cover' },
-  overlay: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' },
-  cardText: { position: 'relative', zIndex: 1, minHeight: '170px', boxSizing: 'border-box', padding: '16px 13px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '5px' },
-  cardTitle: { fontSize: '15px', lineHeight: 1.18, color: '#fff' },
-  cardSubtitle: { color: '#E5E7EB', fontSize: '11px', lineHeight: 1.28 },
-  modalBackdrop: { position: 'fixed', inset: 0, zIndex: 80, display: 'flex', alignItems: 'flex-end', background: 'rgba(17, 24, 39, 0.45)' },
-  modal: { position: 'relative', width: '100%', minHeight: '510px', boxSizing: 'border-box', padding: '32px 24px calc(94px + env(safe-area-inset-bottom, 0px))', borderRadius: '28px 28px 0 0', background: '#111827', color: '#fff', overflow: 'hidden', transition: 'background 260ms ease, color 260ms ease' },
+  playBadge: { position: 'absolute', zIndex: 2, top: 'calc(65% - 19px)', right: '10px', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', borderRadius: '50%', background: 'rgba(255,255,255,0.9)', color: '#C026D3', fontSize: '13px', paddingLeft: '2px', boxShadow: '0 3px 9px rgba(51, 65, 85, 0.16)' },
+  cardText: { minHeight: 0, flex: 1, boxSizing: 'border-box', padding: '11px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px', background: 'rgba(255, 251, 253, 0.65)' },
+  cardTitle: { fontSize: '14px', lineHeight: 1.2, color: '#1E293B', fontWeight: 600 },
+  cardSubtitle: { overflow: 'hidden', color: '#64748B', fontSize: '12px', lineHeight: 1.25, textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  modalBackdrop: { position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(15, 23, 42, 0.42)' },
+  modal: { position: 'relative', width: '100%', minHeight: '100dvh', height: '100dvh', boxSizing: 'border-box', padding: 'calc(42px + env(safe-area-inset-top, 0px)) 24px calc(32px + env(safe-area-inset-bottom, 0px))', background: '#172033', color: '#fff', overflow: 'hidden', transition: 'background 260ms ease, color 260ms ease' },
   modalNight: { background: '#020617', color: '#fff' },
+  modalBackground: { position: 'absolute', inset: '-34px', overflow: 'hidden' },
+  modalBackgroundImage: { width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(30px)', opacity: 0.46, transform: 'scale(1.1)' },
+  modalBackgroundShade: { position: 'absolute', inset: 0, background: 'rgba(15, 23, 42, 0.7)' },
   modalClose: { position: 'absolute', zIndex: 2, top: '17px', right: '18px', width: '36px', height: '36px', border: 'none', background: 'transparent', color: '#D946EF', fontSize: '31px', lineHeight: 1, cursor: 'pointer' },
   moon: { position: 'absolute', zIndex: 2, top: '20px', left: '20px', width: '32px', height: '32px', border: 'none', borderRadius: '50%', background: 'transparent', color: '#D946EF', fontSize: '24px', lineHeight: 1, cursor: 'pointer' },
-  modalControls: { position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'opacity 260ms ease' },
-  modalArtwork: { position: 'relative', width: '192px', height: '192px', margin: '4px 0 18px', overflow: 'hidden', borderRadius: '16px', boxShadow: '0 18px 34px rgba(0,0,0,0.45)' },
-  nowPlaying: { margin: 0, color: '#A3A3A3', fontSize: '12px', fontWeight: 600 },
-  modalTitle: { margin: '7px 0 18px', color: '#fff', fontSize: '24px', lineHeight: 1.2, textAlign: 'center' },
-  primaryPlay: { width: '76px', height: '76px', border: '1px solid rgba(255,255,255,0.16)', borderRadius: '50%', background: '#C026D3', color: '#fff', fontSize: '29px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 0 0 7px rgba(192,38,211,0.11), 0 14px 28px rgba(192,38,211,0.38)', transition: 'transform 180ms ease, box-shadow 180ms ease' },
+  modalControls: { position: 'relative', zIndex: 1, minHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', transition: 'opacity 260ms ease' },
+  modalArtwork: { width: '208px', height: '208px', flexShrink: 0, margin: '0 0 20px', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '24px', boxShadow: '0 22px 42px rgba(0,0,0,0.5)' },
+  nowPlaying: { margin: 0, color: 'rgba(250, 232, 255, 0.8)', fontSize: '11px', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' },
+  modalTitle: { margin: '8px 0 20px', color: '#fff', fontSize: '20px', lineHeight: 1.2, fontWeight: 700, textAlign: 'center', textShadow: '0 2px 8px rgba(0,0,0,0.38)' },
+  primaryPlay: { width: '78px', height: '78px', border: 'none', borderRadius: '50%', background: '#C026D3', color: '#fff', fontSize: '29px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 0 0 7px rgba(192,38,211,0.14), 0 14px 30px rgba(192,38,211,0.42)', transition: 'transform 180ms ease, background 180ms ease' },
   timerLabel: { margin: '26px 0 10px', color: '#fff', fontSize: '14px', fontWeight: 650 },
   timerOptions: { display: 'flex', gap: '7px', flexWrap: 'wrap', justifyContent: 'center' },
-  timerButton: { padding: '8px 11px', borderRadius: '999px', border: '1px solid #404040', background: '#262626', color: '#D4D4D4', fontSize: '12px', cursor: 'pointer' },
+  timerButton: { padding: '8px 11px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', fontSize: '12px', cursor: 'pointer', backdropFilter: 'blur(12px)' },
   timerButtonActive: { borderColor: '#C026D3', background: '#C026D3', color: '#fff', fontWeight: 700 },
-  remaining: { marginTop: '13px', color: '#E879F9', fontSize: '12px', fontWeight: 500 },
+  remaining: { marginTop: '13px', color: '#F0ABFC', fontSize: '12px', fontWeight: 500 },
   error: { margin: '14px 0 0', color: '#DC2626', fontSize: '12px', textAlign: 'center' }
 };
