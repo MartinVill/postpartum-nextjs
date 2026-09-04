@@ -3,6 +3,7 @@ import { getAdminDb } from '@/lib/firebaseAdmin';
 import { isWithinQuietHours, sendPushToUser } from '@/lib/pushServer';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 const dateInZone = (date, timeZone) => new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
 const timeInZone = (date, timeZone) => new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date);
 const asDate = (value) => {
@@ -116,7 +117,10 @@ export async function GET(request) {
         console.warn('[CRON] Daily reminder not marked delivered', { userId: sub.userId, trigger, delivery });
       }
     }
-    return NextResponse.json({ success: true, reminders, daily });
+    return NextResponse.json(
+      { success: true, reminders, daily, processedAtUtc: now.toISOString() },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (error) {
     console.error('[CRON] Push delivery failed:', error);
     return NextResponse.json({ error: 'Push processing failed' }, { status: 503 });

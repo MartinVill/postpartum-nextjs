@@ -12,6 +12,7 @@ const STATUS = {
 export default function NotificationPermissionControl() {
   const [status, setStatus] = useState('disabled');
   const [isActivating, setIsActivating] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
   const [message, setMessage] = useState('');
 
   const refreshStatus = async () => setStatus(await getPushStatus());
@@ -60,6 +61,31 @@ export default function NotificationPermissionControl() {
     }
   };
 
+  const sendTestNotification = async () => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      setMessage('No pudimos identificar este dispositivo. Cierra y vuelve a abrir la app.');
+      return;
+    }
+
+    setIsTesting(true);
+    setMessage('Enviando una prueba…');
+    try {
+      const response = await fetch('/api/notifications/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'No se pudo enviar la prueba.');
+      setMessage('Prueba enviada. Debería aparecer en unos segundos.');
+    } catch (error) {
+      setMessage(error.message || 'No se pudo enviar la prueba.');
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
   const details = STATUS[status];
   return (
     <section style={{ padding: '16px', background: details.background, border: `1px solid ${details.border}`, borderRadius: '12px', marginBottom: '20px' }}>
@@ -73,6 +99,11 @@ export default function NotificationPermissionControl() {
       {status !== 'active' && (
         <button type="button" onClick={activateNotifications} disabled={isActivating || status === 'blocked'} style={{ width: '100%', padding: '12px 14px', border: 'none', borderRadius: '10px', background: isActivating || status === 'blocked' ? '#D1D5DB' : '#D946EF', color: '#FFFFFF', fontSize: '14px', fontWeight: '700', cursor: isActivating || status === 'blocked' ? 'not-allowed' : 'pointer' }}>
           {isActivating ? 'Activando…' : status === 'blocked' ? 'Permitilas desde el navegador' : 'Activar notificaciones'}
+        </button>
+      )}
+      {status === 'active' && (
+        <button type="button" onClick={sendTestNotification} disabled={isTesting} style={{ width: '100%', padding: '11px 14px', border: '1px solid #D946EF', borderRadius: '10px', background: '#FFFFFF', color: '#C026D3', fontSize: '14px', fontWeight: '700', cursor: isTesting ? 'wait' : 'pointer' }}>
+          {isTesting ? 'Enviando prueba…' : 'Enviar una prueba'}
         </button>
       )}
       {message && <p role="status" style={{ margin: '10px 0 0', fontSize: '12px', color: details.color, lineHeight: 1.4 }}>{message}</p>}
