@@ -220,7 +220,7 @@ export default function BreathingAndCoreExperience({ onBack, onComplete }) {
         {isComplete ? (
           <div style={sessionStyles.completion}>
             <div style={sessionStyles.heart}>😍</div>
-            <h2 style={sessionStyles.completionTitle}>Hiciste algo hermoso<br />por ti hoy 😍</h2>
+            <h2 style={sessionStyles.completionTitle}>Hiciste algo hermoso<br />por ti hoy</h2>
             <p style={sessionStyles.completionText}>Sumaste 2 minutos de amor propio hoy</p>
             <p style={sessionStyles.autoExit}>Saliendo en {completionSeconds}</p>
           </div>
