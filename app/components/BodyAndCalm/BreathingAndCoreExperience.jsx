@@ -15,9 +15,37 @@ const PREPARATION_RADIUS = 72;
 const PREPARATION_CIRCUMFERENCE = 2 * Math.PI * PREPARATION_RADIUS;
 
 const EXERCISES = [
-  { id: 'diaphragmatic', title: 'Respiración Diafragmática', benefit: 'Alivia la presión lumbar', imageUrl: '/images/rest/respiracion_diafragmatica.webp' },
-  { id: 'core', title: 'Activación de Core Suave', benefit: 'Reconecta tu abdomen' },
-  { id: 'pelvic-floor', title: 'Relajación de Suelo Pélvico', benefit: 'Suelta la tensión acumulada' }
+  {
+    id: 'diaphragmatic',
+    title: 'Respiración Diafragmática',
+    benefit: 'Alivia la presión lumbar',
+    imageUrl: '/images/rest/respiracion_diafragmatica.webp',
+    details: [
+      ['Qué puedes sentir', 'Tensión en hombros, respiración corta o cansancio acumulado.'],
+      ['Cómo puede ayudarte', 'Acompaña una respiración más amplia y puede ayudar a bajar revoluciones.'],
+      ['Qué puedes notar', 'Más espacio al respirar y una pausa más suave, sin prisa.']
+    ]
+  },
+  {
+    id: 'core',
+    title: 'Activación de Core Suave',
+    benefit: 'Reconecta tu abdomen',
+    details: [
+      ['Qué puedes sentir', 'Sensación de abdomen desconectado o poco sostén en tu postura.'],
+      ['Cómo puede ayudarte', 'Favorece una activación suave del abdomen profundo al soltar el aire.'],
+      ['Qué puedes notar', 'Un abrazo sutil hacia adentro, sin pujar ni hacer fuerza brusca.']
+    ]
+  },
+  {
+    id: 'pelvic-floor',
+    title: 'Relajación de Suelo Pélvico',
+    benefit: 'Suelta la tensión acumulada',
+    details: [
+      ['Qué puedes sentir', 'Pesadez, rigidez en la zona baja o tensión acumulada.'],
+      ['Cómo puede ayudarte', 'Acompaña a relajar y soltar la zona pélvica durante la inhalación.'],
+      ['Qué puedes notar', 'Más comodidad al tomar aire y menos necesidad de mantener tensión.']
+    ]
+  }
 ];
 
 function getLocalWeekKey() {
@@ -51,6 +79,7 @@ export default function BreathingAndCoreExperience({ onBack, onComplete }) {
   const [userId, setUserId] = useState('');
   const [weeklyMinutes, setWeeklyMinutes] = useState(0);
   const [session, setSession] = useState(null);
+  const [expandedExerciseId, setExpandedExerciseId] = useState(null);
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [cycle, setCycle] = useState(1);
   const [ringProgress, setRingProgress] = useState(0);
@@ -313,22 +342,49 @@ export default function BreathingAndCoreExperience({ onBack, onComplete }) {
 
       <h2 style={styles.sectionTitle}>Elige según tu necesidad</h2>
       <div style={styles.exerciseList}>
-        {EXERCISES.map(exercise => (
-          <button
-            key={exercise.id}
-            onClick={() => startSession(exercise.title)}
-            style={{ ...styles.exerciseCard, ...(exercise.imageUrl ? styles.exerciseCardWithThumbnail : {}) }}
-          >
-            {exercise.imageUrl && (
-              <img src={exercise.imageUrl} alt="" aria-hidden="true" style={styles.exerciseThumbnail} />
-            )}
-            <span style={{ ...styles.exerciseCopy, ...(exercise.imageUrl ? styles.exerciseCopyWithThumbnail : {}) }}>
-              <span style={styles.exerciseTitle}>{exercise.title}</span>
-              <span style={styles.benefit}>{exercise.benefit}</span>
-            </span>
-            <span aria-hidden="true" style={styles.exerciseArrow}>&gt;</span>
-          </button>
-        ))}
+        {EXERCISES.map(exercise => {
+          const isExpanded = expandedExerciseId === exercise.id;
+          return (
+            <article key={exercise.id} style={styles.exerciseCard}>
+              <div style={{ ...styles.exerciseSummary, ...(exercise.imageUrl ? styles.exerciseSummaryWithThumbnail : {}) }}>
+                {exercise.imageUrl && (
+                  <img src={exercise.imageUrl} alt="" aria-hidden="true" style={styles.exerciseThumbnail} />
+                )}
+                <div style={{ ...styles.exerciseCopy, ...(exercise.imageUrl ? styles.exerciseCopyWithThumbnail : {}) }}>
+                  <span style={styles.exerciseTitle}>{exercise.title}</span>
+                  <span style={styles.benefit}>{exercise.benefit}</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setExpandedExerciseId(current => current === exercise.id ? null : exercise.id)}
+                aria-expanded={isExpanded}
+                aria-controls={`practice-details-${exercise.id}`}
+                style={styles.detailsToggle}
+              >
+                <span>Conoce esta práctica</span>
+                <span aria-hidden="true" style={{ ...styles.detailsChevron, transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>⌄</span>
+              </button>
+              <div
+                id={`practice-details-${exercise.id}`}
+                aria-hidden={!isExpanded}
+                style={{ ...styles.accordionPanel, ...(isExpanded ? styles.accordionPanelOpen : {}) }}
+              >
+                <div style={styles.accordionContent}>
+                  {exercise.details.map(([label, copy]) => (
+                    <p key={label} style={styles.accordionItem}>
+                      <strong style={styles.accordionLabel}>{label}:</strong> {copy}
+                    </p>
+                  ))}
+                  <p style={styles.accordionNotice}>Si sientes dolor, presión o molestia, detente y consulta con tu profesional de salud.</p>
+                  <button type="button" onClick={() => startSession(exercise.title)} style={styles.practiceStart}>
+                    Comenzar · 2 min
+                  </button>
+                </div>
+              </div>
+            </article>
+          );
+        })}
       </div>
       <p style={styles.disclaimer}>Recuerda asegurar tu alta médica antes de ejercitarte.</p>
     </div>
@@ -346,14 +402,23 @@ const styles = {
   quickArrow: { position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', fontSize: '25px', fontWeight: '400', lineHeight: 1 },
   sectionTitle: { color: '#374151', fontSize: '16px', fontWeight: '700', margin: '0 4px 12px' },
   exerciseList: { display: 'flex', flexDirection: 'column', gap: '12px' },
-  exerciseCard: { width: '100%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', gap: '9px', background: '#FFFDF6', border: '1px solid #E5E7EB', borderRadius: '16px', padding: '17px 44px 17px 17px', cursor: 'pointer', boxShadow: '0 2px 7px rgba(17,24,39,0.045)' },
-  exerciseCardWithThumbnail: { flexDirection: 'row', alignItems: 'center', gap: '13px', minHeight: '88px', padding: '12px 44px 12px 12px' },
+  exerciseCard: { width: '100%', boxSizing: 'border-box', overflow: 'hidden', background: '#FFFDF6', border: '1px solid #E5E7EB', borderRadius: '16px', boxShadow: '0 2px 7px rgba(17,24,39,0.045)' },
+  exerciseSummary: { display: 'flex', alignItems: 'flex-start', padding: '16px 17px 9px', boxSizing: 'border-box' },
+  exerciseSummaryWithThumbnail: { alignItems: 'center', gap: '13px', minHeight: '88px', padding: '12px' },
   exerciseThumbnail: { width: '64px', height: '64px', flexShrink: 0, objectFit: 'cover', borderRadius: '13px', background: '#FBEAFE' },
   exerciseCopy: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '9px', minWidth: 0 },
   exerciseCopyWithThumbnail: { flex: 1 },
   exerciseTitle: { color: '#1F2937', fontSize: '16px', fontWeight: '700', lineHeight: 1.3 },
   benefit: { color: '#8B3D9C', fontSize: '13px', lineHeight: 1.25, fontWeight: '600', background: '#FBEAFE', borderRadius: '999px', padding: '5px 9px' },
-  exerciseArrow: { position: 'absolute', right: '17px', top: '50%', transform: 'translateY(-50%)', color: '#D946EF', fontSize: '20px', fontWeight: '400', lineHeight: 1 },
+  detailsToggle: { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: 'none', borderTop: '1px solid rgba(229,231,235,0.72)', background: 'transparent', color: '#A739B9', padding: '10px 16px 11px', fontSize: '13px', fontWeight: '600', textAlign: 'left', cursor: 'pointer' },
+  detailsChevron: { color: '#D946EF', fontSize: '18px', lineHeight: 0.8, transition: 'transform 220ms ease' },
+  accordionPanel: { maxHeight: 0, opacity: 0, overflow: 'hidden', background: 'rgba(251,234,254,0.32)', transition: 'max-height 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms ease' },
+  accordionPanelOpen: { maxHeight: '430px', opacity: 1 },
+  accordionContent: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px', padding: '14px 16px 16px', boxSizing: 'border-box' },
+  accordionItem: { color: '#4B5563', fontSize: '13px', lineHeight: 1.42, margin: 0, textAlign: 'left' },
+  accordionLabel: { color: '#374151', fontWeight: '700' },
+  accordionNotice: { color: '#6B7280', fontSize: '12px', lineHeight: 1.4, margin: '1px 0 2px', textAlign: 'left' },
+  practiceStart: { alignSelf: 'stretch', border: 'none', borderRadius: '12px', background: '#D946EF', color: '#fff', padding: '12px 16px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 5px 12px rgba(217,70,239,0.18)' },
   disclaimer: { color: '#6B7280', fontSize: '12px', lineHeight: 1.45, margin: '24px 10px 0', textAlign: 'center' }
 };
 
