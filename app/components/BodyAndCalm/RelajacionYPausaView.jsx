@@ -129,7 +129,7 @@ export default function RelajacionYPausaView({ onBack }) {
 }
 
 const styles = {
-  screen: { minHeight: 'calc(100dvh - 86px)', boxSizing: 'border-box', background: '#FFFDF6', color: '#374151', padding: '20px 16px 0', maxWidth: '600px', margin: '0 auto -43px' },
+  screen: { minHeight: 'calc(100dvh - 86px)', boxSizing: 'border-box', background: '#FFFDF6', color: '#374151', padding: '20px 16px 8px', maxWidth: '600px', margin: '0 auto -20px' },
   header: { position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '8px 0 22px' },
   back: { position: 'absolute', top: '3px', left: '0', width: '40px', height: '40px', borderRadius: '50%', border: 'none', background: '#FFFDF6', color: '#D946EF', fontWeight: 700, fontSize: '24px', lineHeight: 1, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
   headerCopy: { width: '100%', maxWidth: '320px', boxSizing: 'border-box', padding: '0 8px', textAlign: 'center' },
