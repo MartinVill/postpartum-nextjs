@@ -37,8 +37,8 @@ export const REST_AUDIO_TRACKS: AudioTrack[] = [
   },
   {
     id: 'envolvente',
-    title: 'Sonido Envolvente',
-    subtitle: 'Calidez y contención continua',
+    title: 'Ruido Blanco',
+    subtitle: 'Contención continua',
     audioUrl: 'https://cttyzkcxy6hbpda6.public.blob.vercel-storage.com/audio/rest/v1/sonido_envolvente.m4a',
     imageUrl: '/images/rest/sonido_envolvente.jpg'
   },
