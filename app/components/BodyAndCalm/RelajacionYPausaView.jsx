@@ -143,7 +143,7 @@ const styles = {
   playBadge: { position: 'absolute', zIndex: 2, top: 'calc(65% - 19px)', right: '10px', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', borderRadius: '50%', background: 'rgba(255,255,255,0.9)', color: '#C026D3', fontSize: '13px', paddingLeft: '2px', boxShadow: '0 3px 9px rgba(51, 65, 85, 0.16)' },
   cardText: { minHeight: 0, flex: 1, boxSizing: 'border-box', padding: '11px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px', background: 'rgba(255, 251, 253, 0.65)' },
   cardTitle: { fontSize: '15px', lineHeight: 1.2, color: '#1E293B', fontWeight: 600 },
-  cardSubtitle: { display: '-webkit-box', overflow: 'hidden', color: '#64748B', fontSize: '13px', lineHeight: 1.25, WebkitBoxOrient: 'vertical', WebkitLineClamp: 2 },
+  cardSubtitle: { display: '-webkit-box', overflow: 'hidden', color: '#64748B', fontSize: '12px', lineHeight: 1.25, WebkitBoxOrient: 'vertical', WebkitLineClamp: 2 },
   modalBackdrop: { position: 'fixed', inset: 0, zIndex: 80, overflow: 'hidden', background: 'rgba(15, 23, 42, 0.42)', touchAction: 'none', overscrollBehavior: 'contain' },
   modal: { position: 'relative', width: '100%', minHeight: '100dvh', height: '100dvh', boxSizing: 'border-box', padding: 'calc(42px + env(safe-area-inset-top, 0px)) 24px calc(32px + env(safe-area-inset-bottom, 0px))', background: '#172033', color: '#fff', overflow: 'hidden', overscrollBehavior: 'contain', animation: 'restPlayerFadeIn 420ms ease-out both', transition: 'background 260ms ease, color 260ms ease' },
   modalNight: { background: '#020617', color: '#fff' },
