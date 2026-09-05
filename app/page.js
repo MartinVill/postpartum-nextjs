@@ -572,13 +572,14 @@ export default function Home() {
     if (state.showBodyAndCalm) {
       return (
         <div style={{
-          minHeight: '100vh',
+          height: 'calc(100dvh - 86px)',
+          minHeight: 0,
           background: '#FFFDF6',
           display: 'flex',
           flexDirection: 'column',
-          paddingBottom: '70px'
+          overflow: 'hidden'
         }}>
-          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, overscrollBehavior: 'contain' }}>
             <BodyAndCalmModule
               userProfile={state.userProfile}
               onBack={() => setState(prev => ({ ...prev, showBodyAndCalm: false }))}
