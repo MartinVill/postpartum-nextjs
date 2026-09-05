@@ -419,7 +419,7 @@ const styles = {
   exerciseTitle: { color: '#1F2937', fontSize: '16px', fontWeight: '700', lineHeight: 1.3 },
   benefit: { color: '#8B3D9C', fontSize: '13px', lineHeight: 1.25, fontWeight: '600', background: '#FBEAFE', borderRadius: '999px', padding: '5px 9px' },
   detailsToggle: { width: '36px', height: '36px', flexShrink: 0, marginLeft: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(217,70,239,0.34)', borderRadius: '50%', background: 'rgba(251,234,254,0.68)', color: '#C026D3', fontSize: '21px', fontWeight: '700', lineHeight: 1, cursor: 'pointer', transition: 'background 200ms ease, border-color 200ms ease, color 200ms ease, transform 200ms ease' },
-  detailsToggleOpen: { borderColor: '#D946EF', background: '#D946EF', color: '#fff', transform: 'rotate(0.01deg)' },
+  detailsToggleOpen: { border: '1px solid #D946EF', background: '#D946EF', color: '#fff', transform: 'rotate(0.01deg)' },
   detailsIcon: { display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, animation: 'practice-icon-swap 180ms cubic-bezier(0.22, 1, 0.36, 1) both' },
   accordionPanel: { maxHeight: 0, opacity: 0, overflow: 'hidden', background: 'rgba(251,234,254,0.32)', transition: 'max-height 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms ease' },
   accordionPanelOpen: { maxHeight: '430px', opacity: 1 },
