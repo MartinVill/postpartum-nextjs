@@ -363,7 +363,13 @@ export default function BreathingAndCoreExperience({ onBack, onComplete }) {
                   title={isExpanded ? 'Cerrar información' : 'Conocer esta práctica'}
                   style={{ ...styles.detailsToggle, ...(isExpanded ? styles.detailsToggleOpen : {}) }}
                 >
-                  <span key={isExpanded ? 'close' : 'info'} aria-hidden="true" style={styles.detailsIcon}>{isExpanded ? '×' : 'i'}</span>
+                  <span key={isExpanded ? 'close' : 'info'} aria-hidden="true" style={styles.detailsIcon}>
+                    {isExpanded ? (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                      </svg>
+                    ) : 'i'}
+                  </span>
                 </button>
               </div>
               <div
@@ -414,7 +420,7 @@ const styles = {
   benefit: { color: '#8B3D9C', fontSize: '13px', lineHeight: 1.25, fontWeight: '600', background: '#FBEAFE', borderRadius: '999px', padding: '5px 9px' },
   detailsToggle: { width: '36px', height: '36px', flexShrink: 0, marginLeft: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(217,70,239,0.34)', borderRadius: '50%', background: 'rgba(251,234,254,0.68)', color: '#C026D3', fontSize: '21px', fontWeight: '700', lineHeight: 1, cursor: 'pointer', transition: 'background 200ms ease, border-color 200ms ease, color 200ms ease, transform 200ms ease' },
   detailsToggleOpen: { borderColor: '#D946EF', background: '#D946EF', color: '#fff', transform: 'rotate(0.01deg)' },
-  detailsIcon: { display: 'block', lineHeight: 1, animation: 'practice-icon-swap 180ms cubic-bezier(0.22, 1, 0.36, 1) both' },
+  detailsIcon: { display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, animation: 'practice-icon-swap 180ms cubic-bezier(0.22, 1, 0.36, 1) both' },
   accordionPanel: { maxHeight: 0, opacity: 0, overflow: 'hidden', background: 'rgba(251,234,254,0.32)', transition: 'max-height 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms ease' },
   accordionPanelOpen: { maxHeight: '430px', opacity: 1 },
   accordionContent: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px', padding: '14px 16px 16px', boxSizing: 'border-box' },
