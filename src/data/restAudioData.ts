@@ -40,7 +40,7 @@ export const REST_AUDIO_TRACKS: AudioTrack[] = [
     title: 'Ruido Blanco',
     subtitle: 'Contención continua',
     audioUrl: 'https://cttyzkcxy6hbpda6.public.blob.vercel-storage.com/audio/rest/v1/sonido_envolvente.m4a',
-    imageUrl: '/images/rest/sonido_envolvente.jpg'
+    imageUrl: '/images/rest/ruido_blanco.jpg'
   },
   {
     id: 'cuna',
