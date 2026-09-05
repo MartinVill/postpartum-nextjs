@@ -332,7 +332,7 @@ export default function BreathingAndCoreExperience({ onBack, onComplete }) {
       </div>
 
       {weeklyMinutes > 0 && (
-        <p style={styles.accumulator}>Llevas {weeklyMinutes} minutos de aire para ti esta semana 🌿</p>
+        <p style={styles.accumulator}>Llevas {weeklyMinutes} minutos dedicados a ti esta semana</p>
       )}
 
       <button onClick={() => startSession('Pausa rápida', true)} style={styles.quickStart}>
@@ -404,7 +404,7 @@ const styles = {
   header: { minHeight: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', marginBottom: '18px' },
   back: { position: 'absolute', left: '0', width: '40px', height: '40px', borderRadius: '50%', border: '1px solid #F3E8F7', background: '#FFFDF6', color: '#D946EF', fontSize: '24px', fontWeight: '700', cursor: 'pointer', lineHeight: 1 },
   title: { color: '#D946EF', fontSize: '20px', lineHeight: 1.25, margin: 0, padding: '0 52px', textAlign: 'center', fontWeight: '700' },
-  accumulator: { color: '#4B5563', fontSize: '15px', lineHeight: 1.45, fontWeight: '600', margin: '0 8px 22px', textAlign: 'center' },
+  accumulator: { color: '#4B5563', fontSize: '14px', lineHeight: 1.45, fontWeight: '600', margin: '0 8px 22px', textAlign: 'center' },
   quickStart: { width: '100%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', background: 'linear-gradient(135deg, #D946EF, #C026D3)', border: 'none', borderRadius: '20px', color: '#fff', padding: '24px 52px 24px 22px', cursor: 'pointer', boxShadow: '0 8px 18px rgba(217,70,239,0.2)', marginBottom: '28px' },
   quickLabel: { fontSize: '19px', lineHeight: 1.25, fontWeight: '700' },
   quickArrow: { position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', fontSize: '25px', fontWeight: '400', lineHeight: 1 },
