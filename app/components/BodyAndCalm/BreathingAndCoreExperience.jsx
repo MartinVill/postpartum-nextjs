@@ -15,7 +15,7 @@ const PREPARATION_RADIUS = 72;
 const PREPARATION_CIRCUMFERENCE = 2 * Math.PI * PREPARATION_RADIUS;
 
 const EXERCISES = [
-  { id: 'diaphragmatic', title: 'Respiración Diafragmática', benefit: 'Alivia la presión lumbar' },
+  { id: 'diaphragmatic', title: 'Respiración Diafragmática', benefit: 'Alivia la presión lumbar', imageUrl: '/images/rest/respiracion_diafragmatica.webp' },
   { id: 'core', title: 'Activación de Core Suave', benefit: 'Reconecta tu abdomen' },
   { id: 'pelvic-floor', title: 'Relajación de Suelo Pélvico', benefit: 'Suelta la tensión acumulada' }
 ];
@@ -314,9 +314,18 @@ export default function BreathingAndCoreExperience({ onBack, onComplete }) {
       <h2 style={styles.sectionTitle}>Elige según tu necesidad</h2>
       <div style={styles.exerciseList}>
         {EXERCISES.map(exercise => (
-          <button key={exercise.id} onClick={() => startSession(exercise.title)} style={styles.exerciseCard}>
-            <span style={styles.exerciseTitle}>{exercise.title}</span>
-            <span style={styles.benefit}>{exercise.benefit}</span>
+          <button
+            key={exercise.id}
+            onClick={() => startSession(exercise.title)}
+            style={{ ...styles.exerciseCard, ...(exercise.imageUrl ? styles.exerciseCardWithThumbnail : {}) }}
+          >
+            {exercise.imageUrl && (
+              <img src={exercise.imageUrl} alt="" aria-hidden="true" style={styles.exerciseThumbnail} />
+            )}
+            <span style={{ ...styles.exerciseCopy, ...(exercise.imageUrl ? styles.exerciseCopyWithThumbnail : {}) }}>
+              <span style={styles.exerciseTitle}>{exercise.title}</span>
+              <span style={styles.benefit}>{exercise.benefit}</span>
+            </span>
             <span aria-hidden="true" style={styles.exerciseArrow}>&gt;</span>
           </button>
         ))}
@@ -338,6 +347,10 @@ const styles = {
   sectionTitle: { color: '#374151', fontSize: '16px', fontWeight: '700', margin: '0 4px 12px' },
   exerciseList: { display: 'flex', flexDirection: 'column', gap: '12px' },
   exerciseCard: { width: '100%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', gap: '9px', background: '#FFFDF6', border: '1px solid #E5E7EB', borderRadius: '16px', padding: '17px 44px 17px 17px', cursor: 'pointer', boxShadow: '0 2px 7px rgba(17,24,39,0.045)' },
+  exerciseCardWithThumbnail: { flexDirection: 'row', alignItems: 'center', gap: '13px', minHeight: '88px', padding: '12px 44px 12px 12px' },
+  exerciseThumbnail: { width: '64px', height: '64px', flexShrink: 0, objectFit: 'cover', borderRadius: '13px', background: '#FBEAFE' },
+  exerciseCopy: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '9px', minWidth: 0 },
+  exerciseCopyWithThumbnail: { flex: 1 },
   exerciseTitle: { color: '#1F2937', fontSize: '16px', fontWeight: '700', lineHeight: 1.3 },
   benefit: { color: '#8B3D9C', fontSize: '13px', lineHeight: 1.25, fontWeight: '600', background: '#FBEAFE', borderRadius: '999px', padding: '5px 9px' },
   exerciseArrow: { position: 'absolute', right: '17px', top: '50%', transform: 'translateY(-50%)', color: '#D946EF', fontSize: '20px', fontWeight: '400', lineHeight: 1 },
