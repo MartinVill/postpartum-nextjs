@@ -17,21 +17,21 @@ export const REST_AUDIO_TRACKS: AudioTrack[] = [
   {
     id: 'piano',
     title: 'Piano y Calma',
-    subtitle: 'Melodía pausada de relajación',
+    subtitle: 'Melodía de relajación',
     audioUrl: 'https://cttyzkcxy6hbpda6.public.blob.vercel-storage.com/audio/rest/v1/piano_y_calma.m4a',
     imageUrl: '/images/rest/piano_y_calma.jpg'
   },
   {
     id: 'olas',
     title: 'Olas del Mar',
-    subtitle: 'Marea constante y envolvente',
+    subtitle: 'Marea constante y suave',
     audioUrl: 'https://cttyzkcxy6hbpda6.public.blob.vercel-storage.com/audio/rest/v1/olas_del_mar.m4a',
     imageUrl: '/images/rest/olas_del_mar.jpg'
   },
   {
     id: 'sueno',
     title: 'Sueño Profundo',
-    subtitle: 'Frecuencia baja para descanso',
+    subtitle: 'Para descansar',
     audioUrl: 'https://cttyzkcxy6hbpda6.public.blob.vercel-storage.com/audio/rest/v1/sueno_profundo.m4a',
     imageUrl: '/images/rest/sueno_profundo.jpg'
   },
