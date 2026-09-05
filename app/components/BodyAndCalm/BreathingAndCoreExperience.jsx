@@ -354,17 +354,18 @@ export default function BreathingAndCoreExperience({ onBack, onComplete }) {
                   <span style={styles.exerciseTitle}>{exercise.title}</span>
                   <span style={styles.benefit}>{exercise.benefit}</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setExpandedExerciseId(current => current === exercise.id ? null : exercise.id)}
+                  aria-expanded={isExpanded}
+                  aria-controls={`practice-details-${exercise.id}`}
+                  aria-label={isExpanded ? `Cerrar información de ${exercise.title}` : `Conocer la práctica ${exercise.title}`}
+                  title={isExpanded ? 'Cerrar información' : 'Conocer esta práctica'}
+                  style={{ ...styles.detailsToggle, ...(isExpanded ? styles.detailsToggleOpen : {}) }}
+                >
+                  <span key={isExpanded ? 'close' : 'info'} aria-hidden="true" style={styles.detailsIcon}>{isExpanded ? '×' : 'i'}</span>
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setExpandedExerciseId(current => current === exercise.id ? null : exercise.id)}
-                aria-expanded={isExpanded}
-                aria-controls={`practice-details-${exercise.id}`}
-                style={styles.detailsToggle}
-              >
-                <span>Conoce esta práctica</span>
-                <span aria-hidden="true" style={{ ...styles.detailsChevron, transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>⌄</span>
-              </button>
               <div
                 id={`practice-details-${exercise.id}`}
                 aria-hidden={!isExpanded}
@@ -387,6 +388,7 @@ export default function BreathingAndCoreExperience({ onBack, onComplete }) {
         })}
       </div>
       <p style={styles.disclaimer}>Recuerda asegurar tu alta médica antes de ejercitarte.</p>
+      <style>{`@keyframes practice-icon-swap { from { opacity: 0; transform: rotate(-45deg) scale(0.65); } to { opacity: 1; transform: rotate(0) scale(1); } }`}</style>
     </div>
   );
 }
@@ -403,15 +405,16 @@ const styles = {
   sectionTitle: { color: '#374151', fontSize: '16px', fontWeight: '700', margin: '0 4px 12px' },
   exerciseList: { display: 'flex', flexDirection: 'column', gap: '12px' },
   exerciseCard: { width: '100%', boxSizing: 'border-box', overflow: 'hidden', background: '#FAFAFA', border: '1px solid #E5E7EB', borderRadius: '16px', boxShadow: '0 8px 20px rgba(82,48,68,0.12)' },
-  exerciseSummary: { display: 'flex', alignItems: 'flex-start', padding: '16px 17px 9px', boxSizing: 'border-box' },
+  exerciseSummary: { display: 'flex', alignItems: 'center', gap: '13px', padding: '16px 17px', boxSizing: 'border-box' },
   exerciseSummaryWithThumbnail: { alignItems: 'center', gap: '13px', minHeight: '88px', padding: '12px' },
   exerciseThumbnail: { width: '64px', height: '64px', flexShrink: 0, objectFit: 'cover', borderRadius: '13px', background: '#FBEAFE' },
   exerciseCopy: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '9px', minWidth: 0 },
   exerciseCopyWithThumbnail: { flex: 1 },
   exerciseTitle: { color: '#1F2937', fontSize: '16px', fontWeight: '700', lineHeight: 1.3 },
   benefit: { color: '#8B3D9C', fontSize: '13px', lineHeight: 1.25, fontWeight: '600', background: '#FBEAFE', borderRadius: '999px', padding: '5px 9px' },
-  detailsToggle: { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: 'none', borderTop: '1px solid rgba(229,231,235,0.72)', background: 'transparent', color: '#A739B9', padding: '10px 16px 11px', fontSize: '13px', fontWeight: '600', textAlign: 'left', cursor: 'pointer' },
-  detailsChevron: { color: '#D946EF', fontSize: '18px', lineHeight: 0.8, transition: 'transform 220ms ease' },
+  detailsToggle: { width: '36px', height: '36px', flexShrink: 0, marginLeft: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(217,70,239,0.34)', borderRadius: '50%', background: 'rgba(251,234,254,0.68)', color: '#C026D3', fontSize: '21px', fontWeight: '700', lineHeight: 1, cursor: 'pointer', transition: 'background 200ms ease, border-color 200ms ease, color 200ms ease, transform 200ms ease' },
+  detailsToggleOpen: { borderColor: '#D946EF', background: '#D946EF', color: '#fff', transform: 'rotate(0.01deg)' },
+  detailsIcon: { display: 'block', lineHeight: 1, animation: 'practice-icon-swap 180ms cubic-bezier(0.22, 1, 0.36, 1) both' },
   accordionPanel: { maxHeight: 0, opacity: 0, overflow: 'hidden', background: 'rgba(251,234,254,0.32)', transition: 'max-height 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms ease' },
   accordionPanelOpen: { maxHeight: '430px', opacity: 1 },
   accordionContent: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px', padding: '14px 16px 16px', boxSizing: 'border-box' },
