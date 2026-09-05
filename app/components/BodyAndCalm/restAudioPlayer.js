@@ -40,7 +40,8 @@ function clearFadeIn() {
 
 function fadeInAudio(player) {
   clearFadeIn();
-  const fadeDuration = 4500;
+  // A longer, gentle ramp keeps playback comfortable when starting from silence.
+  const fadeDuration = 7500;
   const startedAt = Date.now();
   player.volume = 0;
   fadeInId = window.setInterval(() => {
