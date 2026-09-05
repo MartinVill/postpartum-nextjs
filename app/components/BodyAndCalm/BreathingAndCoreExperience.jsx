@@ -402,7 +402,7 @@ const styles = {
   quickArrow: { position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', fontSize: '25px', fontWeight: '400', lineHeight: 1 },
   sectionTitle: { color: '#374151', fontSize: '16px', fontWeight: '700', margin: '0 4px 12px' },
   exerciseList: { display: 'flex', flexDirection: 'column', gap: '12px' },
-  exerciseCard: { width: '100%', boxSizing: 'border-box', overflow: 'hidden', background: '#FFFDF6', border: '1px solid #E5E7EB', borderRadius: '16px', boxShadow: '0 8px 20px rgba(82,48,68,0.12)' },
+  exerciseCard: { width: '100%', boxSizing: 'border-box', overflow: 'hidden', background: '#FAFAFA', border: '1px solid #E5E7EB', borderRadius: '16px', boxShadow: '0 8px 20px rgba(82,48,68,0.12)' },
   exerciseSummary: { display: 'flex', alignItems: 'flex-start', padding: '16px 17px 9px', boxSizing: 'border-box' },
   exerciseSummaryWithThumbnail: { alignItems: 'center', gap: '13px', minHeight: '88px', padding: '12px' },
   exerciseThumbnail: { width: '64px', height: '64px', flexShrink: 0, objectFit: 'cover', borderRadius: '13px', background: '#FBEAFE' },
