@@ -5,12 +5,35 @@ import DailyWellbeingSettings from './DailyWellbeingSettings';
 
 const TRIAL_DAYS = 7;
 
+const ProfileAvatarIcon = () => (
+  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="8" r="3.25" stroke="currentColor" strokeWidth="1.65" />
+    <path d="M5.5 19.25c.7-3.15 3.04-5 6.5-5s5.8 1.85 6.5 5" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" />
+  </svg>
+);
+
+const ProfileMenuIcon = ({ type }) => {
+  const shared = { fill: 'none', stroke: 'currentColor', strokeWidth: '1.7', strokeLinecap: 'round', strokeLinejoin: 'round' };
+  const icons = {
+    profile: <><circle cx="12" cy="8" r="3.1" {...shared} /><path d="M5.5 19.2c.75-3.1 3.05-4.9 6.5-4.9s5.75 1.8 6.5 4.9" {...shared} /></>,
+    subscription: <><rect x="3.5" y="6" width="17" height="12" rx="2.2" {...shared} /><path d="M3.5 10h17M7 14h3" {...shared} /></>,
+    notifications: <><path d="M18 10.2c0-3.35-2.12-5.7-6-5.7s-6 2.35-6 5.7c0 4-1.6 5.3-1.6 5.3h15.2S18 14.2 18 10.2Z" {...shared} /><path d="M9.6 19.1h4.8" {...shared} /></>,
+    support: <><circle cx="12" cy="12" r="8.5" {...shared} /><path d="M9.75 9.3a2.45 2.45 0 0 1 4.7.96c0 1.7-2.45 2.05-2.45 3.55" {...shared} /><path d="M12 16.5h.01" {...shared} /></>
+  };
+
+  return (
+    <span style={{ width: '34px', height: '34px', borderRadius: '11px', background: '#F7EEFA', color: '#9A3BC2', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">{icons[type]}</svg>
+    </span>
+  );
+};
+
 const BackButton = ({ onClick }) => (
   <button
     onClick={onClick}
     style={{
-      background: '#FFFDF6',
-      border: 'none',
+      background: 'rgba(255,255,255,0.72)',
+      border: '1px solid #EEE9E1',
       padding: '8px',
       borderRadius: '50%',
       cursor: 'pointer',
@@ -21,17 +44,17 @@ const BackButton = ({ onClick }) => (
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+      boxShadow: '0 3px 10px rgba(38, 31, 45, 0.06)',
       transition: 'all 0.2s',
       flexShrink: 0
     }}
     onMouseEnter={(e) => {
-      e.currentTarget.style.boxShadow = '0 4px 12px rgba(217, 70, 239, 0.15)';
-      e.currentTarget.style.background = '#FFF8FE';
+      e.currentTarget.style.boxShadow = '0 5px 14px rgba(98, 58, 112, 0.12)';
+      e.currentTarget.style.background = '#FFF9FE';
     }}
     onMouseLeave={(e) => {
-      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
-      e.currentTarget.style.background = 'white';
+      e.currentTarget.style.boxShadow = '0 3px 10px rgba(38, 31, 45, 0.06)';
+      e.currentTarget.style.background = 'rgba(255,255,255,0.72)';
     }}
   >
     <span style={{ fontSize: '20px', color: '#D946EF' }}>&lt;</span>
@@ -153,29 +176,29 @@ export default function Profile({ userProfile, onBack }) {
       }}>
         {/* HEADER PERFIL */}
         <div style={{
-          padding: '24px 16px',
-          textAlign: 'center',
-          borderBottom: '1px solid rgba(0,0,0,0.05)'
+          padding: '18px 20px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px'
         }}>
           {/* Avatar */}
-          <div style={{ position: 'relative', width: '96px', height: '96px', margin: '0 auto 16px' }}>
+          <div style={{ position: 'relative', width: '76px', height: '76px', flexShrink: 0 }}>
             <div style={{
-              width: '96px',
-              height: '96px',
+              width: '76px',
+              height: '76px',
               borderRadius: '50%',
-              background: userProfile?.avatar ? `url(${userProfile.avatar})` : '#E5E7EB',
+              background: userProfile?.avatar ? `url(${userProfile.avatar})` : '#F0EDF2',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              border: '3px solid white',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              border: '2px solid rgba(255,255,255,0.9)',
+              boxShadow: '0 6px 18px rgba(48, 38, 56, 0.1)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '32px',
-              color: '#999'
+              color: '#82608F'
             }} onClick={handleAvatarClick}>
-              {!userProfile?.avatar && '👤'}
+              {!userProfile?.avatar && <ProfileAvatarIcon />}
             </div>
             <button
               onClick={handleAvatarClick}
@@ -183,166 +206,187 @@ export default function Profile({ userProfile, onBack }) {
                 position: 'absolute',
                 bottom: 0,
                 right: 0,
-                width: '32px',
-                height: '32px',
+                width: '28px',
+                height: '28px',
                 borderRadius: '50%',
-                background: '#F3F4F6',
-                border: '2px solid white',
+                background: '#FFFDF6',
+                border: '1px solid #EEE9E1',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                boxShadow: '0 3px 9px rgba(38,31,45,0.12)',
                 transition: 'all 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#E5E7EB';
+                e.currentTarget.style.background = '#F7EEFA';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#F3F4F6';
+                e.currentTarget.style.background = '#FFFDF6';
               }}
             >
-              <span style={{ fontSize: '14px' }}>📷</span>
+              <span style={{ fontSize: '13px', color: '#8E3AB1' }}>⌁</span>
             </button>
           </div>
 
-          {/* Nombre */}
-          <h1 style={{
-            fontSize: '24px',
-            fontWeight: '700',
-            color: '#111827',
-            margin: '0 0 8px 0'
-          }}>
-            {userProfile?.name} {userProfile?.surname || ''}
-          </h1>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '24px' }}>
+          <div style={{ minWidth: 0, textAlign: 'left' }}>
+            <h1 style={{
+              fontSize: '22px',
+              fontWeight: '700',
+              letterSpacing: '-0.3px',
+              color: '#25212A',
+              margin: '0 0 7px 0',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}>
+              {userProfile?.name} {userProfile?.surname || ''}
+            </h1>
             <span style={{
-              background: '#FFF8FE',
-              border: '1px solid #D946EF',
-              color: '#D946EF',
-              padding: '4px 12px',
-              borderRadius: '20px',
+              display: 'inline-flex',
+              background: '#F4EAF8',
+              color: '#8641A7',
+              padding: '5px 10px',
+              borderRadius: '999px',
               fontSize: '12px',
               fontWeight: '600'
             }}>
-              Prueba Gratuita
+              Prueba de 7 días
             </span>
           </div>
         </div>
 
         {/* BANNER TRIAL */}
-        <div style={{
-          margin: '24px 16px',
-          padding: '20px 16px',
-          background: '#FFF8FE',
-          border: '1px solid rgba(217, 70, 239, 0.55)',
-          borderRadius: '16px'
-        }}>
+        <button
+          type="button"
+          onClick={() => setActiveSubView('SUBSCRIPTION')}
+          style={{
+            width: 'calc(100% - 40px)',
+            margin: '4px 20px 24px',
+            padding: '18px',
+            background: 'linear-gradient(135deg, #FCF8FD 0%, #F8F0FA 100%)',
+            border: '1px solid #F0E3F4',
+            borderRadius: '18px',
+            boxShadow: '0 10px 26px rgba(74, 48, 86, 0.08)',
+            textAlign: 'left',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-1px)';
+            e.currentTarget.style.boxShadow = '0 14px 30px rgba(74, 48, 86, 0.12)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 10px 26px rgba(74, 48, 86, 0.08)';
+          }}
+        >
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: '12px'
+            gap: '12px',
+            marginBottom: '8px'
           }}>
-            <div>
-              <h3 style={{
-                fontSize: '16px',
-                fontWeight: '700',
-                color: '#111827',
-                margin: '0 0 4px 0'
-              }}>
-                Tu prueba de 7 días está activa
-              </h3>
-            </div>
-            <div style={{
+            <h3 style={{
               fontSize: '16px',
               fontWeight: '700',
-              color: '#D946EF',
+              color: '#25212A',
+              margin: 0,
+              letterSpacing: '-0.15px'
+            }}>
+              Tu prueba gratuita está activa
+            </h3>
+            <span style={{
+              flexShrink: 0,
+              padding: '5px 9px',
+              borderRadius: '999px',
+              background: '#EEDDF5',
+              color: '#7D3E99',
+              fontSize: '12px',
+              fontWeight: '700',
               whiteSpace: 'nowrap'
             }}>
-              Te quedan {daysRemaining} días
-            </div>
+              {daysRemaining} días
+            </span>
           </div>
 
+          <p style={{
+            fontSize: '14px',
+            color: '#4B5563',
+            lineHeight: '1.45',
+            margin: '0 0 15px 0'
+          }}>
+            Disfruta la experiencia completa a tu ritmo.
+          </p>
+
           <div style={{
-            height: '8px',
-            background: '#E5E7EB',
-            borderRadius: '4px',
+            height: '4px',
+            background: '#E9E2EA',
+            borderRadius: '999px',
             overflow: 'hidden',
-            marginBottom: '12px'
+            marginBottom: '14px'
           }}>
             <div style={{
               height: '100%',
               background: '#D946EF',
               width: `${Math.min(progressPercentage, 100)}%`,
+              borderRadius: 'inherit',
               transition: 'width 0.3s'
             }} />
           </div>
 
-          <p style={{
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px'
+          }}>
+            <span style={{
             fontSize: '13px',
             fontWeight: '500',
             color: '#4B5563',
-            lineHeight: '1.45',
-            margin: '0 0 12px 0'
-          }}>
-            Tu prueba finaliza el {trialEndDate.toLocaleDateString('es-ES')}
-          </p>
-
-          <button
-            onClick={() => setActiveSubView('SUBSCRIPTION')}
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              background: '#D946EF',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
+              whiteSpace: 'nowrap'
+            }}>
+              Finaliza el {trialEndDate.toLocaleDateString('es-ES')}
+            </span>
+            <span style={{
+              fontSize: '13px',
               fontWeight: '700',
-              cursor: 'pointer',
-              fontSize: '14px',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.opacity = '0.9';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = '1';
-            }}
-          >
-            Conocer planes
-          </button>
-
-          <p style={{
-            fontSize: '13px',
-            color: '#4B5563',
-            lineHeight: '1.45',
-            margin: '8px 0 0 0',
-            textAlign: 'center'
-          }}>
-            Explora la experiencia completa a tu ritmo.
-          </p>
-        </div>
+              color: '#A63AC7',
+              whiteSpace: 'nowrap'
+            }}>
+              Conocer planes ›
+            </span>
+          </div>
+        </button>
 
         {/* MENÚ PRINCIPAL */}
-        <div style={{ padding: '0 16px' }}>
+        <div style={{
+          margin: '0 20px',
+          background: 'rgba(255,255,255,0.68)',
+          border: '1px solid #F0ECE6',
+          borderRadius: '18px',
+          boxShadow: '0 8px 22px rgba(48, 38, 56, 0.055)',
+          overflow: 'hidden'
+        }}>
           {[
-            { id: 'EDIT_PROFILE', icon: '👤', title: 'Información Personal y Hobbies', subtitle: 'Nombre, fecha de parto y tus intereses.' },
-            { id: 'SUBSCRIPTION', icon: '💳', title: 'Suscripción y Facturación', subtitle: 'Detalles del plan, métodos de pago e historial.' },
-            { id: 'NOTIFICATIONS', icon: '🔔', title: 'Preferencias de Notificación', subtitle: 'Recordatorios de rutina y alertas.' },
-            { id: 'SUPPORT', icon: '💬', title: 'Soporte y Ayuda', subtitle: 'Preguntas frecuentes, contacto y legales.' }
-          ].map((item) => (
+            { id: 'EDIT_PROFILE', icon: 'profile', title: 'Información personal', subtitle: 'Nombre, fecha de parto e intereses.' },
+            { id: 'SUBSCRIPTION', icon: 'subscription', title: 'Suscripción y facturación', subtitle: 'Detalles de tu plan e historial.' },
+            { id: 'NOTIFICATIONS', icon: 'notifications', title: 'Notificaciones', subtitle: 'Recordatorios y alertas.' },
+            { id: 'SUPPORT', icon: 'support', title: 'Soporte y ayuda', subtitle: 'Respuestas, contacto y legales.' }
+          ].map((item, index, items) => (
             <button
               key={item.id}
               onClick={() => setActiveSubView(item.id)}
               style={{
                 width: '100%',
-                padding: '16px',
-                background: '#FFFDF6',
-                border: '1px solid #E5E7EB',
-                borderRadius: '12px',
-                marginBottom: '12px',
+                padding: '15px 16px',
+                background: 'transparent',
+                border: 'none',
+                borderBottom: index < items.length - 1 ? '1px solid #EEEAE5' : 'none',
+                borderRadius: 0,
+                marginBottom: 0,
                 textAlign: 'left',
                 cursor: 'pointer',
                 display: 'flex',
@@ -351,32 +395,34 @@ export default function Profile({ userProfile, onBack }) {
                 transition: 'all 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#D946EF';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(217, 70, 239, 0.1)';
+                e.currentTarget.style.background = '#FCF7FD';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#E5E7EB';
-                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.background = 'transparent';
               }}
             >
-              <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                <ProfileMenuIcon type={item.icon} />
+                <div style={{ minWidth: 0 }}>
                 <div style={{
-                  fontSize: '16px',
+                  fontSize: '15px',
                   fontWeight: '600',
-                  color: '#111827',
-                  marginBottom: '4px'
+                  color: '#25212A',
+                  marginBottom: '3px'
                 }}>
-                  {item.icon} {item.title}
+                  {item.title}
                 </div>
                 <div style={{
                   fontSize: '13px',
-                  color: '#6B7280',
+                  color: '#59616D',
+                  lineHeight: '1.35',
                   margin: 0
                 }}>
                   {item.subtitle}
                 </div>
+                </div>
               </div>
-              <span style={{ fontSize: '18px', color: '#D946EF', marginLeft: '12px' }}>›</span>
+              <span style={{ fontSize: '22px', lineHeight: 1, fontWeight: '300', color: '#9A83A4', marginLeft: '12px' }}>›</span>
             </button>
           ))}
         </div>
