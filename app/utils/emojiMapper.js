@@ -5,16 +5,23 @@
  */
 
 export function getAccurateEmoji(activityTitle = "", currentEmoji = "") {
-  // If emoji is specific (not generic/placeholder), keep it
-  const isGeneric = !currentEmoji || currentEmoji === "✨" || currentEmoji === "🌟" || currentEmoji === "🎯";
-  if (!isGeneric) return currentEmoji;
-
   // Normalize title: lowercase and remove diacritics (handles typos like scrackbook vs scrapbook)
   const normalizedTitle = activityTitle
     .toLowerCase()
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
     .trim();
+
+  // High-confidence intent must win over an incorrect emoji inherited from a
+  // generated challenge. For example, "Bailar contemporáneo" can never mean ☕.
+  if (["bailar", "baile", "danza", "danzar", "coreografia", "contemporaneo"].some(keyword => normalizedTitle.includes(keyword))) {
+    return "💃";
+  }
+
+  // If emoji is specific (not generic/placeholder), keep it after correcting
+  // the unambiguous intents above.
+  const isGeneric = !currentEmoji || currentEmoji === "✨" || currentEmoji === "🌟" || currentEmoji === "🎯";
+  if (!isGeneric) return currentEmoji;
 
   // Semantic rules with keyword matching
   const rules = [
@@ -29,7 +36,7 @@ export function getAccurateEmoji(activityTitle = "", currentEmoji = "") {
     { keywords: ["yoga", "estirar", "meditar", "relax", "relajacion", "meditacion"], emoji: "🧘‍♀️" },
     { keywords: ["caminar", "pasear", "ejercicio", "aire libre", "parque", "caminata"], emoji: "🚶‍♀️" },
     { keywords: ["leer", "libro", "lectura", "novela", "cuento", "poesia"], emoji: "📖" },
-    { keywords: ["musica", "cantar", "bailar", "playlist", "concierto", "ritmo"], emoji: "🎵" },
+    { keywords: ["musica", "cantar", "playlist", "concierto", "ritmo"], emoji: "🎵" },
     { keywords: ["jugar", "videojuego", "juego", "gaming"], emoji: "🎮" },
     { keywords: ["fotografiar", "foto", "fotografia"], emoji: "📸" },
     { keywords: ["floración", "flores", "plantas", "jardin", "jardineria"], emoji: "🌸" },
