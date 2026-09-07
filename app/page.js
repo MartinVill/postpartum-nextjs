@@ -334,7 +334,7 @@ export default function Home() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)'
+        background: '#FFFDF6'
       }} />
     );
   }
@@ -347,9 +347,9 @@ export default function Home() {
         justifyContent: 'center',
         alignItems: 'flex-start',
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
+        background: '#FFFDF6',
         padding: '20px',
-        paddingTop: '40px',
+        paddingTop: '32px',
         overflow: 'auto',
         paddingBottom: '100px'
       }}>

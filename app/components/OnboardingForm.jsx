@@ -393,10 +393,11 @@ export default function OnboardingForm({ onComplete }) {
 
   return (
     <div style={{
-      background: 'white',
-      padding: '32px 24px',
-      borderRadius: '16px',
-      boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+      background: 'rgba(255,255,255,0.78)',
+      padding: '28px 24px',
+      border: '1px solid #F0ECE6',
+      borderRadius: '20px',
+      boxShadow: '0 14px 32px rgba(48, 38, 56, 0.08)',
       width: '100%',
       maxWidth: '100%'
     }}>
@@ -407,21 +408,21 @@ export default function OnboardingForm({ onComplete }) {
         justifyContent: 'space-between',
         marginBottom: '32px'
       }}>
-        <p style={{ fontSize: '13px', color: '#9CA3AF', fontWeight: '500' }}>
+        <p style={{ fontSize: '13px', color: '#59616D', fontWeight: '600', margin: 0 }}>
           Paso {step} de 4
         </p>
         <div style={{
           display: 'flex',
-          gap: '8px'
+          gap: '6px'
         }}>
           {[1, 2, 3, 4].map(s => (
             <div
               key={s}
               style={{
-                width: '10px',
-                height: '10px',
-                borderRadius: '50%',
-                background: s <= step ? '#D946EF' : '#E5E7EB',
+                width: s === step ? '20px' : '8px',
+                height: '8px',
+                borderRadius: '999px',
+                background: s <= step ? '#D946EF' : '#E8E2EA',
                 transition: 'background 0.3s'
               }}
             />
@@ -443,15 +444,15 @@ export default function OnboardingForm({ onComplete }) {
             style={{
               flex: 1,
               padding: '16px',
-              background: '#F5F5F5',
-              border: 'none',
-              borderRadius: '20px',
+              background: '#F2EEF0',
+              border: '1px solid #E7E1E5',
+              borderRadius: '14px',
               cursor: 'pointer',
               fontWeight: '600',
-              color: '#666',
+              color: '#4B5563',
               fontSize: '15px',
               transition: 'all 0.2s',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              boxShadow: 'none'
             }}
             onMouseEnter={(e) => {
               e.target.style.background = '#EFEFEF';
@@ -482,7 +483,7 @@ export default function OnboardingForm({ onComplete }) {
             ) ? '#DDD' : '#D946EF',
             color: 'white',
             border: 'none',
-            borderRadius: '20px',
+            borderRadius: '14px',
             cursor: (
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
@@ -495,7 +496,7 @@ export default function OnboardingForm({ onComplete }) {
               (step === 1 && !formData.name.trim()) ||
               (step === 2 && formData.hobbies.length < 3) ||
               (step === 3 && (!formData.lastMenstruationDate || !formData.babyBirthDate))
-            ) ? 'none' : '0 2px 8px rgba(217, 70, 239, 0.2)'
+            ) ? 'none' : '0 8px 18px rgba(217, 70, 239, 0.2)'
           }}
           onMouseEnter={(e) => {
             if (!(

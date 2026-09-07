@@ -13,16 +13,17 @@ export default function BottomNavigationBar({ activeTab, onTabChange }) {
       bottom: 0,
       left: 0,
       right: 0,
-      background: '#FFFBF0',
-      borderTop: '1px solid #F3F4F6',
+      background: 'rgba(255, 253, 246, 0.94)',
+      borderTop: '1px solid #EEE9E1',
       display: 'flex',
       justifyContent: 'space-around',
       alignItems: 'center',
-      height: '70px',
+      height: '74px',
       maxWidth: '600px',
       margin: '0 auto',
       zIndex: 50,
-      boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
+      boxShadow: '0 -8px 24px rgba(48, 38, 56, 0.07)',
+      backdropFilter: 'blur(14px)'
     }}>
       {tabs.map(tab => (
         <button
@@ -38,30 +39,33 @@ export default function BottomNavigationBar({ activeTab, onTabChange }) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '4px',
+            gap: '3px',
+            margin: '7px 6px',
+            height: '60px',
+            borderRadius: '14px',
             transition: 'all 0.2s',
-            backgroundColor: activeTab === tab.id ? '#FFF8FE' : 'transparent'
+            backgroundColor: activeTab === tab.id ? '#F5EAF8' : 'transparent'
           }}
           onMouseEnter={(e) => {
             if (activeTab !== tab.id) {
-              e.currentTarget.style.backgroundColor = '#F9F9F9';
+              e.currentTarget.style.backgroundColor = '#FAF5FB';
             }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = activeTab === tab.id ? '#FFF8FE' : 'transparent';
+            e.currentTarget.style.backgroundColor = activeTab === tab.id ? '#F5EAF8' : 'transparent';
           }}
         >
           <span style={{
-            fontSize: '24px',
-            opacity: activeTab === tab.id ? 1 : 0.5,
+            fontSize: '22px',
+            opacity: activeTab === tab.id ? 1 : 0.56,
             transition: 'all 0.2s'
           }}>
             {tab.icon}
           </span>
           <span style={{
-            fontSize: '10px',
+            fontSize: '11px',
             fontWeight: activeTab === tab.id ? '600' : '500',
-            color: activeTab === tab.id ? '#D946EF' : '#9CA3AF',
+            color: activeTab === tab.id ? '#A63AC7' : '#69707A',
             transition: 'all 0.2s'
           }}>
             {tab.label}
