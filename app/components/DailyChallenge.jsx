@@ -244,10 +244,10 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
 
   return (
     <div style={{
-      padding: '16px',
-      paddingBottom: '16px',
-      background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
-      borderRadius: '16px',
+      padding: '20px',
+      paddingBottom: '96px',
+      background: '#FFFDF6',
+      borderRadius: 0,
       marginBottom: 0
     }}>
       <style>{`
@@ -268,13 +268,13 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
         position: 'sticky',
         top: 0,
         zIndex: 40,
-        background: 'linear-gradient(135deg, #FFF8DC 0%, #FFF5E1 100%)',
-        margin: '-16px -16px 20px -16px',
+        background: '#FFFDF6',
+        margin: '-20px -20px 24px -20px',
         width: 'auto',
-        paddingLeft: '16px',
-        paddingRight: '16px',
-        paddingTop: '16px',
-        paddingBottom: '8px',
+        paddingLeft: '20px',
+        paddingRight: '20px',
+        paddingTop: '18px',
+        paddingBottom: '12px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -286,10 +286,10 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
           onClick={onBack}
           style={{
             position: 'absolute',
-            left: '16px',
-            top: '16px',
-            background: 'white',
-            border: 'none',
+            left: '20px',
+            top: '18px',
+            background: 'rgba(255,255,255,0.72)',
+            border: '1px solid #EEE9E1',
             padding: '8px',
             borderRadius: '50%',
             cursor: 'pointer',
@@ -298,7 +298,7 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            boxShadow: '0 3px 10px rgba(48,38,56,0.06)',
             transition: 'all 0.2s'
           }}
           onMouseEnter={(e) => {
@@ -317,8 +317,8 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
         <h2 style={{
           fontSize: '20px',
           fontWeight: '700',
-          color: '#D946EF',
-          margin: '0 0 12px 0',
+          color: '#25212A',
+          margin: '0 0 10px 0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -329,13 +329,13 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
 
         {/* Centered Streak Badge */}
         <div style={{
-          background: '#FFF5E6',
-          border: '1.5px solid #F59E0B',
-          borderRadius: '20px',
-          padding: '8px 14px',
-          fontSize: '14px',
+          background: '#F7EEFA',
+          border: '1px solid #EBD9F1',
+          borderRadius: '999px',
+          padding: '6px 11px',
+          fontSize: '13px',
           fontWeight: '600',
-          color: '#D97706',
+          color: '#7D3E99',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -348,8 +348,8 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
-        gap: '12px',
-        marginBottom: '16px'
+        gap: '14px',
+        marginBottom: 0
       }}>
         {activities.map((activity, index) => (
           <button
@@ -357,25 +357,24 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
             onClick={() => handleSelectActivity(activity)}
             className="activity-card"
             style={{
-              padding: '14px',
-              background: '#FFFFFF',
-              border: activity.isHobby && index < 3 ? '2.5px solid #D946EF' : '1px solid #E5E7EB',
-              borderRadius: '14px',
+              padding: '16px 12px',
+              background: 'rgba(255,255,255,0.74)',
+              border: activity.isHobby && index < 3 ? '1px solid #E8D7EE' : '1px solid #F0ECE6',
+              borderRadius: '18px',
               cursor: 'pointer',
               textAlign: 'center',
               transition: 'all 0.2s ease-out',
               position: 'relative',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              boxShadow: '0 8px 20px rgba(48,38,56,0.055)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = (activity.isHobby && index < 3) ? '#FFF8FE' : '#F9F9F9';
-              e.currentTarget.style.boxShadow = (activity.isHobby && index < 3)
-                ? '0 6px 16px rgba(217, 70, 239, 0.15)'
-                : '0 4px 12px rgba(0, 0, 0, 0.08)';
+              e.currentTarget.style.background = '#FFFCFF';
+              e.currentTarget.style.boxShadow = '0 12px 24px rgba(91,55,104,0.11)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#FFFFFF';
-              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.background = 'rgba(255,255,255,0.74)';
+              e.currentTarget.style.boxShadow = '0 8px 20px rgba(48,38,56,0.055)';
             }}
           >
             {activity.isHobby && index < 3 && (
@@ -383,8 +382,8 @@ export default function DailyChallenge({ energy, userProfile, onChallengeStart, 
                 position: 'absolute',
                 top: '6px',
                 right: '6px',
-                background: '#D946EF',
-                color: 'white',
+                background: '#F3E5F7',
+                color: '#8C3CAA',
                 fontSize: '9px',
                 fontWeight: '700',
                 padding: '3px 8px',
