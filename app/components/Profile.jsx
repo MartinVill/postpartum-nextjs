@@ -236,7 +236,7 @@ export default function Profile({ userProfile, onBack }) {
           margin: '24px 16px',
           padding: '20px 16px',
           background: '#FFF8FE',
-          border: '2px solid #D946EF',
+          border: '1px solid rgba(217, 70, 239, 0.55)',
           borderRadius: '16px'
         }}>
           <div style={{
@@ -256,11 +256,12 @@ export default function Profile({ userProfile, onBack }) {
               </h3>
             </div>
             <div style={{
-              fontSize: '20px',
+              fontSize: '16px',
               fontWeight: '700',
-              color: '#D946EF'
+              color: '#D946EF',
+              whiteSpace: 'nowrap'
             }}>
-              {daysRemaining} días
+              Te quedan {daysRemaining} días
             </div>
           </div>
 
@@ -280,8 +281,10 @@ export default function Profile({ userProfile, onBack }) {
           </div>
 
           <p style={{
-            fontSize: '11px',
-            color: '#6B7280',
+            fontSize: '13px',
+            fontWeight: '500',
+            color: '#4B5563',
+            lineHeight: '1.45',
             margin: '0 0 12px 0'
           }}>
             Tu prueba finaliza el {trialEndDate.toLocaleDateString('es-ES')}
@@ -312,8 +315,9 @@ export default function Profile({ userProfile, onBack }) {
           </button>
 
           <p style={{
-            fontSize: '12px',
-            color: '#6B7280',
+            fontSize: '13px',
+            color: '#4B5563',
+            lineHeight: '1.45',
             margin: '8px 0 0 0',
             textAlign: 'center'
           }}>
