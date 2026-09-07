@@ -228,15 +228,6 @@ export default function Home() {
       let profileJson = localStorage.getItem('userProfile');
       let userProfile = profileJson ? JSON.parse(profileJson) : null;
 
-      if (userProfile && !userProfile.trialStartDate) {
-        userProfile = {
-          ...userProfile,
-          trialStartDate: new Date().toISOString(),
-          email: userProfile.email || 'mama@postpartumrecovery.app'
-        };
-        localStorage.setItem('userProfile', JSON.stringify(userProfile));
-      }
-
       const today = new Date().toDateString();
       const lastCheckInDate = localStorage.getItem('lastCheckInDate');
 
@@ -439,6 +430,36 @@ export default function Home() {
             <Profile
               userProfile={state.userProfile}
               onBack={() => setState(prev => ({ ...prev, showProfile: false, activeTab: 'home' }))}
+              onTrialActivated={async ({ uid, email, displayName, idToken }) => {
+                const existingUserId = localStorage.getItem('userId');
+                const profile = {
+                  ...(state.userProfile || {}),
+                  name: state.userProfile?.name || displayName || '',
+                  email: email || state.userProfile?.email || '',
+                  trialStartDate: new Date().toISOString(),
+                  firebaseUid: uid,
+                  ...(existingUserId && existingUserId !== uid ? { legacyUserId: existingUserId } : {})
+                };
+
+                localStorage.setItem('userId', uid);
+                localStorage.setItem('userProfile', JSON.stringify(profile));
+                setState(prev => ({ ...prev, userId: uid, userProfile: profile }));
+
+                try {
+                  const response = await fetch('/api/user/profile', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${idToken}`
+                    },
+                    body: JSON.stringify({ userId: uid, ...profile })
+                  });
+                  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                } catch (error) {
+                  // La experiencia local sigue disponible; el próximo inicio reintentará la sincronización.
+                  console.warn('[AUTH] No se pudo sincronizar el perfil todavía:', error.message);
+                }
+              }}
             />
           </div>
         </div>

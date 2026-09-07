@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import NotificationPermissionControl from './NotificationPermissionControl';
 import DailyWellbeingSettings from './DailyWellbeingSettings';
+import TrialActivationButton from './TrialActivationButton';
 
 const TRIAL_DAYS = 7;
 
@@ -61,7 +62,7 @@ const BackButton = ({ onClick }) => (
   </button>
 );
 
-export default function Profile({ userProfile, onBack }) {
+export default function Profile({ userProfile, onBack, onTrialActivated }) {
   const [activeSubView, setActiveSubView] = useState(null);
   const [draftProfile, setDraftProfile] = useState(() => ({
     name: userProfile?.name || '',
@@ -83,10 +84,11 @@ export default function Profile({ userProfile, onBack }) {
     news: true
   });
 
-  const trialStartDate = new Date(userProfile?.trialStartDate || new Date());
-  const daysPassed = Math.floor((new Date() - trialStartDate) / (1000 * 60 * 60 * 24));
+  const hasActiveTrial = Boolean(userProfile?.trialStartDate);
+  const trialStartDate = hasActiveTrial ? new Date(userProfile.trialStartDate) : null;
+  const daysPassed = trialStartDate ? Math.floor((new Date() - trialStartDate) / (1000 * 60 * 60 * 24)) : 0;
   const daysRemaining = Math.max(0, TRIAL_DAYS - daysPassed);
-  const trialEndDate = new Date(trialStartDate.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+  const trialEndDate = trialStartDate ? new Date(trialStartDate.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000) : null;
   const progressPercentage = (daysPassed / TRIAL_DAYS) * 100;
 
   useEffect(() => {
@@ -251,7 +253,7 @@ export default function Profile({ userProfile, onBack }) {
               fontSize: '12px',
               fontWeight: '600'
             }}>
-              Prueba de 7 días
+              {hasActiveTrial ? 'Prueba de 7 días' : 'Prueba disponible'}
             </span>
           </div>
         </div>
@@ -291,7 +293,7 @@ export default function Profile({ userProfile, onBack }) {
               margin: '0 0 5px 0',
               letterSpacing: '-0.15px'
             }}>
-              Tu prueba gratuita está activa
+              {hasActiveTrial ? 'Tu prueba gratuita está activa' : 'Tu prueba gratuita está lista'}
             </h3>
             <p style={{
               fontSize: '14px',
@@ -300,11 +302,11 @@ export default function Profile({ userProfile, onBack }) {
               lineHeight: '1.4',
               margin: 0
             }}>
-              Finaliza en {daysRemaining} días
+              {hasActiveTrial ? `Finaliza en ${daysRemaining} días` : 'Actívala cuando quieras'}
             </p>
           </div>
 
-          <div style={{
+          {hasActiveTrial && <div style={{
             height: '4px',
             background: '#E9E2EA',
             borderRadius: '999px',
@@ -318,7 +320,7 @@ export default function Profile({ userProfile, onBack }) {
               borderRadius: 'inherit',
               transition: 'width 0.3s'
             }} />
-          </div>
+          </div>}
 
           <div style={{
             display: 'flex',
@@ -332,7 +334,7 @@ export default function Profile({ userProfile, onBack }) {
             color: '#4B5563',
               whiteSpace: 'nowrap'
             }}>
-              Finaliza el {trialEndDate.toLocaleDateString('es-ES')}
+              {hasActiveTrial ? `Finaliza el ${trialEndDate.toLocaleDateString('es-ES')}` : '7 días de acceso completo'}
             </span>
             <span style={{
               fontSize: '13px',
@@ -340,7 +342,7 @@ export default function Profile({ userProfile, onBack }) {
               color: '#A63AC7',
               whiteSpace: 'nowrap'
             }}>
-              Conocer planes ›
+              {hasActiveTrial ? 'Conocer planes ›' : 'Activar prueba ›'}
             </span>
           </div>
         </button>
@@ -993,14 +995,16 @@ export default function Profile({ userProfile, onBack }) {
               color: '#111827',
               margin: '0 0 8px 0'
             }}>
-              Plan Actual
+              {hasActiveTrial ? 'Tu prueba está activa' : 'Activa tu prueba gratuita'}
             </h3>
             <p style={{
               fontSize: '14px',
               color: '#6B7280',
               margin: '0 0 12px 0'
             }}>
-              Prueba gratuita de 7 días
+              {hasActiveTrial
+                ? `Finaliza el ${trialEndDate.toLocaleDateString('es-ES')}`
+                : '7 días para probar la experiencia completa.'}
             </p>
             <div style={{
               display: 'flex',
@@ -1008,7 +1012,7 @@ export default function Profile({ userProfile, onBack }) {
               justifyContent: 'space-between',
               marginBottom: '12px'
             }}>
-              <span style={{ fontSize: '13px', color: '#6B7280' }}>Estado:</span>
+              <span style={{ fontSize: '13px', color: '#59616D' }}>Estado:</span>
               <span style={{
                 background: '#D946EF',
                 color: 'white',
@@ -1017,11 +1021,11 @@ export default function Profile({ userProfile, onBack }) {
                 fontSize: '12px',
                 fontWeight: '600'
               }}>
-                Activa
+                {hasActiveTrial ? 'Activa' : 'Pendiente'}
               </span>
             </div>
 
-            <button
+            {hasActiveTrial ? <button
               onClick={() => alert('Funcionalidad de pago en desarrollo')}
               style={{
                 width: '100%',
@@ -1043,7 +1047,7 @@ export default function Profile({ userProfile, onBack }) {
               }}
             >
               Conocer planes
-            </button>
+            </button> : <TrialActivationButton onActivated={onTrialActivated} />}
           </div>
 
           <h3 style={{

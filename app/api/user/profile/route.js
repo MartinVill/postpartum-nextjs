@@ -3,8 +3,27 @@
  * Guardar o actualizar perfil de usuario en Firestore
  */
 
-import { db } from '@/lib/firebase';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { getAdminAuth, getAdminDb } from '@/lib/firebaseAdmin';
+
+async function requireAuthenticatedUser(request, requestedUserId) {
+  const authorization = request.headers.get('authorization') || '';
+  const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : null;
+
+  if (!idToken) {
+    return { error: Response.json({ error: 'Autenticación requerida' }, { status: 401 }) };
+  }
+
+  try {
+    const decodedToken = await getAdminAuth().verifyIdToken(idToken);
+    if (decodedToken.uid !== requestedUserId) {
+      return { error: Response.json({ error: 'No tienes permiso para este perfil' }, { status: 403 }) };
+    }
+    return { uid: decodedToken.uid };
+  } catch (error) {
+    console.error('[USER] Token inválido:', error.code || error.message);
+    return { error: Response.json({ error: 'Sesión inválida o expirada' }, { status: 401 }) };
+  }
+}
 
 export async function POST(request) {
   try {
@@ -14,16 +33,19 @@ export async function POST(request) {
       return Response.json({ error: 'userId requerido' }, { status: 400 });
     }
 
-    const userRef = doc(db, 'users', userId);
-    const existingUser = await getDoc(userRef);
+    const authentication = await requireAuthenticatedUser(request, userId);
+    if (authentication.error) return authentication.error;
+
+    const userRef = getAdminDb().collection('users').doc(userId);
+    const existingUser = await userRef.get();
 
     if (existingUser.exists()) {
-      await updateDoc(userRef, {
+      await userRef.update({
         ...profileData,
         updatedAt: new Date().toISOString()
       });
     } else {
-      await setDoc(userRef, {
+      await userRef.set({
         ...profileData,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -47,8 +69,11 @@ export async function GET(request) {
       return Response.json({ error: 'userId requerido' }, { status: 400 });
     }
 
-    const userRef = doc(db, 'users', userId);
-    const userSnap = await getDoc(userRef);
+    const authentication = await requireAuthenticatedUser(request, userId);
+    if (authentication.error) return authentication.error;
+
+    const userRef = getAdminDb().collection('users').doc(userId);
+    const userSnap = await userRef.get();
 
     if (!userSnap.exists()) {
       return Response.json({ exists: false });
