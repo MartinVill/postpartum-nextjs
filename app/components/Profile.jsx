@@ -282,43 +282,27 @@ export default function Profile({ userProfile, onBack }) {
           }}
         >
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-            marginBottom: '8px'
+            marginBottom: '15px'
           }}>
             <h3 style={{
               fontSize: '16px',
               fontWeight: '700',
               color: '#25212A',
-              margin: 0,
+              margin: '0 0 5px 0',
               letterSpacing: '-0.15px'
             }}>
               Tu prueba gratuita está activa
             </h3>
-            <span style={{
-              flexShrink: 0,
-              padding: '5px 9px',
-              borderRadius: '999px',
-              background: '#EEDDF5',
+            <p style={{
+              fontSize: '14px',
+              fontWeight: '600',
               color: '#7D3E99',
-              fontSize: '12px',
-              fontWeight: '700',
-              whiteSpace: 'nowrap'
+              lineHeight: '1.4',
+              margin: 0
             }}>
-              {daysRemaining} días
-            </span>
+              Finaliza en {daysRemaining} días
+            </p>
           </div>
-
-          <p style={{
-            fontSize: '14px',
-            color: '#4B5563',
-            lineHeight: '1.45',
-            margin: '0 0 15px 0'
-          }}>
-            Disfruta la experiencia completa a tu ritmo.
-          </p>
 
           <div style={{
             height: '4px',
