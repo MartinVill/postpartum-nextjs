@@ -3,8 +3,6 @@
  * Guardar o actualizar perfil de usuario en Firestore
  */
 
-import { getAdminAuth, getAdminDb } from '@/lib/firebaseAdmin';
-
 async function requireAuthenticatedUser(request, requestedUserId) {
   const authorization = request.headers.get('authorization') || '';
   const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : null;
@@ -14,6 +12,10 @@ async function requireAuthenticatedUser(request, requestedUserId) {
   }
 
   try {
+    // Cargamos Admin solo después de confirmar que la solicitud trae token.
+    // Así una petición anónima siempre puede recibir su 401, aun si falta una
+    // credencial de servidor en un entorno de preview.
+    const { getAdminAuth } = await import('@/lib/firebaseAdmin');
     const decodedToken = await getAdminAuth().verifyIdToken(idToken);
     if (decodedToken.uid !== requestedUserId) {
       return { error: Response.json({ error: 'No tienes permiso para este perfil' }, { status: 403 }) };
@@ -36,6 +38,7 @@ export async function POST(request) {
     const authentication = await requireAuthenticatedUser(request, userId);
     if (authentication.error) return authentication.error;
 
+    const { getAdminDb } = await import('@/lib/firebaseAdmin');
     const userRef = getAdminDb().collection('users').doc(userId);
     const existingUser = await userRef.get();
 
@@ -72,6 +75,7 @@ export async function GET(request) {
     const authentication = await requireAuthenticatedUser(request, userId);
     if (authentication.error) return authentication.error;
 
+    const { getAdminDb } = await import('@/lib/firebaseAdmin');
     const userRef = getAdminDb().collection('users').doc(userId);
     const userSnap = await userRef.get();
 
