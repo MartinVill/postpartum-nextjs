@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from 'react';
 import NotificationPermissionControl from './NotificationPermissionControl';
 import DailyWellbeingSettings from './DailyWellbeingSettings';
 
+const TRIAL_DAYS = 7;
+
 const BackButton = ({ onClick }) => (
   <button
     onClick={onClick}
@@ -60,9 +62,9 @@ export default function Profile({ userProfile, onBack }) {
 
   const trialStartDate = new Date(userProfile?.trialStartDate || new Date());
   const daysPassed = Math.floor((new Date() - trialStartDate) / (1000 * 60 * 60 * 24));
-  const daysRemaining = Math.max(0, 14 - daysPassed);
-  const trialEndDate = new Date(trialStartDate.getTime() + 14 * 24 * 60 * 60 * 1000);
-  const progressPercentage = (daysPassed / 14) * 100;
+  const daysRemaining = Math.max(0, TRIAL_DAYS - daysPassed);
+  const trialEndDate = new Date(trialStartDate.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+  const progressPercentage = (daysPassed / TRIAL_DAYS) * 100;
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -250,7 +252,7 @@ export default function Profile({ userProfile, onBack }) {
                 color: '#111827',
                 margin: '0 0 4px 0'
               }}>
-                ⭐ Tu Prueba Gratuita está activa
+                Tu prueba de 7 días está activa
               </h3>
             </div>
             <div style={{
@@ -282,7 +284,7 @@ export default function Profile({ userProfile, onBack }) {
             color: '#6B7280',
             margin: '0 0 12px 0'
           }}>
-            Inicio: {trialStartDate.toLocaleDateString('es-ES')} — Finaliza: {trialEndDate.toLocaleDateString('es-ES')}
+            Tu prueba finaliza el {trialEndDate.toLocaleDateString('es-ES')}
           </p>
 
           <button
@@ -306,7 +308,7 @@ export default function Profile({ userProfile, onBack }) {
               e.currentTarget.style.opacity = '1';
             }}
           >
-            Pasar a PRO y asegurar tu acceso
+            Conocer planes
           </button>
 
           <p style={{
@@ -315,7 +317,7 @@ export default function Profile({ userProfile, onBack }) {
             margin: '8px 0 0 0',
             textAlign: 'center'
           }}>
-            Garantiza el acceso ininterrumpido a tus rutinas al finalizar los 14 días. Cancela cuando quieras.
+            Explora la experiencia completa a tu ritmo.
           </p>
         </div>
 
@@ -964,7 +966,7 @@ export default function Profile({ userProfile, onBack }) {
               color: '#6B7280',
               margin: '0 0 12px 0'
             }}>
-              Prueba Gratuita de 14 Días
+              Prueba gratuita de 7 días
             </p>
             <div style={{
               display: 'flex',
@@ -1006,7 +1008,7 @@ export default function Profile({ userProfile, onBack }) {
                 e.currentTarget.style.opacity = '1';
               }}
             >
-              Pasar al Plan PRO
+              Conocer planes
             </button>
           </div>
 
@@ -1287,11 +1289,11 @@ export default function Profile({ userProfile, onBack }) {
       },
       {
         q: '¿Qué sucede cuando finaliza la prueba gratuita?',
-        a: 'Tu acceso se pausará si no contratas el Plan PRO. Podrás reactivar en cualquier momento sin perder tus datos.'
+        a: 'Cuando termine tu prueba, podrás conocer las opciones para continuar. Tus registros permanecerán guardados.'
       },
       {
         q: '¿Puedo cancelar mi suscripción?',
-        a: 'Sí, puedes cancelar tu Plan PRO desde la sección de Suscripción. La cancelación es inmediata sin penalidades.'
+        a: 'Cuando el acceso completo esté disponible, podrás gestionar tu plan desde la sección de Suscripción.'
       },
       {
         q: '¿Mis datos son seguros?',
