@@ -13,6 +13,7 @@ import RestAudioMiniPlayer from './components/BodyAndCalm/RestAudioMiniPlayer';
 import BottomNavigationBar from './components/BottomNavigationBar';
 import HomeGrid from './components/HomeGrid';
 import Profile from './components/Profile';
+import TrialActivationScreen from './components/TrialActivationScreen';
 import CalendarQuickEntry from './components/CalendarQuickEntry';
 import { syncCalendarReminder } from './utils/calendarReminderSync';
 import { getChallengeStreak, recordChallengeCompletion } from './utils/challengeStreak';
@@ -37,6 +38,7 @@ export default function Home() {
     ongoingChallenge: null,
     showRetoCelebration: false,
     showRetoFeedbackModal: false,
+    showTrialActivation: false,
     challengeStreak: 0,
     calendarKey: 0
   });
@@ -228,6 +230,7 @@ export default function Home() {
       let profileJson = localStorage.getItem('userProfile');
       let userProfile = profileJson ? JSON.parse(profileJson) : null;
 
+      const showTrialActivation = localStorage.getItem('postpartum_trial_prompt_pending') === 'true';
       const today = new Date().toDateString();
       const lastCheckInDate = localStorage.getItem('lastCheckInDate');
 
@@ -254,6 +257,7 @@ export default function Home() {
         ...prev,
         userId,
         userProfile,
+        showTrialActivation,
         lastCheckInDate,
         ongoingChallenge,
         challengeStreak: getChallengeStreak().streak,
@@ -266,6 +270,37 @@ export default function Home() {
       setState(prev => ({ ...prev, isReady: true }));
     }
   }, []);
+
+  const handleTrialActivated = async ({ uid, email, displayName, idToken }) => {
+    const existingUserId = localStorage.getItem('userId');
+    const profile = {
+      ...(state.userProfile || {}),
+      name: state.userProfile?.name || displayName || '',
+      email: email || state.userProfile?.email || '',
+      trialStartDate: new Date().toISOString(),
+      firebaseUid: uid,
+      ...(existingUserId && existingUserId !== uid ? { legacyUserId: existingUserId } : {})
+    };
+
+    localStorage.setItem('userId', uid);
+    localStorage.setItem('userProfile', JSON.stringify(profile));
+    localStorage.removeItem('postpartum_trial_prompt_pending');
+    setState(prev => ({ ...prev, userId: uid, userProfile: profile, showTrialActivation: false }));
+
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`
+        },
+        body: JSON.stringify({ userId: uid, ...profile })
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    } catch (error) {
+      console.warn('[AUTH] No se pudo sincronizar el perfil todavía:', error.message);
+    }
+  };
 
   // Calcular copia dinámica basada en moodScore (solo client-side)
   const getDynamicHeaderCopy = () => {
@@ -351,13 +386,27 @@ export default function Home() {
               createdAt: new Date().toISOString()
             };
             localStorage.setItem('userProfile', JSON.stringify(profile));
+            localStorage.setItem('postpartum_trial_prompt_pending', 'true');
             setState(prev => ({
               ...prev,
-              userProfile: profile
+              userProfile: profile,
+              showTrialActivation: true
             }));
           }}
         />
       </div>
+    );
+  }
+
+  if (state.showTrialActivation) {
+    return (
+      <TrialActivationScreen
+        onActivated={handleTrialActivated}
+        onSkip={() => {
+          localStorage.removeItem('postpartum_trial_prompt_pending');
+          setState(prev => ({ ...prev, showTrialActivation: false }));
+        }}
+      />
     );
   }
 
@@ -430,36 +479,7 @@ export default function Home() {
             <Profile
               userProfile={state.userProfile}
               onBack={() => setState(prev => ({ ...prev, showProfile: false, activeTab: 'home' }))}
-              onTrialActivated={async ({ uid, email, displayName, idToken }) => {
-                const existingUserId = localStorage.getItem('userId');
-                const profile = {
-                  ...(state.userProfile || {}),
-                  name: state.userProfile?.name || displayName || '',
-                  email: email || state.userProfile?.email || '',
-                  trialStartDate: new Date().toISOString(),
-                  firebaseUid: uid,
-                  ...(existingUserId && existingUserId !== uid ? { legacyUserId: existingUserId } : {})
-                };
-
-                localStorage.setItem('userId', uid);
-                localStorage.setItem('userProfile', JSON.stringify(profile));
-                setState(prev => ({ ...prev, userId: uid, userProfile: profile }));
-
-                try {
-                  const response = await fetch('/api/user/profile', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${idToken}`
-                    },
-                    body: JSON.stringify({ userId: uid, ...profile })
-                  });
-                  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                } catch (error) {
-                  // La experiencia local sigue disponible; el próximo inicio reintentará la sincronización.
-                  console.warn('[AUTH] No se pudo sincronizar el perfil todavía:', error.message);
-                }
-              }}
+              onTrialActivated={handleTrialActivated}
             />
           </div>
         </div>
