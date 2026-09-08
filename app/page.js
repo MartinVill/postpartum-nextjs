@@ -14,6 +14,7 @@ import BottomNavigationBar from './components/BottomNavigationBar';
 import HomeGrid from './components/HomeGrid';
 import Profile from './components/Profile';
 import TrialActivationScreen from './components/TrialActivationScreen';
+import InitialWellbeingPlan from './components/InitialWellbeingPlan';
 import CalendarQuickEntry from './components/CalendarQuickEntry';
 import { syncCalendarReminder } from './utils/calendarReminderSync';
 import { getChallengeStreak, recordChallengeCompletion } from './utils/challengeStreak';
@@ -39,6 +40,7 @@ export default function Home() {
     showRetoCelebration: false,
     showRetoFeedbackModal: false,
     showTrialActivation: false,
+    showInitialPlan: false,
     challengeStreak: 0,
     calendarKey: 0
   });
@@ -231,6 +233,7 @@ export default function Home() {
       let userProfile = profileJson ? JSON.parse(profileJson) : null;
 
       const showTrialActivation = localStorage.getItem('postpartum_trial_prompt_pending') === 'true';
+      const showInitialPlan = localStorage.getItem('postpartum_initial_plan_pending') === 'true';
       const today = new Date().toDateString();
       const lastCheckInDate = localStorage.getItem('lastCheckInDate');
 
@@ -258,6 +261,7 @@ export default function Home() {
         userId,
         userProfile,
         showTrialActivation,
+        showInitialPlan,
         lastCheckInDate,
         ongoingChallenge,
         challengeStreak: getChallengeStreak().streak,
@@ -386,15 +390,33 @@ export default function Home() {
               createdAt: new Date().toISOString()
             };
             localStorage.setItem('userProfile', JSON.stringify(profile));
-            localStorage.setItem('postpartum_trial_prompt_pending', 'true');
+            localStorage.setItem('postpartum_initial_plan_pending', 'true');
             setState(prev => ({
               ...prev,
               userProfile: profile,
-              showTrialActivation: true
+              showInitialPlan: true
             }));
           }}
         />
       </div>
+    );
+  }
+
+  if (state.showInitialPlan) {
+    return (
+      <InitialWellbeingPlan
+        profile={state.userProfile}
+        onContinue={() => {
+          const profile = {
+            ...state.userProfile,
+            initialPlanViewedAt: new Date().toISOString()
+          };
+          localStorage.setItem('userProfile', JSON.stringify(profile));
+          localStorage.removeItem('postpartum_initial_plan_pending');
+          localStorage.setItem('postpartum_trial_prompt_pending', 'true');
+          setState(prev => ({ ...prev, userProfile: profile, showInitialPlan: false, showTrialActivation: true }));
+        }}
+      />
     );
   }
 

@@ -67,6 +67,7 @@ export default function OnboardingForm({ onComplete }) {
     medicalClearance: '',
     physicalSensations: [],
     emotionalStates: [],
+    dataUseConsent: null,
     hobbies: [],
     favoriteTermsOfEndearment: ['Hermosa'],
     lastMenstruationDate: ''
@@ -82,7 +83,7 @@ export default function OnboardingForm({ onComplete }) {
   };
 
   const isStepValid = () => {
-    if (step === 1) return Boolean(formData.name.trim() && formData.babyBirthDate);
+    if (step === 1) return Boolean(formData.name.trim() && formData.babyBirthDate && formData.dataUseConsent?.accepted);
     if (step === 2) return Boolean(formData.deliveryType && formData.medicalClearance);
     if (step === 3) return formData.physicalSensations.length > 0;
     return formData.emotionalStates.length > 0;
@@ -91,7 +92,7 @@ export default function OnboardingForm({ onComplete }) {
   const finish = () => {
     const needsMedicalReview = formData.physicalSensations.some((item) => ['urination_pain', 'birth_area_pain', 'low_abdomen_pain'].includes(item)) || formData.medicalClearance !== 'yes' || formData.deliveryType === 'complications';
     localStorage.setItem('onboardingComplete', 'true');
-    onComplete({ ...formData, needsMedicalReview, onboardingVersion: 3, createdAt: new Date().toISOString() });
+    onComplete({ ...formData, needsMedicalReview, onboardingVersion: 4, createdAt: new Date().toISOString() });
   };
 
   const next = () => {
@@ -111,6 +112,10 @@ export default function OnboardingForm({ onComplete }) {
       <input id="onboarding-name" value={formData.name} onChange={(event) => setFormData((previous) => ({ ...previous, name: event.target.value }))} placeholder="Tu nombre" autoComplete="given-name" autoFocus style={inputStyle} />
       <label htmlFor="baby-birth-date" style={{ display: 'block', color: '#4C4651', fontSize: '13px', fontWeight: '700', margin: '21px 0 7px' }}>¿Cuándo nació tu bebé?</label>
       <input id="baby-birth-date" type="date" value={formData.babyBirthDate} onChange={(event) => setFormData((previous) => ({ ...previous, babyBirthDate: event.target.value }))} max={new Date().toISOString().split('T')[0]} style={inputStyle} />
+      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginTop: '20px', padding: '13px', border: `1px solid ${formData.dataUseConsent?.accepted ? '#E9C8EF' : '#E6E0E8'}`, borderRadius: '13px', background: formData.dataUseConsent?.accepted ? '#FCF5FD' : '#FAF8FA', color: '#505866', fontSize: '12px', lineHeight: 1.45, cursor: 'pointer' }}>
+        <input type="checkbox" checked={Boolean(formData.dataUseConsent?.accepted)} onChange={(event) => setFormData((previous) => ({ ...previous, dataUseConsent: event.target.checked ? { accepted: true, version: 'onboarding-sensitive-data-v1', acceptedAt: new Date().toISOString() } : null }))} style={{ marginTop: '2px', accentColor: '#D946EF', width: '16px', height: '16px', flex: '0 0 auto' }} />
+        <span><strong style={{ color: '#3B3440' }}>Acepto compartir estas respuestas para personalizar mi experiencia.</strong><br />Incluye información de bienestar posparto. Puedes elegir “Prefiero no responder” en las siguientes preguntas. Se guarda en este dispositivo y, si activas una cuenta, se sincroniza de forma protegida con tu perfil.</span>
+      </label>
     </>;
 
     if (step === 2) return <>

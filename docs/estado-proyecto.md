@@ -1,6 +1,6 @@
 # Estado del Proyecto — Posparto
 
-**Última actualización:** 3 de septiembre de 2026
+**Última actualización:** 7 de septiembre de 2026
 **Versión de trabajo:** 3.0
 **Estado general:** MVP funcional desplegado en producción
 **Producción:** https://postpartum-nextjs.vercel.app/
@@ -23,8 +23,12 @@ Posparto es una PWA mobile-first de acompañamiento emocional y bienestar para m
 
 ### Onboarding y Home
 
-- El onboarding se redujo a **4 pasos**; el antiguo paso de horario de sueño ya no forma parte del flujo.
-- Al finalizar, la app solicita permiso de notificaciones desde una acción de la usuaria y abre el dashboard.
+- El onboarding usa **4 pasos**: identidad/fecha del bebé, tipo de parto y alta médica, sensaciones físicas y estado emocional.
+- Antes de las respuestas de bienestar, la usuaria da consentimiento explícito; puede omitir las preguntas sensibles con “Prefiero no responder”.
+- Al finalizar, la app muestra una **guía inicial de bienestar** antes de la prueba. Es un selector determinista y prudente, no un diagnóstico ni una prescripción.
+- Si hay molestias que requieren mayor cuidado, falta de alta médica o complicaciones indicadas, la guía excluye movimiento activo y prioriza descanso y consulta profesional.
+- Después de la guía se muestra la activación de la prueba; la usuaria puede continuar con Google, email o “Ahora no”.
+- Se añadió [inventario de datos y riesgos de lanzamiento](./inventario-datos-y-riesgos-lanzamiento.md), con controles pendientes para privacidad, seguridad y mercados iniciales AR/EE. UU.
 - La Home utiliza `#FFFDF6` de extremo a extremo, sin franjas blancas en el encabezado ni en la grilla.
 - El reto diario conserva un solo gesto de finalización, celebración y modal emocional.
 - La navegación inferior se renderiza una sola vez a nivel raíz y permanece fija en Inicio, Calendario, Perfil, Chat, Reto y Cuerpo y Calma. El contenido tiene espacio inferior para no quedar oculto detrás de ella.
