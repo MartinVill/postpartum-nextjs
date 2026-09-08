@@ -2,7 +2,7 @@
 
 Una aplicación web moderna para mujeres en recuperación posparto con seguimiento de sangrado, calendario integrado, check-ins diarios emocionales, retos de 30 días y soporte comunitario.
 
-🚀 **[Accede a la app en vivo](https://postpartum-nextjs-martinvill.vercel.app)** — Deployada en Vercel
+🚀 **[Accede a la app en vivo](https://postpartum-nextjs.vercel.app/)** — Deployada en Vercel
 
 ## 🎯 Objetivo
 
@@ -11,9 +11,10 @@ Proporcionar una plataforma integral de apoyo emocional, seguimiento de síntoma
 ## ✨ Features Principales
 
 ### 1. **Onboarding Personalizado**
-- Registro de nombre, hobbies, fecha última menstruación
-- Edad del bebé
-- Término de cariño personalizado
+- Cuatro pasos breves: identidad/fecha de nacimiento del bebé, tipo de parto/alta médica, sensaciones físicas y estado emocional
+- Consentimiento explícito antes de datos sensibles y opción de omitirlos
+- Guía inicial determinista antes de la prueba: prioriza contenidos de descanso y excluye movimiento activo cuando hay señales de mayor cuidado
+- Activación de prueba de 7 días con opciones de Google, email o “Ahora no” (cobro de PayPal pendiente)
 
 ### 2. **Calendario Integrado** (`app/components/Calendar.jsx`)
 - Vista mensual tipo Google Calendar
@@ -150,7 +151,7 @@ postpartum-nextjs/
 
 **localStorage keys:**
 ```javascript
-userProfile         // { name, babyBirthDate, lastMenstruationDate, hobbies, endearment }
+userProfile         // nombre, fecha de nacimiento del bebé, parto, alta médica y respuestas de bienestar
 userId              // ID único del usuario
 energyScore         // Último score de energía
 eventLogs           // Array de eventos/síntomas
@@ -177,18 +178,16 @@ Estas features funcionan perfectamente y han sido estabilizadas. **No modificar:
 ## 🔧 Para Otra IA (Codex, Gemini, etc.)
 
 ### Puntos de Entrada
-1. **Onboarding**: `app/page.js` → `OnboardingForm.jsx`
+1. **Onboarding y guía inicial**: `app/page.js` → `OnboardingForm.jsx` → `InitialWellbeingPlan.jsx`
 2. **Calendario**: `Calendar.jsx` (640 líneas, manejo completo de fechas)
 3. **Retos**: `DailyChallenge.jsx` (gamificación + persistencia)
 4. **Chat**: `ChatSection.jsx` + `app/api/chat/route.js`
 
-### Próximas Features
-- [ ] Reto de 30 días (UI completa, lógica de progresión)
-- [ ] Chat mejorado con IA contextual
-- [ ] Integración PayPal para suscripción
-- [ ] Notificaciones push
-- [ ] Compartir logros con comunidad
-- [ ] Videos de ejercicio embebidos
+### Próximos focos
+- [ ] Integración PayPal, fuente de verdad de acceso y recorridos de prueba/cancelación
+- [ ] Autenticación y reglas de acceso por UID antes de escalar
+- [ ] Revisión clínica del contenido de movimiento y respiraciones específicas
+- [ ] Pruebas en teléfonos reales para push, Wake Lock y teclado virtual
 
 ### Parámetros de Config
 - Ver `ARQUITECTURA_V2.md` para especificación completa
@@ -227,12 +226,11 @@ Privado - Para uso personal
 ---
 
 **Versión**: 2.0 (En desarrollo)  
-**Última actualización**: Agosto 25, 2026  
+**Última actualización**: 8 de septiembre de 2026
 **Estado**: 
-- ✅ Onboarding: Funcional
+- ✅ Onboarding, guía inicial y activación de prueba: Funcionales en interfaz
 - ✅ Calendario: Sangrado + eventos funcionales
 - ✅ Chat: OpenAI integration estable
 - ✅ Check-in emocional: Funcional
-- 🔄 Retos de 30 días: En desarrollo
-- ⏳ Reflexión nocturna: Pendiente
-- ⏳ Feed dinámico: Pendiente
+- 🔄 Cobro con PayPal y control de acceso: Pendientes
+- 🔄 Movimiento posparto y nutrición: Pendientes de revisión clínica y definición de producto
