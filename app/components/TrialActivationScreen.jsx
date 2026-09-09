@@ -1,87 +1,131 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import TrialActivationButton from './TrialActivationButton';
+import { auth } from '@/lib/firebase';
 
-export default function TrialActivationScreen({ onActivated, onSkip }) {
+const PLAN_DETAILS = {
+  lifetime: {
+    eyebrow: 'MEJOR VALOR · PAGO ÚNICO',
+    price: 'US$15',
+    suffix: 'de por vida',
+    description: 'Un solo pago. Sin cobros recurrentes.'
+  },
+  monthly: {
+    eyebrow: 'SUSCRIPCIÓN MENSUAL',
+    price: 'US$5',
+    suffix: 'por mes',
+    description: 'Flexible. Cancela cuando quieras.'
+  }
+};
+
+function formatDate(date) {
+  return new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' })
+    .format(date)
+    .replace('.', '');
+}
+
+function TimelineIcon({ type }) {
+  const common = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true };
+  if (type === 'bell') return <svg {...common}><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" /><path d="M10 21h4" /></svg>;
+  if (type === 'lock') return <svg {...common}><rect x="5" y="10" width="14" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>;
+  return <svg {...common}><path d="m5 12 4 4L19 6" /></svg>;
+}
+
+export default function TrialActivationScreen({ onAuthenticated, onSkip }) {
+  const [selectedPlan, setSelectedPlan] = useState('lifetime');
+  const [showAuthSheet, setShowAuthSheet] = useState(false);
+  const [checkoutStatus, setCheckoutStatus] = useState('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+  const timeline = useMemo(() => {
+    const today = new Date();
+    const reminder = new Date(today); reminder.setDate(today.getDate() + 5);
+    const activation = new Date(today); activation.setDate(today.getDate() + 7);
+    return { today: formatDate(today), reminder: formatDate(reminder), activation: formatDate(activation) };
+  }, []);
+
+  const beginCheckout = async (user) => {
+    setCheckoutStatus('loading');
+    setErrorMessage('');
+    try {
+      const idToken = await user.getIdToken();
+      await onAuthenticated?.({ uid: user.uid, email: user.email || '', displayName: user.displayName || '', idToken });
+      const response = await fetch('/api/billing/paypal/subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ planType: selectedPlan })
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.approvalUrl) throw new Error(payload.error || 'No pudimos abrir PayPal.');
+      window.location.assign(payload.approvalUrl);
+    } catch (error) {
+      setCheckoutStatus('idle');
+      setErrorMessage(error.message || 'No pudimos iniciar PayPal. Inténtalo de nuevo.');
+    }
+  };
+
+  const handleMainAction = () => {
+    if (auth?.currentUser) {
+      beginCheckout(auth.currentUser);
+      return;
+    }
+    setErrorMessage('');
+    setShowAuthSheet(true);
+  };
+
   return (
-    <main style={{
-      minHeight: '100dvh',
-      background: '#FFFDF6',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '28px 20px',
-      boxSizing: 'border-box'
-    }}>
-      <section style={{
-        width: '100%',
-        maxWidth: '390px',
-        background: 'rgba(255,255,255,0.72)',
-        border: '1px solid #F0E3F4',
-        borderRadius: '24px',
-        padding: '30px 22px 22px',
-        boxShadow: '0 16px 40px rgba(55, 42, 63, 0.09)',
-        textAlign: 'center'
-      }}>
-        <div aria-hidden="true" style={{
-          width: '52px',
-          height: '52px',
-          borderRadius: '18px',
-          margin: '0 auto 20px',
-          display: 'grid',
-          placeItems: 'center',
-          background: '#F7EAF9',
-          color: '#B43CCB',
-          fontSize: '25px'
-        }}>✦</div>
+    <main className="paywall-shell">
+      <section className="paywall-content">
+        <header className="paywall-header">
+          <p className="trial-badge">Prueba de 7 días sin riesgo</p>
+          <h1>Empieza a cuidar de ti hoy</h1>
+          <p>Acceso total a tu guía y herramientas. Sin cobros durante tu prueba.</p>
+        </header>
 
-        <p style={{ color: '#9A3BC2', fontSize: '13px', fontWeight: '700', margin: '0 0 8px', letterSpacing: '0.15px' }}>
-          BIENVENIDA
-        </p>
-        <h1 style={{ color: '#25212A', fontSize: '27px', lineHeight: 1.18, letterSpacing: '-0.45px', margin: '0 0 12px', fontWeight: '750' }}>
-          Empieza con 7 días para ti
-        </h1>
-        <p style={{ color: '#59616D', fontSize: '15px', lineHeight: 1.52, margin: '0 auto 24px', maxWidth: '305px' }}>
-          Prueba la experiencia completa y guarda tu progreso para volver cuando lo necesites.
-        </p>
+        <ol className="trial-timeline" aria-label="Cómo funciona la prueba">
+          <li><span className="timeline-node"><TimelineIcon type="check" /></span><div><strong>Hoy · {timeline.today}</strong><p>Desbloqueas tu guía y herramientas. Cobro de US$0 hoy.</p></div></li>
+          <li><span className="timeline-node"><TimelineIcon type="bell" /></span><div><strong>Día 5 · {timeline.reminder}</strong><p>Podrás revisar tu prueba desde Mi perfil antes de que termine.</p></div></li>
+          <li><span className="timeline-node"><TimelineIcon type="lock" /></span><div><strong>Día 7 · {timeline.activation}</strong><p>Se activa el plan que elijas. Puedes cancelarlo antes desde la app.</p></div></li>
+        </ol>
 
-        <div style={{
-          padding: '14px 15px',
-          textAlign: 'left',
-          borderRadius: '14px',
-          background: '#FAF6FB',
-          border: '1px solid #F0E8F2',
-          marginBottom: '18px'
-        }}>
-          <p style={{ color: '#302A34', fontSize: '13px', fontWeight: '700', margin: '0 0 5px' }}>
-            Después eliges cómo continuar
-          </p>
-          <p style={{ color: '#59616D', fontSize: '13px', lineHeight: 1.45, margin: 0 }}>
-            US$15 pago único de lanzamiento o US$5/mes.
-          </p>
-        </div>
+        <fieldset className="plan-selector" disabled={checkoutStatus === 'loading'}>
+          <legend>Elige cómo continuar después</legend>
+          {Object.entries(PLAN_DETAILS).map(([id, plan]) => <button key={id} type="button" onClick={() => setSelectedPlan(id)} className={`plan-option ${selectedPlan === id ? 'selected' : ''}`} aria-pressed={selectedPlan === id}>
+            <span className="plan-radio" aria-hidden="true" />
+            <span className="plan-copy"><small>{plan.eyebrow}</small><strong>{plan.price} <em>{plan.suffix}</em></strong><span>{plan.description}</span></span>
+          </button>)}
+        </fieldset>
 
-        <TrialActivationButton onActivated={onActivated} />
-
-        <button
-          type="button"
-          onClick={onSkip}
-          style={{
-            marginTop: '18px',
-            padding: '8px 14px',
-            background: 'transparent',
-            border: 'none',
-            color: '#6A6170',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            textDecoration: 'underline',
-            textUnderlineOffset: '3px'
-          }}
-        >
-          Ahora no
+        <button type="button" className="paywall-cta" onClick={handleMainAction} disabled={checkoutStatus === 'loading'}>
+          {checkoutStatus === 'loading' ? 'Abriendo PayPal…' : 'Probar 7 días por US$0'}
         </button>
+        <p className="payment-reassurance">No se te cobrará nada hoy.</p>
+        {errorMessage && <p className="paywall-error" role="alert">{errorMessage}</p>}
+        <p className="paypal-note"><span aria-hidden="true">⌁</span> Procesado de forma segura mediante PayPal.</p>
+        <button type="button" onClick={onSkip} className="paywall-skip">Dejar para más tarde</button>
       </section>
+
+      {showAuthSheet && <div className="auth-layer" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+        <button className="auth-backdrop" type="button" aria-label="Cerrar acceso" onClick={() => setShowAuthSheet(false)} />
+        <section className="auth-sheet">
+          <div className="sheet-handle" aria-hidden="true" />
+          <button type="button" className="sheet-close" aria-label="Cerrar" onClick={() => setShowAuthSheet(false)}>×</button>
+          <h2 id="auth-title">Guarda tu prueba</h2>
+          <p>Crea tu acceso para que podamos guardar tu guía, tu prueba y tu progreso.</p>
+          <TrialActivationButton onAuthenticated={beginCheckout} />
+        </section>
+      </div>}
+
+      <style jsx>{`
+        .paywall-shell { min-height: 100dvh; box-sizing: border-box; background: radial-gradient(circle at 50% 22%, #FBEAFE 0%, #FFF9F4 33%, #FFFDF6 72%); padding: 30px 20px 26px; overflow: auto; }
+        .paywall-content { width: min(100%, 398px); margin: 0 auto; }
+        .paywall-header { text-align: center; animation: reveal .5s cubic-bezier(.22,1,.36,1) both; }.trial-badge { display: inline-flex; margin: 0 0 13px; padding: 7px 11px; border-radius: 999px; background: #FBEAFE; color: #A739B9; font-size: 11px; line-height: 1; font-weight: 750; letter-spacing: .35px; text-transform: uppercase; }.paywall-header h1 { margin: 0; color: #374151; font-size: clamp(28px, 7vw, 33px); line-height: 1.13; letter-spacing: -.7px; font-weight: 730; }.paywall-header > p:last-child { max-width: 340px; margin: 11px auto 0; color: #4B5563; font-size: 15px; line-height: 1.45; }
+        .trial-timeline { position: relative; display: grid; gap: 15px; margin: 27px 0 24px; padding: 0; list-style: none; text-align: left; }.trial-timeline::before { content: ''; position: absolute; left: 16px; top: 30px; bottom: 30px; width: 1px; background: linear-gradient(#D946EF, #EAD4EE); }.trial-timeline li { position: relative; display: flex; gap: 13px; align-items: flex-start; }.timeline-node { position: relative; z-index: 1; width: 33px; height: 33px; border: 1px solid #F0CFF5; border-radius: 50%; display: grid; place-items: center; flex: 0 0 auto; background: #FFFDF6; color: #B63ACB; }.trial-timeline strong { display: block; color: #374151; font-size: 14px; line-height: 1.25; font-weight: 730; }.trial-timeline p { margin: 4px 0 0; color: #59616D; font-size: 13px; line-height: 1.38; }
+        .plan-selector { display: grid; gap: 10px; margin: 0; padding: 0; border: 0; }.plan-selector legend { margin: 0 0 10px; padding: 0; color: #374151; font-size: 14px; font-weight: 720; text-align: center; width: 100%; }.plan-option { width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 15px; border: 1px solid #E9E1EB; border-radius: 19px; background: rgba(255,255,255,.76); color: inherit; text-align: left; cursor: pointer; transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }.plan-option.selected { border-color: #D946EF; box-shadow: 0 7px 18px rgba(217,70,239,.14); background: #FFF9FF; }.plan-option:active { transform: scale(.99); }.plan-radio { width: 18px; height: 18px; box-sizing: border-box; border: 1.5px solid #C8BACD; border-radius: 50%; flex: 0 0 auto; }.plan-option.selected .plan-radio { border: 5px solid #D946EF; }.plan-copy { display: grid; gap: 3px; }.plan-copy small { color: #A739B9; font-size: 10px; font-weight: 780; letter-spacing: .3px; }.plan-copy strong { color: #374151; font-size: 17px; line-height: 1.15; font-weight: 740; }.plan-copy em { color: #59616D; font-size: 12px; font-style: normal; font-weight: 500; }.plan-copy > span { color: #59616D; font-size: 12.5px; line-height: 1.35; }
+        .paywall-cta { width: 100%; min-height: 53px; margin-top: 21px; border: 0; border-radius: 16px; background: linear-gradient(115deg, #D946EF, #C940DE); color: #FFF; font: inherit; font-size: 15px; font-weight: 750; cursor: pointer; box-shadow: 0 8px 20px rgba(217,70,239,.35); transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease; }.paywall-cta:hover { transform: translateY(-1px); box-shadow: 0 11px 23px rgba(217,70,239,.39); }.paywall-cta:active { transform: scale(.98); }.paywall-cta:disabled { cursor: wait; opacity: .74; }.payment-reassurance { margin: 9px 0 0; color: #4B5563; font-size: 12px; line-height: 1.35; text-align: center; }.paywall-error { margin: 10px auto 0; color: #A33950; font-size: 13px; line-height: 1.4; text-align: center; }.paypal-note { margin: 18px 0 0; color: #59616D; font-size: 12px; text-align: center; }.paypal-note span { color: #A739B9; font-size: 16px; vertical-align: -1px; }.paywall-skip { display: block; margin: 11px auto 0; padding: 7px 10px; border: 0; background: transparent; color: #59616D; font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+        .auth-layer { position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-end; }.auth-backdrop { position: absolute; inset: 0; width: 100%; border: 0; background: rgba(32,24,37,.34); }.auth-sheet { position: relative; width: min(100%, 500px); margin: 0 auto; padding: 13px 22px calc(25px + env(safe-area-inset-bottom)); box-sizing: border-box; border-radius: 26px 26px 0 0; background: #FFFDF9; box-shadow: 0 -12px 35px rgba(45,34,52,.16); animation: sheet-in .28s cubic-bezier(.22,1,.36,1) both; }.sheet-handle { width: 35px; height: 4px; margin: 0 auto 20px; border-radius: 99px; background: #D9D0DD; }.sheet-close { position: absolute; top: 20px; right: 17px; width: 32px; height: 32px; border: 1px solid #E6DDE8; border-radius: 50%; background: #FFF; color: #59616D; font-size: 22px; line-height: 1; cursor: pointer; }.auth-sheet h2 { margin: 0; color: #374151; font-size: 23px; line-height: 1.15; text-align: center; }.auth-sheet > p { margin: 9px auto 20px; max-width: 320px; color: #4B5563; font-size: 14px; line-height: 1.45; text-align: center; }
+        @keyframes reveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } } @keyframes sheet-in { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } } @media (prefers-reduced-motion: reduce) { .paywall-header, .auth-sheet { animation: none; } .plan-option, .paywall-cta { transition: none; } }
+      `}</style>
     </main>
   );
 }

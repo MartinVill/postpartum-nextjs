@@ -18,6 +18,7 @@ import InitialWellbeingPlan from './components/InitialWellbeingPlan';
 import CalendarQuickEntry from './components/CalendarQuickEntry';
 import { syncCalendarReminder } from './utils/calendarReminderSync';
 import { getChallengeStreak, recordChallengeCompletion } from './utils/challengeStreak';
+import { auth } from '@/lib/firebase';
 
 export default function Home() {
   const [calendarEntryDate, setCalendarEntryDate] = useState(null);
@@ -275,21 +276,19 @@ export default function Home() {
     }
   }, []);
 
-  const handleTrialActivated = async ({ uid, email, displayName, idToken }) => {
+  const handleBillingAuthenticated = async ({ uid, email, displayName, idToken }) => {
     const existingUserId = localStorage.getItem('userId');
     const profile = {
       ...(state.userProfile || {}),
       name: state.userProfile?.name || displayName || '',
       email: email || state.userProfile?.email || '',
-      trialStartDate: new Date().toISOString(),
       firebaseUid: uid,
       ...(existingUserId && existingUserId !== uid ? { legacyUserId: existingUserId } : {})
     };
 
     localStorage.setItem('userId', uid);
     localStorage.setItem('userProfile', JSON.stringify(profile));
-    localStorage.removeItem('postpartum_trial_prompt_pending');
-    setState(prev => ({ ...prev, userId: uid, userProfile: profile, showTrialActivation: false }));
+    setState(prev => ({ ...prev, userId: uid, userProfile: profile }));
 
     try {
       const response = await fetch('/api/user/profile', {
@@ -305,6 +304,50 @@ export default function Home() {
       console.warn('[AUTH] No se pudo sincronizar el perfil todavía:', error.message);
     }
   };
+
+  // PayPal vuelve a la app después de aprobar una suscripción. El webhook es
+  // la fuente de verdad: esperamos su entitlement antes de marcar la prueba
+  // como activa localmente.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!state.isReady || params.get('paypal') !== 'approved') return;
+
+    let cancelled = false;
+    const synchronizeApprovedTrial = async () => {
+      for (let attempt = 0; attempt < 8 && !cancelled; attempt += 1) {
+        const user = auth?.currentUser;
+        if (user) {
+          try {
+            const idToken = await user.getIdToken();
+            const response = await fetch('/api/billing/entitlement', { headers: { Authorization: `Bearer ${idToken}` } });
+            const { entitlement } = await response.json();
+            if (response.ok && ['trialing', 'active'].includes(entitlement?.accessStatus)) {
+              const storedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+              const profile = {
+                ...storedProfile,
+                firebaseUid: user.uid,
+                email: user.email || storedProfile.email || '',
+                trialStartDate: entitlement.trialStartedAt || new Date().toISOString(),
+                trialEndsAt: entitlement.trialEndsAt || null,
+                billingPlan: entitlement.planType || null
+              };
+              localStorage.setItem('userProfile', JSON.stringify(profile));
+              localStorage.removeItem('postpartum_trial_prompt_pending');
+              window.history.replaceState({}, '', window.location.pathname);
+              setState(prev => ({ ...prev, userId: user.uid, userProfile: profile, showTrialActivation: false }));
+              return;
+            }
+          } catch (error) {
+            console.warn('[BILLING] Esperando confirmación de PayPal:', error.message);
+          }
+        }
+        await new Promise(resolve => window.setTimeout(resolve, 1500));
+      }
+    };
+
+    synchronizeApprovedTrial();
+    return () => { cancelled = true; };
+  }, [state.isReady]);
 
   // Calcular copia dinámica basada en moodScore (solo client-side)
   const getDynamicHeaderCopy = () => {
@@ -423,7 +466,7 @@ export default function Home() {
   if (state.showTrialActivation) {
     return (
       <TrialActivationScreen
-        onActivated={handleTrialActivated}
+        onAuthenticated={handleBillingAuthenticated}
         onSkip={() => {
           localStorage.removeItem('postpartum_trial_prompt_pending');
           setState(prev => ({ ...prev, showTrialActivation: false }));

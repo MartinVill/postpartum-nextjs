@@ -8,7 +8,7 @@ const GoogleMark = () => <svg width="20" height="20" viewBox="0 0 24 24" aria-hi
 const EmailMark = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2.4"/><path d="m4.5 7 7.5 5.7L19.5 7" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 const inputStyle = { width: '100%', height: '46px', boxSizing: 'border-box', border: '1px solid #DED8E1', borderRadius: '10px', background: '#FFFFFF', color: '#25212A', fontSize: '15px', padding: '0 13px', outlineColor: '#C84BE0' };
 
-export default function TrialActivationButton({ onActivated }) {
+export default function TrialActivationButton({ onAuthenticated }) {
   const [status, setStatus] = useState('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [showEmailForm, setShowEmailForm] = useState(false);
@@ -18,7 +18,7 @@ export default function TrialActivationButton({ onActivated }) {
 
   const completeActivation = async (user) => {
     const idToken = await user.getIdToken();
-    await onActivated?.({ uid: user.uid, email: user.email || '', displayName: user.displayName || '', idToken });
+    await onAuthenticated?.({ uid: user.uid, email: user.email || '', displayName: user.displayName || '', idToken });
   };
   const ensureAuth = () => {
     if (auth) return true;
