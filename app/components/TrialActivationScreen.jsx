@@ -39,6 +39,7 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
   const [checkoutStatus, setCheckoutStatus] = useState('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const paymentProvider = usePaymentProvider();
+  const isLifetime = selectedPlan === 'lifetime';
   const timeline = useMemo(() => {
     const today = new Date();
     const reminder = new Date(today); reminder.setDate(today.getDate() + 5);
@@ -57,7 +58,7 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
   const beginGooglePlayCheckout = async (user, idToken) => {
     let paymentResponse;
     try {
-      const { response, purchaseToken } = await requestGooglePlayPurchase(GOOGLE_PLAY_PRODUCT_IDS[selectedPlan]);
+      const { response, purchaseToken } = await requestGooglePlayPurchase(GOOGLE_PLAY_PRODUCT_IDS[selectedPlan], isLifetime ? '15.00' : '0.00');
       paymentResponse = response;
       const verification = await fetch('/api/billing/google-play/verify', {
         method: 'POST',
@@ -118,14 +119,20 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
     <main className="paywall-shell">
       <section className="paywall-content">
         <header className="paywall-header">
-          <h1>Comienza tus 7 días de calma sin riesgo</h1>
-          <p>Acceso inmediato a tu guía diaria, herramientas de pausa, registro personal, y mucho más.</p>
+          <h1>{isLifetime ? 'Tu acceso de por vida empieza hoy' : 'Comienza tus 7 días de calma sin riesgo'}</h1>
+          <p>{isLifetime ? 'Un único pago para acompañarte a tu ritmo, sin renovaciones.' : 'Acceso inmediato a tu guía diaria, herramientas de pausa, registro personal, y mucho más.'}</p>
         </header>
 
         <ol className="trial-timeline" aria-label="Cómo funciona la prueba">
-          <li className="timeline-step timeline-step-1"><span className="timeline-node"><TimelineIcon type="check" /></span><div><strong>Hoy · {timeline.today}</strong><p>Desbloquea toda la app. Cobro de $0 USD hoy.</p></div></li>
-          <li className="timeline-step timeline-step-2"><span className="timeline-node"><TimelineIcon type="bell" /></span><div><strong>Día 5 · {timeline.reminder}</strong><p>Te enviamos un email de recordatorio.</p></div></li>
-          <li className="timeline-step timeline-step-3"><span className="timeline-node"><TimelineIcon type="lock" /></span><div><strong>Día 7 · {timeline.activation}</strong><p>Se activa el plan. Cancelas cuando quieras.</p></div></li>
+          {isLifetime ? <>
+            <li className="timeline-step timeline-step-1"><span className="timeline-node"><TimelineIcon type="check" /></span><div><strong>Hoy · {timeline.today}</strong><p>Pagas $15 USD y desbloqueas toda la app.</p></div></li>
+            <li className="timeline-step timeline-step-2"><span className="timeline-node"><TimelineIcon type="bell" /></span><div><strong>Sin suscripción</strong><p>Un único pago. No habrá renovaciones.</p></div></li>
+            <li className="timeline-step timeline-step-3"><span className="timeline-node"><TimelineIcon type="lock" /></span><div><strong>Acceso de por vida</strong><p>Tu guía y herramientas quedan disponibles para ti.</p></div></li>
+          </> : <>
+            <li className="timeline-step timeline-step-1"><span className="timeline-node"><TimelineIcon type="check" /></span><div><strong>Hoy · {timeline.today}</strong><p>Desbloquea toda la app. Cobro de $0 USD hoy.</p></div></li>
+            <li className="timeline-step timeline-step-2"><span className="timeline-node"><TimelineIcon type="bell" /></span><div><strong>Día 5 · {timeline.reminder}</strong><p>Te enviamos un email de recordatorio.</p></div></li>
+            <li className="timeline-step timeline-step-3"><span className="timeline-node"><TimelineIcon type="lock" /></span><div><strong>Día 7 · {timeline.activation}</strong><p>Se activa el plan. Cancelas cuando quieras.</p></div></li>
+          </>}
         </ol>
 
         <fieldset className="plan-selector" disabled={checkoutStatus === 'loading'}>
@@ -137,10 +144,10 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
         </fieldset>
 
         <button type="button" className="paywall-cta" onClick={handleMainAction} disabled={checkoutStatus === 'loading' || !paymentProvider.ready}>
-          {!paymentProvider.ready ? 'Preparando pago…' : checkoutStatus === 'loading' ? `Abriendo ${paymentProvider.provider === 'google-play' ? 'Google Play' : 'PayPal'}…` : 'Probar 7 días por $0 USD'}
+          {!paymentProvider.ready ? 'Preparando pago…' : checkoutStatus === 'loading' ? `Abriendo ${paymentProvider.provider === 'google-play' ? 'Google Play' : 'PayPal'}…` : isLifetime ? 'Pagar $15 USD hoy - Acceso de por vida' : 'Probar 7 días por $0 USD'}
         </button>
         <p className="paypal-note"><span aria-hidden="true">⌁</span> {paymentProvider.provider === 'google-play' ? 'Procesado de forma segura mediante Google Play. Cancela cuando quieras desde tu cuenta.' : 'Procesamiento seguro por PayPal.'}</p>
-        <p className="payment-reassurance">No se te cobrará nada hoy.</p>
+        <p className="payment-reassurance">{isLifetime ? 'Un único pago. Sin renovaciones.' : 'No se te cobrará nada hoy.'}</p>
         {errorMessage && <p className="paywall-error" role="alert">{errorMessage}</p>}
         <button type="button" onClick={onSkip} className="paywall-skip">Dejar para más tarde</button>
       </section>
@@ -150,8 +157,8 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
         <section className="auth-sheet">
           <div className="sheet-handle" aria-hidden="true" />
           <button type="button" className="sheet-close" aria-label="Cerrar" onClick={() => setShowAuthSheet(false)}>×</button>
-          <h2 id="auth-title">Guarda tu prueba</h2>
-          <p>Crea tu acceso para que podamos guardar tu guía, tu prueba y tu progreso.</p>
+          <h2 id="auth-title">{isLifetime ? 'Guarda tu acceso' : 'Guarda tu prueba'}</h2>
+          <p>{isLifetime ? 'Crea tu acceso para guardar tu guía, tu compra y tu progreso.' : 'Crea tu acceso para que podamos guardar tu guía, tu prueba y tu progreso.'}</p>
           <TrialActivationButton onAuthenticated={beginCheckout} />
         </section>
       </div>}

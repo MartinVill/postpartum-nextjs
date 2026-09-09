@@ -325,17 +325,34 @@ export default function Home() {
   // como activa localmente.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (!state.isReady || !['approved', 'cancelled'].includes(params.get('paypal'))) return;
+    if (!state.isReady || !['approved', 'cancelled', 'lifetime-approved', 'lifetime-cancelled'].includes(params.get('paypal'))) return;
 
     let cancelled = false;
     const synchronizeApprovedTrial = async () => {
-      if (params.get('paypal') === 'cancelled') {
+      const paypalState = params.get('paypal');
+      if (paypalState === 'cancelled' || paypalState === 'lifetime-cancelled') {
         const user = auth?.currentUser;
         if (user) {
           const idToken = await user.getIdToken();
           await fetch('/api/billing/checkout-state', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` }, body: JSON.stringify({ state: 'checkout_abandoned', provider: 'paypal' }) }).catch(() => {});
         }
         window.history.replaceState({}, '', window.location.pathname);
+        return;
+      }
+      if (paypalState === 'lifetime-approved') {
+        const user = auth?.currentUser;
+        const orderId = params.get('token');
+        if (!user || !orderId) return;
+        try {
+          const idToken = await user.getIdToken();
+          const response = await fetch('/api/billing/paypal/lifetime/capture', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` }, body: JSON.stringify({ orderId })
+          });
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload.error || 'No pudimos confirmar tu pago.');
+          await handleBillingActivated({ uid: user.uid, email: user.email || '', entitlement: payload.entitlement });
+          window.history.replaceState({}, '', window.location.pathname);
+        } catch (error) { console.warn('[BILLING] No se pudo capturar el pago único:', error.message); }
         return;
       }
       for (let attempt = 0; attempt < 8 && !cancelled; attempt += 1) {

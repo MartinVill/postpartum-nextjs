@@ -43,14 +43,14 @@ export function usePaymentProvider() {
   return state;
 }
 
-export async function requestGooglePlayPurchase(productId) {
+export async function requestGooglePlayPurchase(productId, amount = '0.00') {
   if (typeof window === 'undefined' || typeof window.PaymentRequest !== 'function') {
     throw new Error('Google Play Billing no está disponible en este dispositivo.');
   }
   const request = new window.PaymentRequest([
     { supportedMethods: GOOGLE_PLAY_BILLING_METHOD, data: { sku: productId } }
   ], {
-    total: { label: 'Postpartum', amount: { currency: 'USD', value: '0.00' } }
+    total: { label: 'Postpartum', amount: { currency: 'USD', value: amount } }
   });
   const response = await request.show();
   const purchaseToken = response?.details?.purchaseToken;
