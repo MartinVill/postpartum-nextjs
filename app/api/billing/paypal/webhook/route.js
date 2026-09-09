@@ -1,4 +1,3 @@
-import { getAdminDb } from '@/lib/firebaseAdmin';
 import { verifyPayPalWebhook } from '@/lib/paypalServer';
 import { planTypeFromPlanId, webhookEntitlementUpdate } from '@/lib/billingEntitlements';
 
@@ -40,6 +39,7 @@ export async function POST(request) {
     const verified = await verifyPayPalWebhook(request, event);
     if (!verified) return Response.json({ error: 'Invalid PayPal signature' }, { status: 400 });
 
+    const { getAdminDb } = await import('@/lib/firebaseAdmin');
     const db = getAdminDb();
     if (!event.id || !(await claimWebhookEvent(db, event))) return Response.json({ received: true, duplicate: true });
     const eventRef = db.collection('paypal_webhook_events').doc(event.id);

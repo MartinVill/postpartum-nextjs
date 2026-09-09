@@ -1,4 +1,3 @@
-import { getAdminAuth, getAdminDb } from '@/lib/firebaseAdmin';
 import { PAYPAL_PLAN_TYPES, createPayPalSubscription, getTrustedAppUrl } from '@/lib/paypalServer';
 import { entitlementFromSubscription } from '@/lib/billingEntitlements';
 
@@ -9,6 +8,7 @@ async function requireAuthenticatedUser(request) {
   const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : null;
   if (!idToken) return null;
   try {
+    const { getAdminAuth } = await import('@/lib/firebaseAdmin');
     return await getAdminAuth().verifyIdToken(idToken);
   } catch {
     return null;
@@ -38,6 +38,7 @@ export async function POST(request) {
       subscriptionId: subscription.subscriptionId,
       status: subscription.status
     });
+    const { getAdminDb } = await import('@/lib/firebaseAdmin');
     await getAdminDb().collection('billing_entitlements').doc(identity.uid).set(entitlement, { merge: true });
 
     return Response.json({ approvalUrl: subscription.approvalUrl, subscriptionId: subscription.subscriptionId });

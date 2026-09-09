@@ -1,4 +1,3 @@
-import { getAdminAuth, getAdminDb } from '@/lib/firebaseAdmin';
 import { cancelPayPalSubscription } from '@/lib/paypalServer';
 
 export const runtime = 'nodejs';
@@ -7,7 +6,10 @@ async function requireAuthenticatedUser(request) {
   const authorization = request.headers.get('authorization') || '';
   const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : null;
   if (!idToken) return null;
-  try { return await getAdminAuth().verifyIdToken(idToken); } catch { return null; }
+  try {
+    const { getAdminAuth } = await import('@/lib/firebaseAdmin');
+    return await getAdminAuth().verifyIdToken(idToken);
+  } catch { return null; }
 }
 
 export async function POST(request) {
@@ -15,6 +17,7 @@ export async function POST(request) {
   if (!identity) return Response.json({ error: 'Autenticación requerida' }, { status: 401 });
 
   try {
+    const { getAdminDb } = await import('@/lib/firebaseAdmin');
     const entitlementRef = getAdminDb().collection('billing_entitlements').doc(identity.uid);
     const entitlement = await entitlementRef.get();
     const subscriptionId = entitlement.data()?.paypalSubscriptionId;
