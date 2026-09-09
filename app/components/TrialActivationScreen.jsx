@@ -78,7 +78,7 @@ export default function TrialActivationScreen({ onAuthenticated, onSkip }) {
       <section className="paywall-content">
         <header className="paywall-header">
           <p className="trial-badge">Prueba de 7 días sin riesgo</p>
-          <h1>Empieza a cuidar de ti hoy</h1>
+          <h1>Desbloquea tu experiencia completa por 7 días</h1>
           <p>Acceso total a tu guía y herramientas. Sin cobros durante tu prueba.</p>
         </header>
 
