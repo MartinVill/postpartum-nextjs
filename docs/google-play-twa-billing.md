@@ -18,6 +18,8 @@ Configurar estas variables sin exponerlas en el repositorio:
 - `GOOGLE_PLAY_SERVICE_ACCOUNT_PRIVATE_KEY`
 - `TWA_ANDROID_PACKAGE_NAME`
 - `TWA_SHA256_CERT_FINGERPRINTS` (una o varias huellas SHA-256 separadas por comas)
+- `GOOGLE_PUBSUB_PUSH_AUDIENCE` (URL exacta de `/api/billing/google-play/rtdn`)
+- `GOOGLE_PUBSUB_PUSH_SERVICE_ACCOUNT` (email de la service account que firma el push)
 
 La service account debe tener acceso a la aplicación en Play Console y permisos para consultar pedidos y reconocer compras. La ruta pública `/.well-known/assetlinks.json` responde `503` hasta que el package y las huellas estén configurados; no publica una asociación vacía.
 
@@ -42,3 +44,9 @@ Google Play permite pruebas gratuitas automáticas en **suscripciones** configur
 3. Generar y publicar el `assetlinks.json` con el certificado de firma de Play App Signing.
 4. Probar en un dispositivo Android mediante un track cerrado: compra, cancelación, restauración y renovación.
 5. Configurar RTDN de Google Play para mantener estados de renovación/cancelación después de la compra inicial.
+
+## Restauración y RTDN
+
+En la TWA, el enlace **Restaurar compras** consulta `listPurchases()` y vuelve a validar cada comprobante en el servidor. Nunca restituye acceso sólo desde el navegador.
+
+`POST /api/billing/google-play/rtdn` recibe el push autenticado de Cloud Pub/Sub, deduplica por `messageId` en `google_play_rtdn_events` y consulta nuevamente la API de Google Play antes de modificar un entitlement. Al configurar Pub/Sub, usar una push subscription con autenticación OIDC cuyo audience sea la URL exacta de ese endpoint.
