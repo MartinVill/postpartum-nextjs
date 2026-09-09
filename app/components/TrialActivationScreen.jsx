@@ -7,13 +7,13 @@ import { auth } from '@/lib/firebase';
 const PLAN_DETAILS = {
   lifetime: {
     eyebrow: 'MEJOR VALOR · PAGO ÚNICO',
-    price: 'US$15',
+    price: '$15 USD',
     suffix: 'de por vida',
     description: 'Un solo pago. Sin cobros recurrentes.'
   },
   monthly: {
     eyebrow: 'SUSCRIPCIÓN MENSUAL',
-    price: 'US$5',
+    price: '$5 USD',
     suffix: 'por mes',
     description: 'Flexible. Cancela cuando quieras.'
   }
@@ -83,8 +83,8 @@ export default function TrialActivationScreen({ onAuthenticated, onSkip }) {
         </header>
 
         <ol className="trial-timeline" aria-label="Cómo funciona la prueba">
-          <li><span className="timeline-node"><TimelineIcon type="check" /></span><div><strong>Hoy · {timeline.today}</strong><p>Desbloqueas tu guía y herramientas. Cobro de US$0 hoy.</p></div></li>
-          <li><span className="timeline-node"><TimelineIcon type="bell" /></span><div><strong>Día 5 · {timeline.reminder}</strong><p>Podrás revisar tu prueba desde Mi perfil antes de que termine.</p></div></li>
+          <li><span className="timeline-node"><TimelineIcon type="check" /></span><div><strong>Hoy · {timeline.today}</strong><p>Desbloqueas tu guía y herramientas. Cobro de $0 USD hoy.</p></div></li>
+          <li><span className="timeline-node"><TimelineIcon type="bell" /></span><div><strong>Día 5 · {timeline.reminder}</strong><p>Faltarán dos días para que termine tu prueba.</p></div></li>
           <li><span className="timeline-node"><TimelineIcon type="lock" /></span><div><strong>Día 7 · {timeline.activation}</strong><p>Se activa el plan que elijas. Puedes cancelarlo antes desde la app.</p></div></li>
         </ol>
 
@@ -97,7 +97,7 @@ export default function TrialActivationScreen({ onAuthenticated, onSkip }) {
         </fieldset>
 
         <button type="button" className="paywall-cta" onClick={handleMainAction} disabled={checkoutStatus === 'loading'}>
-          {checkoutStatus === 'loading' ? 'Abriendo PayPal…' : 'Probar 7 días por US$0'}
+          {checkoutStatus === 'loading' ? 'Abriendo PayPal…' : 'Probar 7 días por $0 USD'}
         </button>
         <p className="payment-reassurance">No se te cobrará nada hoy.</p>
         {errorMessage && <p className="paywall-error" role="alert">{errorMessage}</p>}
