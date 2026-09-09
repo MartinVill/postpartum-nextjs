@@ -83,8 +83,8 @@ export default function TrialActivationScreen({ onAuthenticated, onSkip }) {
 
         <ol className="trial-timeline" aria-label="Cómo funciona la prueba">
           <li><span className="timeline-node"><TimelineIcon type="check" /></span><div><strong>Hoy · {timeline.today}</strong><p>Desbloquea toda la app. Cobro de $0 USD hoy.</p></div></li>
-          <li><span className="timeline-node"><TimelineIcon type="bell" /></span><div><strong>Día 5 · {timeline.reminder}</strong><p>Faltarán dos días para que termine tu prueba.</p></div></li>
-          <li><span className="timeline-node"><TimelineIcon type="lock" /></span><div><strong>Día 7 · {timeline.activation}</strong><p>Se activa el plan que elijas. Puedes cancelarlo antes desde la app.</p></div></li>
+          <li><span className="timeline-node"><TimelineIcon type="bell" /></span><div><strong>Día 5 · {timeline.reminder}</strong><p>Te enviamos un email de recordatorio.</p></div></li>
+          <li><span className="timeline-node"><TimelineIcon type="lock" /></span><div><strong>Día 7 · {timeline.activation}</strong><p>Se activa el plan. Cancelas cuando quieras.</p></div></li>
         </ol>
 
         <fieldset className="plan-selector" disabled={checkoutStatus === 'loading'}>
