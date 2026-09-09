@@ -89,10 +89,13 @@ Las rutas de crear suscripción y cancelar requieren un ID token de Firebase y s
 - Producto y dos planes creados y consultados por API.
 - Endpoint de webhook publicado en Producción para permitir la entrega pública de Sandbox.
 - Webhook Sandbox registrado con los siete eventos de facturación.
-- Se creó una suscripción Sandbox de validación en estado `APPROVAL_PENDING`, que devolvió enlace de aprobación.
+- Una cuenta **Personal Sandbox** aprobó una suscripción mensual de prueba real. PayPal la confirmó en estado `ACTIVE`.
+- PayPal entregó y el servidor verificó un evento `BILLING.SUBSCRIPTION.ACTIVATED` con la firma de Sandbox.
+- El webhook creó el entitlement de prueba en Firestore con `accessStatus: trialing`, el plan mensual, la próxima fecha de cobro de PayPal y la fecha programada para el aviso previo.
+- La ruta pública de creación de suscripción fue comprobada en Producción: sin un ID token válido responde `401`, sin crear ninguna suscripción.
 
-## Prueba pendiente para cerrar Sandbox
+## Próximo paso: interfaz de Paywall
 
-Una cuenta **Personal Sandbox** debe abrir y aprobar el enlace de la suscripción de validación. Después se verifica que llegue `BILLING.SUBSCRIPTION.ACTIVATED` y que el documento `billing_entitlements/paypal-sandbox-validation` cambie a `trialing`, con fechas de prueba y recordatorio calculadas. No hay cobro real en Sandbox.
+La base de servidor está validada. Falta maquetar el Paso 6: selector visual de planes, apertura del flujo de autenticación cuando no haya sesión, redirección a PayPal para una sesión autenticada y la lectura de las fechas dinámicas del entitlement. El correo del día 5 todavía no se envía: la base guarda `reminderScheduledFor`, pero requiere un servicio de correo y un job programado antes de prometer ese aviso en producción.
 
 No se debe usar el simulador de webhooks como validación final: sus eventos no usan la firma verificable de la aplicación registrada.
