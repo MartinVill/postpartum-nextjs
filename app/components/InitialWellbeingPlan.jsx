@@ -56,8 +56,9 @@ export default function InitialWellbeingPlan({ profile, onContinue }) {
       </section>
 
       <style jsx>{`
-        .wellbeing-plan-shell { min-height: 100dvh; box-sizing: border-box; background: radial-gradient(circle at 50% 46%, #FBEAFE 0%, #FFF9F4 32%, #FFFDF6 71%); padding: 28px 20px 26px; overflow: auto; }
-        .wellbeing-plan-content { width: min(100%, 392px); margin: 0 auto; }
+        .wellbeing-plan-shell { position: relative; min-height: 100dvh; box-sizing: border-box; background: radial-gradient(circle at 50% 46%, #FBEAFE 0%, #FFF9F4 32%, #FFFDF6 71%); padding: 28px 20px 26px; overflow: auto; animation: screen-in 420ms ease-out both; }
+        .wellbeing-plan-shell::before { content: ''; position: fixed; z-index: 0; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 38%, rgba(232,121,249,.12), transparent 37%); animation: ambient-settle 850ms ease-out both; }
+        .wellbeing-plan-content { position: relative; z-index: 1; width: min(100%, 392px); margin: 0 auto; }
         .wellbeing-plan-header { text-align: center; animation: reveal 500ms cubic-bezier(.22,1,.36,1) both; }
         .wellbeing-plan-header h1 { margin: 0 0 9px; color: #374151; font-size: clamp(28px, 7.1vw, 32px); line-height: 1.16; letter-spacing: -.65px; font-weight: 700; }
         .wellbeing-plan-header h1 span { color: #D946EF; }
@@ -77,12 +78,12 @@ export default function InitialWellbeingPlan({ profile, onContinue }) {
         .feature-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; margin-bottom: 9px; border-radius: 12px; color: #A739B9; background: #FBEAFE; }
         .feature-card h3 { margin: 0 0 5px; color: #374151; font-size: 14px; line-height: 1.24; font-weight: 700; letter-spacing: -.1px; }
         .feature-card p { margin: 0; color: #4B5563; font-size: 12.5px; line-height: 1.35; }
-        .care-note { display: block; margin: 15px 5px 0; color: #77543B; font-size: 13px; line-height: 1.42; text-align: center; }.care-note span { color: #B37734; margin-right: 4px; }
-        .encouragement { margin: 16px 2px 12px; color: #374151; font-size: 14px; line-height: 1.4; font-weight: 600; text-align: center; }
-        .plan-continue { width: 100%; min-height: 52px; border: 0; border-radius: 15px; background: linear-gradient(115deg, #D946EF, #C940DE); color: #FFF; font: inherit; font-size: 15px; font-weight: 730; cursor: pointer; box-shadow: 0 8px 20px rgba(217,70,239,.35); transition: transform 200ms ease, box-shadow 200ms ease; }.plan-continue:hover { transform: translateY(-1px); box-shadow: 0 11px 23px rgba(217,70,239,.39); }.plan-continue:active { transform: scale(.98); box-shadow: 0 5px 13px rgba(217,70,239,.29); }.plan-continue:focus-visible { outline: 3px solid rgba(217,70,239,.28); outline-offset: 3px; }
-        .plan-disclaimer { margin: 13px 3px 0; color: #6B7280; font-size: 11.5px; line-height: 1.4; text-align: center; }
-        @keyframes reveal { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
-        @media (prefers-reduced-motion: reduce) { .wellbeing-plan-header, .empathy-block, .feature-section, .feature-card { animation: none; } .plan-continue { transition: none; } }
+        .care-note { display: block; margin: 15px 5px 0; color: #77543B; font-size: 13px; line-height: 1.42; text-align: center; animation: reveal 460ms cubic-bezier(.22,1,.36,1) 450ms both; }.care-note span { color: #B37734; margin-right: 4px; }
+        .encouragement { margin: 16px 2px 12px; color: #374151; font-size: 14px; line-height: 1.4; font-weight: 600; text-align: center; animation: reveal 460ms cubic-bezier(.22,1,.36,1) 450ms both; }
+        .plan-continue { width: 100%; min-height: 52px; border: 0; border-radius: 15px; background: linear-gradient(115deg, #D946EF, #C940DE); color: #FFF; font: inherit; font-size: 15px; font-weight: 730; cursor: pointer; box-shadow: 0 8px 20px rgba(217,70,239,.35); transition: transform 200ms ease, box-shadow 200ms ease; animation: reveal 460ms cubic-bezier(.22,1,.36,1) 510ms both, gentle-glow 900ms ease-out 820ms both; }.plan-continue:hover { transform: translateY(-1px); box-shadow: 0 11px 23px rgba(217,70,239,.39); }.plan-continue:active { transform: scale(.98); box-shadow: 0 5px 13px rgba(217,70,239,.29); }.plan-continue:focus-visible { outline: 3px solid rgba(217,70,239,.28); outline-offset: 3px; }
+        .plan-disclaimer { margin: 13px 3px 0; color: #6B7280; font-size: 11.5px; line-height: 1.4; text-align: center; animation: reveal 460ms cubic-bezier(.22,1,.36,1) 560ms both; }
+        @keyframes screen-in { from { opacity: 0; } to { opacity: 1; } } @keyframes ambient-settle { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } } @keyframes reveal { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } } @keyframes gentle-glow { 0%,100% { box-shadow: 0 8px 20px rgba(217,70,239,.35); } 50% { box-shadow: 0 10px 25px rgba(217,70,239,.48); } }
+        @media (prefers-reduced-motion: reduce) { .wellbeing-plan-shell, .wellbeing-plan-shell::before, .wellbeing-plan-header, .empathy-block, .feature-section, .feature-card, .care-note, .encouragement, .plan-continue, .plan-disclaimer { animation: none; } .plan-continue { transition: none; } }
       `}</style>
     </main>
   );
