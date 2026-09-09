@@ -94,8 +94,12 @@ Las rutas de crear suscripción y cancelar requieren un ID token de Firebase y s
 - El webhook creó el entitlement de prueba en Firestore con `accessStatus: trialing`, el plan mensual, la próxima fecha de cobro de PayPal y la fecha programada para el aviso previo.
 - La ruta pública de creación de suscripción fue comprobada en Producción: sin un ID token válido responde `401`, sin crear ninguna suscripción.
 
-## Próximo paso: interfaz de Paywall
+## Flujo de Paywall implementado
 
-La base de servidor está validada. Falta maquetar el Paso 6: selector visual de planes, apertura del flujo de autenticación cuando no haya sesión, redirección a PayPal para una sesión autenticada y la lectura de las fechas dinámicas del entitlement. El correo del día 5 todavía no se envía: la base guarda `reminderScheduledFor`, pero requiere un servicio de correo y un job programado antes de prometer ese aviso en producción.
+El Paso 6 muestra los dos planes, un timeline con fechas calculadas desde el día actual y un CTA único. Si no hay sesión, abre primero el panel de acceso (Google o email); con una sesión autenticada, crea la suscripción de PayPal y navega al enlace de aprobación.
+
+Al volver de PayPal, la app consulta el entitlement autenticado y solo persiste la prueba local cuando el webhook haya confirmado `trialing` o `active`. Esto evita presentar una prueba como activa ante una cuenta creada sin autorización de pago.
+
+El correo del día 5 todavía no se envía: la base guarda `reminderScheduledFor`, pero requiere un servicio de email y un job programado antes de prometer ese aviso en producción.
 
 No se debe usar el simulador de webhooks como validación final: sus eventos no usan la firma verificable de la aplicación registrada.
