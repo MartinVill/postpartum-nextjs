@@ -9,7 +9,8 @@ async function requireAuthenticatedUser(request) {
   if (!idToken) return null;
   try {
     const { getAdminAuth } = await import('@/lib/firebaseAdmin');
-    return await getAdminAuth().verifyIdToken(idToken);
+    const adminAuth = await getAdminAuth();
+    return await adminAuth.verifyIdToken(idToken);
   } catch {
     return null;
   }
