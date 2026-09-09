@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import TrialActivationButton from './TrialActivationButton';
 import { auth } from '@/lib/firebase';
+import { GOOGLE_PLAY_PRODUCT_IDS, requestGooglePlayPurchase, usePaymentProvider } from '@/app/hooks/usePaymentProvider';
 
 const PLAN_DETAILS = {
   lifetime: {
@@ -32,11 +33,12 @@ function TimelineIcon({ type }) {
   return <svg {...common}><path d="m5 12 4 4L19 6" /></svg>;
 }
 
-export default function TrialActivationScreen({ onAuthenticated, onSkip }) {
+export default function TrialActivationScreen({ onAuthenticated, onBillingActivated, onSkip }) {
   const [selectedPlan, setSelectedPlan] = useState('lifetime');
   const [showAuthSheet, setShowAuthSheet] = useState(false);
   const [checkoutStatus, setCheckoutStatus] = useState('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const paymentProvider = usePaymentProvider();
   const timeline = useMemo(() => {
     const today = new Date();
     const reminder = new Date(today); reminder.setDate(today.getDate() + 5);
@@ -44,12 +46,50 @@ export default function TrialActivationScreen({ onAuthenticated, onSkip }) {
     return { today: formatDate(today), reminder: formatDate(reminder), activation: formatDate(activation) };
   }, []);
 
+  const storeCheckoutState = async (idToken, state, provider) => {
+    await fetch('/api/billing/checkout-state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+      body: JSON.stringify({ state, provider })
+    });
+  };
+
+  const beginGooglePlayCheckout = async (user, idToken) => {
+    let paymentResponse;
+    try {
+      const { response, purchaseToken } = await requestGooglePlayPurchase(GOOGLE_PLAY_PRODUCT_IDS[selectedPlan]);
+      paymentResponse = response;
+      const verification = await fetch('/api/billing/google-play/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ planType: selectedPlan, purchaseToken })
+      });
+      const payload = await verification.json();
+      if (!verification.ok) throw new Error(payload.error || 'No pudimos validar la compra con Google Play.');
+      await paymentResponse.complete('success');
+      await onBillingActivated?.({ uid: user.uid, email: user.email || '', entitlement: payload.entitlement });
+    } catch (error) {
+      if (paymentResponse) await paymentResponse.complete('fail').catch(() => {});
+      if (error?.name === 'AbortError') {
+        await storeCheckoutState(idToken, 'checkout_abandoned', 'google-play').catch(() => {});
+        throw new Error('Cancelaste la compra. Tu cuenta quedó lista para cuando quieras continuar.');
+      }
+      throw error;
+    }
+  };
+
   const beginCheckout = async (user) => {
     setCheckoutStatus('loading');
     setErrorMessage('');
     try {
       const idToken = await user.getIdToken();
       await onAuthenticated?.({ uid: user.uid, email: user.email || '', displayName: user.displayName || '', idToken });
+      const provider = paymentProvider.provider;
+      await storeCheckoutState(idToken, 'checkout_started', provider);
+      if (provider === 'google-play') {
+        await beginGooglePlayCheckout(user, idToken);
+        return;
+      }
       const response = await fetch('/api/billing/paypal/subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
@@ -65,6 +105,7 @@ export default function TrialActivationScreen({ onAuthenticated, onSkip }) {
   };
 
   const handleMainAction = () => {
+    if (!paymentProvider.ready) return;
     if (auth?.currentUser) {
       beginCheckout(auth.currentUser);
       return;
@@ -95,10 +136,10 @@ export default function TrialActivationScreen({ onAuthenticated, onSkip }) {
           </button>)}
         </fieldset>
 
-        <button type="button" className="paywall-cta" onClick={handleMainAction} disabled={checkoutStatus === 'loading'}>
-          {checkoutStatus === 'loading' ? 'Abriendo PayPal…' : 'Probar 7 días por $0 USD'}
+        <button type="button" className="paywall-cta" onClick={handleMainAction} disabled={checkoutStatus === 'loading' || !paymentProvider.ready}>
+          {!paymentProvider.ready ? 'Preparando pago…' : checkoutStatus === 'loading' ? `Abriendo ${paymentProvider.provider === 'google-play' ? 'Google Play' : 'PayPal'}…` : 'Probar 7 días por $0 USD'}
         </button>
-        <p className="paypal-note"><span aria-hidden="true">⌁</span> Procesamiento seguro por PayPal.</p>
+        <p className="paypal-note"><span aria-hidden="true">⌁</span> {paymentProvider.provider === 'google-play' ? 'Procesado de forma segura mediante Google Play. Cancela cuando quieras desde tu cuenta.' : 'Procesamiento seguro por PayPal.'}</p>
         <p className="payment-reassurance">No se te cobrará nada hoy.</p>
         {errorMessage && <p className="paywall-error" role="alert">{errorMessage}</p>}
         <button type="button" onClick={onSkip} className="paywall-skip">Dejar para más tarde</button>

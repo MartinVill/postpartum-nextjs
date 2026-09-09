@@ -305,15 +305,39 @@ export default function Home() {
     }
   };
 
+  const handleBillingActivated = async ({ uid, email, entitlement }) => {
+    const storedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+    const profile = {
+      ...storedProfile,
+      firebaseUid: uid,
+      email: email || storedProfile.email || '',
+      trialStartDate: entitlement?.trialStartedAt || new Date().toISOString(),
+      trialEndsAt: entitlement?.trialEndsAt || null,
+      billingPlan: entitlement?.planType || null
+    };
+    localStorage.setItem('userProfile', JSON.stringify(profile));
+    localStorage.removeItem('postpartum_trial_prompt_pending');
+    setState(prev => ({ ...prev, userId: uid, userProfile: profile, showTrialActivation: false }));
+  };
+
   // PayPal vuelve a la app después de aprobar una suscripción. El webhook es
   // la fuente de verdad: esperamos su entitlement antes de marcar la prueba
   // como activa localmente.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (!state.isReady || params.get('paypal') !== 'approved') return;
+    if (!state.isReady || !['approved', 'cancelled'].includes(params.get('paypal'))) return;
 
     let cancelled = false;
     const synchronizeApprovedTrial = async () => {
+      if (params.get('paypal') === 'cancelled') {
+        const user = auth?.currentUser;
+        if (user) {
+          const idToken = await user.getIdToken();
+          await fetch('/api/billing/checkout-state', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` }, body: JSON.stringify({ state: 'checkout_abandoned', provider: 'paypal' }) }).catch(() => {});
+        }
+        window.history.replaceState({}, '', window.location.pathname);
+        return;
+      }
       for (let attempt = 0; attempt < 8 && !cancelled; attempt += 1) {
         const user = auth?.currentUser;
         if (user) {
@@ -467,6 +491,7 @@ export default function Home() {
     return (
       <TrialActivationScreen
         onAuthenticated={handleBillingAuthenticated}
+        onBillingActivated={handleBillingActivated}
         onSkip={() => {
           localStorage.removeItem('postpartum_trial_prompt_pending');
           setState(prev => ({ ...prev, showTrialActivation: false }));

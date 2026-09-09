@@ -40,7 +40,14 @@ export async function POST(request) {
       status: subscription.status
     });
     const { getAdminDb } = await import('@/lib/firebaseAdmin');
-    await getAdminDb().collection('billing_entitlements').doc(identity.uid).set(entitlement, { merge: true });
+    const db = getAdminDb();
+    await db.collection('billing_entitlements').doc(identity.uid).set(entitlement, { merge: true });
+    await db.collection('users').doc(identity.uid).set({
+      checkoutState: 'checkout_started',
+      checkoutProvider: 'paypal',
+      checkoutStartedAt: new Date().toISOString(),
+      checkoutStateUpdatedAt: new Date().toISOString()
+    }, { merge: true });
 
     return Response.json({ approvalUrl: subscription.approvalUrl, subscriptionId: subscription.subscriptionId });
   } catch (error) {

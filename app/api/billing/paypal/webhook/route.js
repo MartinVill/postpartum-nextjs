@@ -56,6 +56,15 @@ export async function POST(request) {
         lastWebhookEvent: event.event_type,
         lastWebhookEventAt: new Date().toISOString()
       }, { merge: true });
+      if (event.event_type === 'BILLING.SUBSCRIPTION.ACTIVATED') {
+        const now = new Date().toISOString();
+        await db.collection('users').doc(entitlement.userId).set({
+          checkoutState: 'trial_active',
+          checkoutProvider: 'paypal',
+          trialActiveAt: now,
+          checkoutStateUpdatedAt: now
+        }, { merge: true });
+      }
     }
     await eventRef.set({ processedAt: new Date().toISOString(), matchedEntitlement: Boolean(entitlement) }, { merge: true });
     return Response.json({ received: true });
