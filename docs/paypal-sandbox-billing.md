@@ -59,7 +59,7 @@ lastWebhookEvent
 lastWebhookEventAt
 ```
 
-La prueba inicia únicamente al recibir `BILLING.SUBSCRIPTION.ACTIVATED`; generar el enlace de aprobación no consume días de prueba.
+El acceso no se habilita hasta recibir `BILLING.SUBSCRIPTION.ACTIVATED`. La fecha de fin y el recordatorio se toman de `next_billing_time`, la fecha exacta que devuelve PayPal para el próximo cobro; así la app no calcula una fecha distinta a la del proveedor.
 
 ### `paypal_webhook_events/{paypalEventId}`
 
