@@ -70,6 +70,7 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
 
   const beginGooglePlayCheckout = async (user, planType = selectedPlan) => {
     let paymentResponse;
+    let idToken = null;
     try {
       // PaymentRequest must start in the exact user gesture that pressed the
       // CTA. Start it before token refreshes or Firestore/network work, which
@@ -78,7 +79,7 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
         GOOGLE_PLAY_PRODUCT_IDS[planType],
         planType === 'lifetime' ? '15.00' : '0.00'
       );
-      const idToken = await user.getIdToken();
+      idToken = await user.getIdToken();
       await onAuthenticated?.({ uid: user.uid, email: user.email || '', displayName: user.displayName || '', idToken });
       await storeCheckoutState(idToken, 'checkout_started', 'google-play');
       const { response, purchaseToken } = await nativePurchase;
@@ -95,7 +96,7 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
     } catch (error) {
       if (paymentResponse) await paymentResponse.complete('fail').catch(() => {});
       if (error?.name === 'AbortError') {
-        await storeCheckoutState(idToken, 'checkout_abandoned', 'google-play').catch(() => {});
+        if (idToken) await storeCheckoutState(idToken, 'checkout_abandoned', 'google-play').catch(() => {});
         throw new Error('Cancelaste la compra. Tu cuenta quedó lista para cuando quieras continuar.');
       }
       throw error;
