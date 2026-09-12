@@ -161,7 +161,7 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
         </button>
         <header className="paywall-header">
           <h1>Elige el plan que mejor se adapte a ti</h1>
-          <p>Al elegirlo, desbloquearás la experiencia completa.</p>
+          <p>Tu experiencia completa empieza hoy.</p>
         </header>
 
         <fieldset className="plan-selector" aria-label="Opciones de plan" disabled={checkoutStatus === 'loading'}>
