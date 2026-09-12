@@ -11,7 +11,12 @@ async function requireAuthenticatedUser(request) {
     const { getAdminAuth } = await import('@/lib/firebaseAdmin');
     const adminAuth = await getAdminAuth();
     return await adminAuth.verifyIdToken(idToken);
-  } catch {
+  } catch (error) {
+    console.error('[BILLING] Firebase token verification failed:', {
+      code: error?.code,
+      message: error?.message,
+      projectId: process.env.FIREBASE_PROJECT_ID || 'missing'
+    });
     return null;
   }
 }
