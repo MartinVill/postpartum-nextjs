@@ -6,17 +6,17 @@ import { auth } from '@/lib/firebase';
 import { GOOGLE_PLAY_PRODUCT_IDS, listGooglePlayPurchases, requestGooglePlayPurchase, usePaymentProvider } from '@/app/hooks/usePaymentProvider';
 
 const PLAN_DETAILS = {
-  lifetime: {
-    eyebrow: 'PAGO ÚNICO',
-    price: '$15 USD',
-    suffix: 'de por vida',
-    description: 'Un único pago. Sin cobros recurrentes.'
-  },
   monthly: {
     eyebrow: 'MÁS POPULAR · SUSCRIPCIÓN MENSUAL',
     price: '$5 USD',
     suffix: 'por mes',
     description: 'Flexible. Cancela cuando quieras.'
+  },
+  lifetime: {
+    eyebrow: 'PAGO ÚNICO',
+    price: '$15 USD',
+    suffix: 'de por vida',
+    description: 'Un único pago. Sin cobros recurrentes.'
   }
 };
 
@@ -34,7 +34,7 @@ function TimelineIcon({ type }) {
 }
 
 export default function TrialActivationScreen({ onAuthenticated, onBillingActivated, onSkip }) {
-  const [selectedPlan, setSelectedPlan] = useState('lifetime');
+  const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [showAuthSheet, setShowAuthSheet] = useState(false);
   const [checkoutStatus, setCheckoutStatus] = useState('idle');
   const [errorMessage, setErrorMessage] = useState('');
