@@ -42,7 +42,7 @@ export async function POST(request) {
     const userRef = getAdminDb().collection('users').doc(userId);
     const existingUser = await userRef.get();
 
-    if (existingUser.exists()) {
+    if (existingUser.exists) {
       await userRef.update({
         ...profileData,
         updatedAt: new Date().toISOString()
@@ -79,7 +79,7 @@ export async function GET(request) {
     const userRef = getAdminDb().collection('users').doc(userId);
     const userSnap = await userRef.get();
 
-    if (!userSnap.exists()) {
+    if (!userSnap.exists) {
       return Response.json({ exists: false });
     }
 
