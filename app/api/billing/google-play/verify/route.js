@@ -33,7 +33,7 @@ export async function POST(request) {
       googlePlayPurchaseToken: purchase.purchaseToken,
       googlePlayOrderId: purchase.orderId,
       billingStatus: purchase.billingStatus,
-      accessStatus: planType === GOOGLE_PLAY_PLAN_TYPES.LIFETIME ? 'active' : 'trialing',
+      accessStatus: purchase.accessStatus,
       trialStartedAt: purchase.trialStartedAt,
       trialEndsAt: purchase.trialEndsAt,
       nextBillingAt: purchase.nextBillingAt,

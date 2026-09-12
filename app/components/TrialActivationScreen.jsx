@@ -185,7 +185,7 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
         </button>
         <p className="paypal-note"><span aria-hidden="true">⌁</span> {paymentProvider.provider === 'google-play' ? isLifetime ? 'Procesado de forma segura mediante Google Play.' : 'Procesado de forma segura mediante Google Play. Cancela cuando quieras desde tu cuenta.' : 'Procesamiento seguro por PayPal.'}</p>
         <p className="payment-reassurance">{isLifetime ? 'Un único pago. Sin renovaciones.' : 'No se te cobrará nada hoy.'}</p>
-        {paymentProvider.provider === 'google-play' && <button type="button" className="paywall-restore" onClick={handleRestoreAction} disabled={checkoutStatus === 'loading'}>Restaurar compras</button>}
+        {paymentProvider.provider === 'google-play' && <button type="button" className="paywall-restore" onClick={handleRestoreAction} disabled={checkoutStatus === 'loading'}>¿Ya hiciste una compra? Recuperar mi acceso</button>}
         {errorMessage && <p className="paywall-error" role="alert">{errorMessage}</p>}
         <button type="button" onClick={onSkip} className="paywall-skip">Dejar para más tarde</button>
       </section>
