@@ -1,12 +1,31 @@
 'use client';
 
-import { useState } from 'react';
-import { GoogleAuthProvider, browserLocalPersistence, createUserWithEmailAndPassword, sendEmailVerification, setPersistence, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { GoogleAuthProvider, browserLocalPersistence, createUserWithEmailAndPassword, getRedirectResult, sendEmailVerification, setPersistence, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect } from 'firebase/auth';
+import { auth, isFirebaseClientConfigured } from '@/lib/firebase';
 
 const GoogleMark = () => <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.27c0-.79-.07-1.55-.2-2.27H12v4.3h5.23a4.47 4.47 0 0 1-1.94 2.94v2.79h3.59c2.1-1.93 3.31-4.78 3.31-7.76Z"/><path fill="#34A853" d="M12 21.75c2.62 0 4.82-.87 6.43-2.36l-3.59-2.79c-1 .67-2.27 1.07-3.84 1.07-2.95 0-5.45-1.99-6.34-4.67H.95v2.88A9.72 9.72 0 0 0 12 21.75Z"/><path fill="#FBBC05" d="M4.66 13c-.23-.67-.36-1.39-.36-2.13s.13-1.46.36-2.13V5.86H.95a9.75 9.75 0 0 0 0 10.02L4.66 13Z"/><path fill="#EA4335" d="M12 4.07c1.71 0 3.24.59 4.45 1.74l3.34-3.34C16.81.69 14.61-.25 12 0A9.72 9.72 0 0 0 .95 5.86l3.71 2.88C5.55 6.06 8.05 4.07 12 4.07Z"/></svg>;
 const EmailMark = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2.4"/><path d="m4.5 7 7.5 5.7L19.5 7" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 const inputStyle = { width: '100%', height: '46px', boxSizing: 'border-box', border: '1px solid #DED8E1', borderRadius: '10px', background: '#FFFFFF', color: '#25212A', fontSize: '15px', padding: '0 13px', outlineColor: '#C84BE0' };
+
+function googleAuthMessage(error) {
+  const messages = {
+    'auth/popup-closed-by-user': 'Cerraste la ventana antes de terminar. Cuando quieras, inténtalo otra vez.',
+    'auth/popup-blocked': 'No pudimos abrir Google en este navegador. Inténtalo nuevamente.',
+    'auth/operation-not-allowed': 'El acceso con Google aún no está habilitado. Inténtalo más tarde.',
+    'auth/unauthorized-domain': 'El acceso con Google aún no está disponible desde este sitio. Inténtalo más tarde.',
+    'auth/invalid-api-key': 'No pudimos preparar el acceso con Google. Inténtalo más tarde.',
+    'auth/app-not-authorized': 'No pudimos preparar el acceso con Google. Inténtalo más tarde.',
+    'auth/network-request-failed': 'Revisa tu conexión e inténtalo nuevamente.',
+    'auth/account-exists-with-different-credential': 'Ya existe una cuenta con este email. Continúa con email para ingresar.'
+  };
+  return messages[error?.code] || 'No pudimos completar el acceso con Google. Inténtalo nuevamente.';
+}
+
+function shouldUseGoogleRedirect() {
+  if (typeof window === 'undefined') return false;
+  return /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent || '');
+}
 
 export default function TrialActivationButton({ onAuthenticated, onActivated }) {
   const [status, setStatus] = useState('idle');
@@ -15,31 +34,73 @@ export default function TrialActivationButton({ onAuthenticated, onActivated }) 
   const [emailMode, setEmailMode] = useState('signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const redirectResultHandled = useRef(false);
 
-  const completeActivation = async (user) => {
+  const completeActivation = useCallback(async (user) => {
     const idToken = await user.getIdToken();
     await (onAuthenticated || onActivated)?.({ uid: user.uid, email: user.email || '', displayName: user.displayName || '', idToken });
-  };
+  }, [onActivated, onAuthenticated]);
+
   const ensureAuth = () => {
-    if (auth) return true;
-    setErrorMessage('No pudimos preparar el acceso. Inténtalo de nuevo en unos minutos.');
+    if (auth && isFirebaseClientConfigured) return true;
+    setErrorMessage('El acceso con Google se está preparando. Inténtalo nuevamente en unos minutos.');
     return false;
   };
+
+  useEffect(() => {
+    if (!auth || !isFirebaseClientConfigured || redirectResultHandled.current) return undefined;
+    redirectResultHandled.current = true;
+    let disposed = false;
+
+    const finishGoogleRedirect = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (!result?.user || disposed) return;
+        setStatus('google');
+        await completeActivation(result.user);
+        if (!disposed) setStatus('success');
+      } catch (error) {
+        console.error('[AUTH] Error al volver de Google:', error);
+        if (!disposed) {
+          setErrorMessage(googleAuthMessage(error));
+          setStatus('idle');
+        }
+      }
+    };
+
+    finishGoogleRedirect();
+    return () => { disposed = true; };
+  }, [completeActivation]);
 
   const activateWithGoogle = async () => {
     if (!ensureAuth()) return;
     setStatus('google'); setErrorMessage('');
+    let provider;
     try {
       await setPersistence(auth, browserLocalPersistence);
-      const provider = new GoogleAuthProvider();
+      provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
+      if (shouldUseGoogleRedirect()) {
+        await signInWithRedirect(auth, provider);
+        return;
+      }
       const result = await signInWithPopup(auth, provider);
       await completeActivation(result.user);
       setStatus('success');
     } catch (error) {
       console.error('[AUTH] Error al continuar con Google:', error);
-      const messages = { 'auth/popup-closed-by-user': 'Cerraste la ventana antes de terminar. Cuando quieras, inténtalo otra vez.', 'auth/popup-blocked': 'Tu navegador bloqueó la ventana de Google. Permite ventanas emergentes e inténtalo otra vez.', 'auth/operation-not-allowed': 'El acceso con Google aún no está habilitado. Inténtalo más tarde.' };
-      setErrorMessage(messages[error.code] || 'No pudimos completar el acceso con Google. Inténtalo nuevamente.'); setStatus('idle');
+      if (error?.code === 'auth/popup-blocked') {
+        try {
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch (redirectError) {
+          console.error('[AUTH] No pudimos iniciar la redirección de Google:', redirectError);
+          setErrorMessage(googleAuthMessage(redirectError));
+          setStatus('idle');
+          return;
+        }
+      }
+      setErrorMessage(googleAuthMessage(error)); setStatus('idle');
     }
   };
 
