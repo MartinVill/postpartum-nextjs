@@ -15,34 +15,45 @@ export const GOOGLE_PLAY_PRODUCT_IDS = {
  * different payment provider.
  */
 export function usePaymentProvider() {
-  const [state, setState] = useState({ provider: 'paypal', ready: false, products: {}, service: null });
+  const [state, setState] = useState({ provider: 'paypal', ready: false, products: {}, service: null, diagnostics: {} });
 
   useEffect(() => {
     let disposed = false;
     async function detect() {
       if (typeof window === 'undefined' || typeof window.getDigitalGoodsService !== 'function' || typeof window.PaymentRequest !== 'function') {
-        if (!disposed) setState({ provider: 'paypal', ready: true, products: {}, service: null });
+        if (!disposed) setState({ provider: 'paypal', ready: true, products: {}, service: null, diagnostics: { digitalGoods: false } });
         return;
       }
       try {
         const service = await window.getDigitalGoodsService(GOOGLE_PLAY_BILLING_METHOD);
         const productIds = Object.values(GOOGLE_PLAY_PRODUCT_IDS);
         let products = {};
+        let detailsAvailable = false;
         try {
           const productDetails = await service.getDetails(productIds);
           products = Object.fromEntries((productDetails || []).map(product => [product.itemId, product]));
+          detailsAvailable = true;
         } catch (error) {
           // Product metadata can take longer to propagate than the Billing
           // service itself. Preserve the native provider and let the Play
           // purchase sheet supply the authoritative product error if needed.
           console.warn('[BILLING] Google Play product details unavailable.', error?.message);
         }
-        if (!disposed) setState({ provider: 'google-play', ready: true, products, service });
+        let canMakePayment = null;
+        try {
+          const preflight = new window.PaymentRequest([
+            { supportedMethods: GOOGLE_PLAY_BILLING_METHOD, data: { sku: GOOGLE_PLAY_PRODUCT_IDS.monthly } }
+          ], { total: { label: 'Postpartum', amount: { currency: 'USD', value: '0.00' } } });
+          canMakePayment = await preflight.canMakePayment();
+        } catch (error) {
+          console.warn('[BILLING] Google Play payment preflight unavailable.', error?.message);
+        }
+        if (!disposed) setState({ provider: 'google-play', ready: true, products, service, diagnostics: { digitalGoods: true, detailsAvailable, canMakePayment } });
       } catch (error) {
         // A browser can expose an incomplete implementation. Payment must not
         // fail closed for a web user in that case.
         console.warn('[BILLING] Google Play Billing unavailable; using PayPal.', error?.message);
-        if (!disposed) setState({ provider: 'paypal', ready: true, products: {}, service: null });
+        if (!disposed) setState({ provider: 'paypal', ready: true, products: {}, service: null, diagnostics: { digitalGoods: false, initializationError: String(error?.message || '').slice(0, 160) } });
       }
     }
     detect();

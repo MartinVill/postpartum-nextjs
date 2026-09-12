@@ -60,11 +60,11 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
     return { today: formatDate(today), reminder: formatDate(reminder), activation: formatDate(activation) };
   }, []);
 
-  const storeCheckoutState = async (idToken, state, provider) => {
+  const storeCheckoutState = async (idToken, state, provider, diagnostic) => {
     await fetch('/api/billing/checkout-state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-      body: JSON.stringify({ state, provider })
+      body: JSON.stringify({ state, provider, diagnostic })
     });
   };
 
@@ -101,8 +101,16 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
         // that implementation error as a cancelled purchase or mark a real
         // user as having abandoned checkout.
         const message = String(error?.message || '').toLowerCase();
+        if (idToken) {
+          await storeCheckoutState(idToken, 'checkout_failed', 'google-play', {
+            errorName: error.name,
+            errorMessage: error.message || '',
+            ...paymentProvider.diagnostics,
+            userAgent: typeof navigator === 'undefined' ? '' : navigator.userAgent
+          }).catch(() => {});
+        }
         if (message.includes('invalid state') || !message) {
-          throw new Error('No pudimos abrir Google Play en este dispositivo. Actualiza Google Chrome y vuelve a abrir la app desde Google Play.');
+          throw new Error('Google Play no pudo abrirse en esta instalación. Verifica que Postpartum versión 4 esté actualizada desde la prueba interna y que Google Chrome esté actualizado.');
         }
         if (idToken) await storeCheckoutState(idToken, 'checkout_abandoned', 'google-play').catch(() => {});
         throw new Error('La compra se cerró antes de confirmarse. Puedes intentarlo nuevamente cuando quieras.');

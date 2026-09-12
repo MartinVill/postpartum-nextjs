@@ -14,8 +14,8 @@ async function requireAuthenticatedUser(request) {
 export async function POST(request) {
   const identity = await requireAuthenticatedUser(request);
   if (!identity) return Response.json({ error: 'Autenticación requerida' }, { status: 401 });
-  const { state, provider } = await request.json().catch(() => ({}));
-  if (!['checkout_started', 'checkout_abandoned'].includes(state) || !['paypal', 'google-play'].includes(provider)) {
+  const { state, provider, diagnostic } = await request.json().catch(() => ({}));
+  if (!['checkout_started', 'checkout_abandoned', 'checkout_failed'].includes(state) || !['paypal', 'google-play'].includes(provider)) {
     return Response.json({ error: 'Estado de checkout inválido' }, { status: 400 });
   }
   const now = new Date().toISOString();
@@ -23,7 +23,18 @@ export async function POST(request) {
     checkoutState: state,
     checkoutProvider: provider,
     checkoutStateUpdatedAt: now,
-    ...(state === 'checkout_started' ? { checkoutStartedAt: now } : { checkoutAbandonedAt: now })
+    ...(state === 'checkout_started' ? { checkoutStartedAt: now } : state === 'checkout_abandoned' ? { checkoutAbandonedAt: now } : { checkoutFailedAt: now }),
+    ...(state === 'checkout_failed' && diagnostic && typeof diagnostic === 'object' ? {
+      checkoutDiagnostic: {
+        errorName: typeof diagnostic.errorName === 'string' ? diagnostic.errorName.slice(0, 80) : '',
+        errorMessage: typeof diagnostic.errorMessage === 'string' ? diagnostic.errorMessage.slice(0, 240) : '',
+        digitalGoods: diagnostic.digitalGoods === true,
+        detailsAvailable: diagnostic.detailsAvailable === true,
+        canMakePayment: typeof diagnostic.canMakePayment === 'boolean' ? diagnostic.canMakePayment : null,
+        userAgent: typeof diagnostic.userAgent === 'string' ? diagnostic.userAgent.slice(0, 300) : '',
+        recordedAt: now
+      }
+    } : {})
   };
   const { getAdminDb } = await import('@/lib/firebaseAdmin');
   await getAdminDb().collection('users').doc(identity.uid).set(data, { merge: true });
