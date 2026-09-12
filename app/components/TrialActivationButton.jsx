@@ -75,6 +75,15 @@ export default function TrialActivationButton({ onAuthenticated, onActivated, on
       await setPersistence(auth, browserLocalPersistence);
       provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent);
+      if (isMobile) {
+        // On Android/TWA, an explicit redirect is more reliable than a popup.
+        // The Firebase helper is proxied through our origin, so its state is
+        // preserved even when the WebView partitions third-party storage.
+        onGoogleRedirectStart?.();
+        await signInWithRedirect(auth, provider);
+        return;
+      }
       // A popup returns the Firebase session in this same document. This avoids
       // losing the checkout intent when browsers partition redirect storage.
       const result = await signInWithPopup(auth, provider);
