@@ -1,0 +1,51 @@
+{
+  "packageId": "com.postpartum.app",
+  "host": "postpartum-nextjs.vercel.app",
+  "name": "Postpartum",
+  "launcherName": "Postpartum",
+  "display": "standalone",
+  "themeColor": "#C770A4",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#FFFDF6",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://postpartum-nextjs.vercel.app/icon-192x192.png",
+  "maskableIconUrl": "https://postpartum-nextjs.vercel.app/icon-192x192.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "C:\\Temp\\postpartum-nextjs\\android-twa\\android.keystore",
+    "alias": "postpartum_upload"
+  },
+  "appVersionName": "3",
+  "appVersionCode": 3,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://postpartum-nextjs.vercel.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": true
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://postpartum-nextjs.vercel.app/",
+  "minSdkVersion": 23,
+  "orientation": "default",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "displayOverride": [],
+  "appVersion": "3"
+}

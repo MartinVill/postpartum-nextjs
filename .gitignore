@@ -24,6 +24,16 @@
 .DS_Store
 *.pem
 
+# Android Trusted Web Activity: retain source only, never signing keys or build artifacts.
+/android-twa/android.keystore
+/android-twa/.gradle/
+/android-twa/app/build/
+/android-twa/build/
+/app-release-*.apk
+/app-release-*.aab
+/app-release-*.idsig
+/hs_err_pid*.log
+
 # debug
 npm-debug.log*
 yarn-debug.log*
