@@ -26,6 +26,7 @@
 
 # Android Trusted Web Activity: retain source only, never signing keys or build artifacts.
 /android-twa/android.keystore
+/android-twa/UPLOAD_KEY_PASSWORD.txt
 /android-twa/.gradle/
 /android-twa/app/build/
 /android-twa/build/
