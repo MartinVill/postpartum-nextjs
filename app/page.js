@@ -305,6 +305,15 @@ export default function Home() {
     }
   };
 
+  // Perfil reutiliza el acceso para guardar la cuenta antes de llevar a la
+  // usuaria al paywall. La prueba solo se activa tras la confirmación del
+  // proveedor de pago en handleBillingActivated.
+  const handleTrialActivated = async (credentials) => {
+    await handleBillingAuthenticated(credentials);
+    localStorage.setItem('postpartum_trial_prompt_pending', 'true');
+    setState(prev => ({ ...prev, showProfile: false, showTrialActivation: true }));
+  };
+
   const handleBillingActivated = async ({ uid, email, entitlement }) => {
     const storedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
     const profile = {
