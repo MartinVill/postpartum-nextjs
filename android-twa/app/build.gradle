@@ -58,8 +58,10 @@ android {
         // Google Play Billing's Android Browser Helper integration requires API 23+.
         minSdkVersion 23
         targetSdkVersion 36
-        versionCode 1
-        versionName "1"
+        // Version 3 is already distributed through the internal test track.
+        // This build must be newer so Play delivers the TWA launcher fix.
+        versionCode 4
+        versionName "4"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
@@ -211,6 +213,6 @@ dependencies {
     
         implementation 'com.google.androidbrowserhelper:billing:1.2.0'
     
-        implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.6.2'
+        implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.3'
     
 }

@@ -83,6 +83,20 @@
             <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"
                 android:value="@string/launchUrl" />
 
+            <!--
+              Google Play Billing through the Digital Goods API is implemented
+              by Chrome. Some browsers can render a TWA but abort
+              PaymentRequest.show() with "Invalid state". Pinning the provider
+              prevents a device's default browser (for example Samsung
+              Internet) from being selected for a payment-capable TWA.
+            -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.LAUNCHING_BROWSER"
+                android:value="com.android.chrome" />
+            <meta-data
+                android:name="android.support.customtabs.trusted.LAUNCHING_BROWSER_NAME"
+                android:value="Google Chrome" />
+
             <meta-data
                 android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
                 android:resource="@color/colorPrimary" />

@@ -96,8 +96,16 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
     } catch (error) {
       if (paymentResponse) await paymentResponse.complete('fail').catch(() => {});
       if (error?.name === 'AbortError') {
+        // AbortError is also emitted by a TWA provider that cannot present the
+        // Google Play sheet (not only when the person closes it). Do not label
+        // that implementation error as a cancelled purchase or mark a real
+        // user as having abandoned checkout.
+        const message = String(error?.message || '').toLowerCase();
+        if (message.includes('invalid state') || !message) {
+          throw new Error('No pudimos abrir Google Play en este dispositivo. Actualiza Google Chrome y vuelve a abrir la app desde Google Play.');
+        }
         if (idToken) await storeCheckoutState(idToken, 'checkout_abandoned', 'google-play').catch(() => {});
-        throw new Error('Cancelaste la compra. Tu cuenta quedó lista para cuando quieras continuar.');
+        throw new Error('La compra se cerró antes de confirmarse. Puedes intentarlo nuevamente cuando quieras.');
       }
       throw error;
     }
