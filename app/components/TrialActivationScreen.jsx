@@ -48,6 +48,15 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
   const beginCheckoutRef = useRef(null);
   const paymentProvider = usePaymentProvider();
   const isLifetime = selectedPlan === 'lifetime';
+  // A TWA can expose the Digital Goods API before every Play Console product
+  // is active for the current tester. Never route a plan to a native checkout
+  // unless that exact SKU was returned by Google Play.
+  const paymentProviderForPlan = (planType) => (
+    paymentProvider.provider === 'google-play' && paymentProvider.products?.[GOOGLE_PLAY_PRODUCT_IDS[planType]]
+      ? 'google-play'
+      : 'paypal'
+  );
+  const activePaymentProvider = paymentProviderForPlan(selectedPlan);
   const timeline = useMemo(() => {
     const today = new Date();
     const reminder = new Date(today); reminder.setDate(today.getDate() + 5);
@@ -93,7 +102,7 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
     try {
       const idToken = await user.getIdToken();
       await onAuthenticated?.({ uid: user.uid, email: user.email || '', displayName: user.displayName || '', idToken });
-      const provider = paymentProvider.provider;
+      const provider = paymentProviderForPlan(planType);
       await storeCheckoutState(idToken, 'checkout_started', provider);
       if (provider === 'google-play') {
         await beginGooglePlayCheckout(user, idToken, planType);
@@ -250,9 +259,9 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
       <footer className="paywall-fixed-footer">
         {errorMessage && <p className="paywall-error" role="alert">{errorMessage}</p>}
         <button type="button" className="paywall-cta" onClick={handleMainAction} disabled={checkoutStatus === 'loading' || !paymentProvider.ready}>
-          {!paymentProvider.ready ? 'Preparando pago…' : checkoutStatus === 'loading' ? `Abriendo ${paymentProvider.provider === 'google-play' ? 'Google Play' : 'PayPal'}…` : isLifetime ? 'Pagar $15 USD hoy - Acceso de por vida' : 'Probar 7 días por $0 USD'}
+          {!paymentProvider.ready ? 'Preparando pago…' : checkoutStatus === 'loading' ? `Abriendo ${activePaymentProvider === 'google-play' ? 'Google Play' : 'PayPal'}…` : isLifetime ? 'Pagar $15 USD hoy - Acceso de por vida' : 'Probar 7 días por $0 USD'}
         </button>
-        <p className="paypal-note"><span aria-hidden="true">⌁</span> {paymentProvider.provider === 'google-play' ? isLifetime ? 'Procesado de forma segura mediante Google Play.' : 'Procesado de forma segura mediante Google Play · $0 hoy.' : isLifetime ? 'Procesamiento seguro por PayPal.' : 'Procesamiento seguro por PayPal · $0 hoy.'}</p>
+        <p className="paypal-note"><span aria-hidden="true">⌁</span> {activePaymentProvider === 'google-play' ? isLifetime ? 'Procesado de forma segura mediante Google Play.' : 'Procesado de forma segura mediante Google Play · $0 hoy.' : isLifetime ? 'Procesamiento seguro por PayPal.' : 'Procesamiento seguro por PayPal · $0 hoy.'}</p>
         {paymentProvider.provider === 'google-play' && <button type="button" className="paywall-restore" onClick={handleRestoreAction} disabled={checkoutStatus === 'loading'}>¿Ya hiciste una compra? Recuperar mi acceso</button>}
       </footer>
 
