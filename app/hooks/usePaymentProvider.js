@@ -9,9 +9,10 @@ export const GOOGLE_PLAY_PRODUCT_IDS = {
 };
 
 /**
- * A standard browser never exposes getDigitalGoodsService. We deliberately
- * fall back to PayPal there, including when a TWA is misconfigured, so the
- * web checkout remains usable during a staged Android rollout.
+ * A standard browser never exposes getDigitalGoodsService, so it uses PayPal.
+ * Once the TWA exposes the Google Play service, it must stay on Google Play:
+ * an unavailable SKU should be reported by Play, not silently routed to a
+ * different payment provider.
  */
 export function usePaymentProvider() {
   const [state, setState] = useState({ provider: 'paypal', ready: false, products: {}, service: null });
@@ -26,8 +27,16 @@ export function usePaymentProvider() {
       try {
         const service = await window.getDigitalGoodsService(GOOGLE_PLAY_BILLING_METHOD);
         const productIds = Object.values(GOOGLE_PLAY_PRODUCT_IDS);
-        const productDetails = await service.getDetails(productIds);
-        const products = Object.fromEntries((productDetails || []).map(product => [product.itemId, product]));
+        let products = {};
+        try {
+          const productDetails = await service.getDetails(productIds);
+          products = Object.fromEntries((productDetails || []).map(product => [product.itemId, product]));
+        } catch (error) {
+          // Product metadata can take longer to propagate than the Billing
+          // service itself. Preserve the native provider and let the Play
+          // purchase sheet supply the authoritative product error if needed.
+          console.warn('[BILLING] Google Play product details unavailable.', error?.message);
+        }
         if (!disposed) setState({ provider: 'google-play', ready: true, products, service });
       } catch (error) {
         // A browser can expose an incomplete implementation. Payment must not
@@ -53,7 +62,9 @@ export async function requestGooglePlayPurchase(productId, amount = '0.00') {
     total: { label: 'Postpartum', amount: { currency: 'USD', value: amount } }
   });
   const response = await request.show();
-  const purchaseToken = response?.details?.purchaseToken;
+  // Chrome's Payment Request response uses `token`; some Android Browser
+  // Helper versions expose the equivalent field as `purchaseToken`.
+  const purchaseToken = response?.details?.token || response?.details?.purchaseToken;
   if (!purchaseToken) {
     await response.complete('fail');
     throw new Error('Google Play no devolvió un comprobante de compra.');

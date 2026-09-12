@@ -48,14 +48,10 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
   const beginCheckoutRef = useRef(null);
   const paymentProvider = usePaymentProvider();
   const isLifetime = selectedPlan === 'lifetime';
-  // A TWA can expose the Digital Goods API before every Play Console product
-  // is active for the current tester. Never route a plan to a native checkout
-  // unless that exact SKU was returned by Google Play.
-  const paymentProviderForPlan = (planType) => (
-    paymentProvider.provider === 'google-play' && paymentProvider.products?.[GOOGLE_PLAY_PRODUCT_IDS[planType]]
-      ? 'google-play'
-      : 'paypal'
-  );
+  // The TWA itself is the payment-provider boundary. Product metadata can be
+  // delayed in Play Console; falling back to PayPal here would incorrectly
+  // bypass native Google Play Billing on an Android installation.
+  const paymentProviderForPlan = () => paymentProvider.provider === 'google-play' ? 'google-play' : 'paypal';
   const activePaymentProvider = paymentProviderForPlan(selectedPlan);
   const timeline = useMemo(() => {
     const today = new Date();
@@ -116,17 +112,7 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
       const provider = paymentProviderForPlan(planType);
       await storeCheckoutState(idToken, 'checkout_started', provider);
       if (provider === 'google-play') {
-        try {
-          await beginGooglePlayCheckout(user, idToken, planType);
-        } catch (googlePlayError) {
-          // During Play Console setup an Android TWA can expose Digital Goods
-          // while the tester still cannot finish the native sheet. Do not trap
-          // an authenticated user on the paywall: continue through our active
-          // PayPal checkout until native products are fully released.
-          console.warn('[BILLING] Google Play checkout unavailable; using PayPal.', googlePlayError?.name || googlePlayError?.message);
-          await storeCheckoutState(idToken, 'checkout_started', 'paypal');
-          await beginPayPalCheckout(idToken, planType);
-        }
+        await beginGooglePlayCheckout(user, idToken, planType);
         return;
       }
       await beginPayPalCheckout(idToken, planType);
