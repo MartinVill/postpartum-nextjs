@@ -199,8 +199,8 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
         <section className="auth-sheet">
           <div className="sheet-handle" aria-hidden="true" />
           <button type="button" className="sheet-close" aria-label="Cerrar" onClick={() => setShowAuthSheet(false)}>×</button>
-          <h2 id="auth-title">{authAction === 'restore' ? 'Recupera tu acceso' : isLifetime ? 'Guarda tu acceso' : 'Guarda tu prueba'}</h2>
-          <p>{authAction === 'restore' ? 'Ingresa con la cuenta que usaste para comprar en Google Play.' : isLifetime ? 'Crea tu acceso para guardar tu guía, tu compra y tu progreso.' : 'Crea tu acceso para que podamos guardar tu guía, tu prueba y tu progreso.'}</p>
+          <h2 id="auth-title">{authAction === 'restore' ? 'Recupera tu acceso' : 'Crea tu cuenta'}</h2>
+          <p>{authAction === 'restore' ? 'Ingresa con la cuenta que usaste para comprar en Google Play.' : 'Para activar tu acceso y guardar tu progreso.'}</p>
           <TrialActivationButton onAuthenticated={authAction === 'restore' ? () => restoreGooglePlayPurchases() : beginCheckout} />
         </section>
       </div>}
