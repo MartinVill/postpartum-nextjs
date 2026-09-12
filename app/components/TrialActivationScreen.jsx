@@ -96,6 +96,17 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
     }
   };
 
+  const beginPayPalCheckout = async (idToken, planType) => {
+    const response = await fetch('/api/billing/paypal/subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+      body: JSON.stringify({ planType })
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.approvalUrl) throw new Error(payload.error || 'No pudimos abrir PayPal.');
+    window.location.assign(payload.approvalUrl);
+  };
+
   async function beginCheckout(user, planType = selectedPlan) {
     setCheckoutStatus('loading');
     setErrorMessage('');
@@ -105,17 +116,20 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
       const provider = paymentProviderForPlan(planType);
       await storeCheckoutState(idToken, 'checkout_started', provider);
       if (provider === 'google-play') {
-        await beginGooglePlayCheckout(user, idToken, planType);
+        try {
+          await beginGooglePlayCheckout(user, idToken, planType);
+        } catch (googlePlayError) {
+          // During Play Console setup an Android TWA can expose Digital Goods
+          // while the tester still cannot finish the native sheet. Do not trap
+          // an authenticated user on the paywall: continue through our active
+          // PayPal checkout until native products are fully released.
+          console.warn('[BILLING] Google Play checkout unavailable; using PayPal.', googlePlayError?.name || googlePlayError?.message);
+          await storeCheckoutState(idToken, 'checkout_started', 'paypal');
+          await beginPayPalCheckout(idToken, planType);
+        }
         return;
       }
-      const response = await fetch('/api/billing/paypal/subscription', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-        body: JSON.stringify({ planType })
-      });
-      const payload = await response.json();
-      if (!response.ok || !payload.approvalUrl) throw new Error(payload.error || 'No pudimos abrir PayPal.');
-      window.location.assign(payload.approvalUrl);
+      await beginPayPalCheckout(idToken, planType);
     } catch (error) {
       setCheckoutStatus('idle');
       setErrorMessage(error.message || 'No pudimos iniciar PayPal. Inténtalo de nuevo.');
