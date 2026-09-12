@@ -1,4 +1,5 @@
 import { cancelPayPalSubscription } from '@/lib/paypalServer';
+import { verifyFirebaseIdToken } from '@/lib/firebaseAdmin';
 
 export const runtime = 'nodejs';
 
@@ -7,9 +8,7 @@ async function requireAuthenticatedUser(request) {
   const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : null;
   if (!idToken) return null;
   try {
-    const { getAdminAuth } = await import('@/lib/firebaseAdmin');
-    const adminAuth = await getAdminAuth();
-    return await adminAuth.verifyIdToken(idToken);
+    return await verifyFirebaseIdToken(idToken);
   } catch { return null; }
 }
 

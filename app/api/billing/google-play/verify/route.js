@@ -1,4 +1,5 @@
 import { GOOGLE_PLAY_PLAN_TYPES, verifyGooglePlayPurchase } from '@/lib/googlePlayServer';
+import { verifyFirebaseIdToken } from '@/lib/firebaseAdmin';
 
 export const runtime = 'nodejs';
 
@@ -6,7 +7,7 @@ async function requireAuthenticatedUser(request) {
   const authorization = request.headers.get('authorization') || '';
   const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : null;
   if (!token) return null;
-  try { const { getAdminAuth } = await import('@/lib/firebaseAdmin'); return await (await getAdminAuth()).verifyIdToken(token); } catch { return null; }
+  try { return await verifyFirebaseIdToken(token); } catch { return null; }
 }
 
 export async function POST(request) {
