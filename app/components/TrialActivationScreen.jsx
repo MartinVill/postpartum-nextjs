@@ -157,11 +157,11 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
     <main className="paywall-shell">
       <section className="paywall-content">
         <header className="paywall-header">
-          <h1>{isLifetime ? 'Tu acceso de por vida empieza hoy' : 'Comienza tus 7 días de calma sin riesgo'}</h1>
-          <p>{isLifetime ? 'Un único pago para acompañarte a tu ritmo, sin renovaciones.' : 'Acceso inmediato a tu guía diaria, herramientas de pausa, registro personal, y mucho más.'}</p>
+          <h1>Elige el plan que mejor se adapte a ti</h1>
+          <p>Acceso completo a tu guía y herramientas desde hoy.</p>
         </header>
 
-        <ol className="trial-timeline" aria-label="Cómo funciona la prueba">
+        <ol className="trial-timeline" aria-label={isLifetime ? 'Cómo funciona tu acceso de por vida' : 'Cómo funciona tu prueba'}>
           {isLifetime ? <>
             <li className="timeline-step timeline-step-1"><span className="timeline-node"><TimelineIcon type="check" /></span><div><strong>Hoy · {timeline.today}</strong><p>Pagas $15 USD y desbloqueas toda la app.</p></div></li>
             <li className="timeline-step timeline-step-2"><span className="timeline-node"><TimelineIcon type="bell" /></span><div><strong>Sin suscripción</strong><p>Un único pago. No habrá renovaciones.</p></div></li>
@@ -174,7 +174,7 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
         </ol>
 
         <fieldset className="plan-selector" disabled={checkoutStatus === 'loading'}>
-          <legend>Elige cómo continuar después</legend>
+          <legend>Elige tu plan</legend>
           {Object.entries(PLAN_DETAILS).map(([id, plan], index) => <button key={id} type="button" onClick={() => setSelectedPlan(id)} className={`plan-option plan-option-${index + 1} ${selectedPlan === id ? 'selected' : ''}`} aria-pressed={selectedPlan === id}>
             <span className="plan-radio" aria-hidden="true" />
             <span className="plan-copy"><small>{plan.eyebrow}</small><strong>{plan.price} <em>{plan.suffix}</em></strong><span>{plan.description}</span></span>
