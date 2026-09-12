@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { GoogleAuthProvider, browserLocalPersistence, createUserWithEmailAndPassword, getRedirectResult, sendEmailVerification, setPersistence, signInWithEmailAndPassword, signInWithRedirect } from 'firebase/auth';
+import { GoogleAuthProvider, browserLocalPersistence, createUserWithEmailAndPassword, getRedirectResult, sendEmailVerification, setPersistence, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect } from 'firebase/auth';
 import { auth, isFirebaseClientConfigured } from '@/lib/firebase';
 
 const GoogleMark = () => <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.27c0-.79-.07-1.55-.2-2.27H12v4.3h5.23a4.47 4.47 0 0 1-1.94 2.94v2.79h3.59c2.1-1.93 3.31-4.78 3.31-7.76Z"/><path fill="#34A853" d="M12 21.75c2.62 0 4.82-.87 6.43-2.36l-3.59-2.79c-1 .67-2.27 1.07-3.84 1.07-2.95 0-5.45-1.99-6.34-4.67H.95v2.88A9.72 9.72 0 0 0 12 21.75Z"/><path fill="#FBBC05" d="M4.66 13c-.23-.67-.36-1.39-.36-2.13s.13-1.46.36-2.13V5.86H.95a9.75 9.75 0 0 0 0 10.02L4.66 13Z"/><path fill="#EA4335" d="M12 4.07c1.71 0 3.24.59 4.45 1.74l3.34-3.34C16.81.69 14.61-.25 12 0A9.72 9.72 0 0 0 .95 5.86l3.71 2.88C5.55 6.06 8.05 4.07 12 4.07Z"/></svg>;
@@ -22,7 +22,7 @@ function googleAuthMessage(error) {
   return messages[error?.code] || 'No pudimos completar el acceso con Google. Inténtalo nuevamente.';
 }
 
-export default function TrialActivationButton({ onAuthenticated, onActivated }) {
+export default function TrialActivationButton({ onAuthenticated, onActivated, onGoogleRedirectStart, onGoogleRedirectFailure }) {
   const [status, setStatus] = useState('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [showEmailForm, setShowEmailForm] = useState(false);
@@ -75,11 +75,26 @@ export default function TrialActivationButton({ onAuthenticated, onActivated }) 
       await setPersistence(auth, browserLocalPersistence);
       provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
-      // Redirect avoids popup blockers and works consistently in mobile browsers,
-      // installed PWAs, and Trusted Web Activities.
-      await signInWithRedirect(auth, provider);
+      // A popup returns the Firebase session in this same document. This avoids
+      // losing the checkout intent when browsers partition redirect storage.
+      const result = await signInWithPopup(auth, provider);
+      await completeActivation(result.user);
+      setStatus('success');
       return;
     } catch (error) {
+      const canRetryWithRedirect = ['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment'].includes(error?.code);
+      if (canRetryWithRedirect) {
+        try {
+          onGoogleRedirectStart?.();
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch (redirectError) {
+          console.error('[AUTH] Error al redirigir a Google:', redirectError);
+          onGoogleRedirectFailure?.();
+          setErrorMessage(googleAuthMessage(redirectError)); setStatus('idle');
+          return;
+        }
+      }
       console.error('[AUTH] Error al continuar con Google:', error);
       setErrorMessage(googleAuthMessage(error)); setStatus('idle');
     }

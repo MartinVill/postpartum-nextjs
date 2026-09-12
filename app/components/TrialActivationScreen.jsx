@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import TrialActivationButton from './TrialActivationButton';
+import { getRedirectResult, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { GOOGLE_PLAY_PRODUCT_IDS, listGooglePlayPurchases, requestGooglePlayPurchase, usePaymentProvider } from '@/app/hooks/usePaymentProvider';
 
@@ -19,6 +20,9 @@ const PLAN_DETAILS = {
     description: 'Un único pago. Sin cobros recurrentes.'
   }
 };
+
+const PENDING_CHECKOUT_PLAN_KEY = 'postpartum_pending_checkout_plan';
+const PENDING_CHECKOUT_MAX_AGE_MS = 15 * 60 * 1000;
 
 function formatDate(date) {
   return new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' })
@@ -39,6 +43,9 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
   const [checkoutStatus, setCheckoutStatus] = useState('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [authAction, setAuthAction] = useState('checkout');
+  const [redirectCheckout, setRedirectCheckout] = useState(null);
+  const resumedCheckout = useRef(false);
+  const beginCheckoutRef = useRef(null);
   const paymentProvider = usePaymentProvider();
   const isLifetime = selectedPlan === 'lifetime';
   const timeline = useMemo(() => {
@@ -56,15 +63,15 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
     });
   };
 
-  const beginGooglePlayCheckout = async (user, idToken) => {
+  const beginGooglePlayCheckout = async (user, idToken, planType = selectedPlan) => {
     let paymentResponse;
     try {
-      const { response, purchaseToken } = await requestGooglePlayPurchase(GOOGLE_PLAY_PRODUCT_IDS[selectedPlan], isLifetime ? '15.00' : '0.00');
+      const { response, purchaseToken } = await requestGooglePlayPurchase(GOOGLE_PLAY_PRODUCT_IDS[planType], planType === 'lifetime' ? '15.00' : '0.00');
       paymentResponse = response;
       const verification = await fetch('/api/billing/google-play/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-        body: JSON.stringify({ planType: selectedPlan, purchaseToken })
+        body: JSON.stringify({ planType, purchaseToken })
       });
       const payload = await verification.json();
       if (!verification.ok) throw new Error(payload.error || 'No pudimos validar la compra con Google Play.');
@@ -80,7 +87,7 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
     }
   };
 
-  const beginCheckout = async (user) => {
+  async function beginCheckout(user, planType = selectedPlan) {
     setCheckoutStatus('loading');
     setErrorMessage('');
     try {
@@ -89,13 +96,13 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
       const provider = paymentProvider.provider;
       await storeCheckoutState(idToken, 'checkout_started', provider);
       if (provider === 'google-play') {
-        await beginGooglePlayCheckout(user, idToken);
+        await beginGooglePlayCheckout(user, idToken, planType);
         return;
       }
       const response = await fetch('/api/billing/paypal/subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-        body: JSON.stringify({ planType: selectedPlan })
+        body: JSON.stringify({ planType })
       });
       const payload = await response.json();
       if (!response.ok || !payload.approvalUrl) throw new Error(payload.error || 'No pudimos abrir PayPal.');
@@ -104,7 +111,62 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
       setCheckoutStatus('idle');
       setErrorMessage(error.message || 'No pudimos iniciar PayPal. Inténtalo de nuevo.');
     }
-  };
+  }
+
+  // The Google redirect recreates this screen. Keep the newest checkout handler
+  // available to the redirect recovery effects without depending on its identity.
+  beginCheckoutRef.current = beginCheckout;
+
+  useEffect(() => {
+    if (!auth || resumedCheckout.current || typeof window === 'undefined') return undefined;
+    let pendingPlan = null;
+    const resumeCheckoutPlan = new URLSearchParams(window.location.search).get('resumeCheckout');
+    if (['monthly', 'lifetime'].includes(resumeCheckoutPlan)) pendingPlan = resumeCheckoutPlan;
+    try {
+      const pendingCheckout = JSON.parse(window.localStorage.getItem(PENDING_CHECKOUT_PLAN_KEY) || 'null');
+      if (!pendingPlan && pendingCheckout && Date.now() - pendingCheckout.startedAt < PENDING_CHECKOUT_MAX_AGE_MS) {
+        pendingPlan = pendingCheckout.plan;
+      } else if (!pendingPlan && (!pendingCheckout || Date.now() - pendingCheckout.startedAt >= PENDING_CHECKOUT_MAX_AGE_MS)) {
+        window.localStorage.removeItem(PENDING_CHECKOUT_PLAN_KEY);
+      }
+    } catch {
+      window.localStorage.removeItem(PENDING_CHECKOUT_PLAN_KEY);
+    }
+    if (!['monthly', 'lifetime'].includes(pendingPlan)) return undefined;
+
+    let disposed = false;
+    const resume = (user) => {
+      if (!user || disposed || resumedCheckout.current) return;
+      setRedirectCheckout({ user, plan: pendingPlan });
+    };
+
+    getRedirectResult(auth)
+      .then(result => resume(result?.user || auth.currentUser))
+      .catch(error => {
+        console.error('[AUTH] No se pudo recuperar el acceso de Google:', error);
+        if (!disposed) {
+          setErrorMessage('No pudimos completar el acceso con Google. Inténtalo nuevamente.');
+        }
+      });
+
+    // Some Android webviews publish the authenticated user a moment after the
+    // redirect result. Listening here prevents a successful login from leaving
+    // the user stranded on the paywall.
+    const unsubscribe = onAuthStateChanged(auth, resume);
+
+    return () => { disposed = true; unsubscribe(); };
+  }, []);
+
+  useEffect(() => {
+    if (!redirectCheckout || !paymentProvider.ready || resumedCheckout.current || typeof window === 'undefined') return;
+
+    resumedCheckout.current = true;
+    window.localStorage.removeItem(PENDING_CHECKOUT_PLAN_KEY);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('resumeCheckout');
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    beginCheckoutRef.current?.(redirectCheckout.user, redirectCheckout.plan);
+  }, [paymentProvider.ready, redirectCheckout]);
 
   const restoreGooglePlayPurchases = async (user = auth?.currentUser) => {
     if (!user || paymentProvider.provider !== 'google-play') return;
@@ -201,7 +263,16 @@ export default function TrialActivationScreen({ onAuthenticated, onBillingActiva
           <button type="button" className="sheet-close" aria-label="Cerrar" onClick={() => setShowAuthSheet(false)}>×</button>
           <h2 id="auth-title">{authAction === 'restore' ? 'Recupera tu acceso' : 'Crea tu cuenta'}</h2>
           <p>{authAction === 'restore' ? 'Ingresa con la cuenta que usaste para comprar en Google Play.' : 'Para activar tu acceso y guardar tu progreso.'}</p>
-          <TrialActivationButton onAuthenticated={authAction === 'restore' ? () => restoreGooglePlayPurchases() : beginCheckout} />
+          <TrialActivationButton
+            onAuthenticated={authAction === 'restore' ? () => restoreGooglePlayPurchases() : beginCheckout}
+            onGoogleRedirectStart={authAction === 'checkout' ? () => {
+              window.localStorage.setItem(PENDING_CHECKOUT_PLAN_KEY, JSON.stringify({ plan: selectedPlan, startedAt: Date.now() }));
+              const url = new URL(window.location.href);
+              url.searchParams.set('resumeCheckout', selectedPlan);
+              window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+            } : undefined}
+            onGoogleRedirectFailure={authAction === 'checkout' ? () => window.localStorage.removeItem(PENDING_CHECKOUT_PLAN_KEY) : undefined}
+          />
         </section>
       </div>}
 
