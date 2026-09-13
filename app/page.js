@@ -19,6 +19,7 @@ import CalendarQuickEntry from './components/CalendarQuickEntry';
 import { syncCalendarReminder } from './utils/calendarReminderSync';
 import { getChallengeStreak, recordChallengeCompletion } from './utils/challengeStreak';
 import { auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default function Home() {
   const [calendarEntryDate, setCalendarEntryDate] = useState(null);
@@ -43,7 +44,8 @@ export default function Home() {
     showTrialActivation: false,
     showInitialPlan: false,
     challengeStreak: 0,
-    calendarKey: 0
+    calendarKey: 0,
+    entitlementChecked: false
   });
 
   /**
@@ -276,6 +278,68 @@ export default function Home() {
     }
   }, []);
 
+  // Local storage is only a cache for the visual profile. On every app start,
+  // an authenticated account must be reconciled against the server entitlement
+  // so a cancelled/expired Play subscription cannot keep the Home unlocked.
+  useEffect(() => {
+    if (!auth) {
+      setState(prev => ({ ...prev, entitlementChecked: true }));
+      return undefined;
+    }
+
+    let disposed = false;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        if (!disposed) setState(prev => ({ ...prev, entitlementChecked: true }));
+        return;
+      }
+
+      try {
+        const idToken = await user.getIdToken();
+        const response = await fetch('/api/billing/entitlement', {
+          headers: { Authorization: `Bearer ${idToken}` },
+          cache: 'no-store'
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const { entitlement } = await response.json();
+        const hasAccess = ['active', 'trialing'].includes(entitlement?.accessStatus);
+
+        if (hasAccess) {
+          const storedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+          const profile = {
+            ...storedProfile,
+            firebaseUid: user.uid,
+            email: user.email || storedProfile.email || '',
+            trialStartDate: entitlement.trialStartedAt || storedProfile.trialStartDate || null,
+            trialEndsAt: entitlement.trialEndsAt || null,
+            billingPlan: entitlement.planType || null
+          };
+          localStorage.setItem('userId', user.uid);
+          localStorage.setItem('userProfile', JSON.stringify(profile));
+          localStorage.removeItem('postpartum_trial_prompt_pending');
+          if (!disposed) {
+            setState(prev => ({ ...prev, userId: user.uid, userProfile: profile, showInitialPlan: false, showTrialActivation: false, entitlementChecked: true }));
+          }
+          return;
+        }
+
+        // No access (or access already ended): retain the profile only as
+        // contextual data, and make the paywall the next screen.
+        localStorage.setItem('postpartum_trial_prompt_pending', 'true');
+        if (!disposed) {
+          setState(prev => ({ ...prev, showInitialPlan: false, showTrialActivation: true, entitlementChecked: true }));
+        }
+      } catch (error) {
+        // Fail open only for a temporary network/server failure. A successful
+        // entitlement response is always authoritative.
+        console.warn('[BILLING] No se pudo sincronizar el acceso al abrir:', error.message);
+        if (!disposed) setState(prev => ({ ...prev, entitlementChecked: true }));
+      }
+    });
+
+    return () => { disposed = true; unsubscribe(); };
+  }, []);
+
   const handleBillingAuthenticated = async ({ uid, email, displayName, idToken }) => {
     const existingUserId = localStorage.getItem('userId');
     const profile = {
@@ -453,7 +517,7 @@ export default function Home() {
 
   const headerCopy = getDynamicHeaderCopy();
 
-  if (!state.isReady) {
+  if (!state.isReady || !state.entitlementChecked) {
     return (
       <div style={{
         minHeight: '100vh',
