@@ -50,3 +50,27 @@ Google Play permite pruebas gratuitas automáticas en **suscripciones** configur
 En la TWA, el enlace **Restaurar compras** consulta `listPurchases()` y vuelve a validar cada comprobante en el servidor. Nunca restituye acceso sólo desde el navegador.
 
 `POST /api/billing/google-play/rtdn` recibe el push autenticado de Cloud Pub/Sub, deduplica por `messageId` en `google_play_rtdn_events` y consulta nuevamente la API de Google Play antes de modificar un entitlement. Al configurar Pub/Sub, usar una push subscription con autenticación OIDC cuyo audience sea la URL exacta de ese endpoint.
+
+### Configuración obligatoria de RTDN en producción
+
+La ruta está implementada, pero Google Cloud y Play Console deben apuntarle explícitamente antes de esperar renovaciones o cancelaciones automáticas.
+
+1. En el proyecto de Google Cloud vinculado a Play Developer API, habilitar **Cloud Pub/Sub API**. Esto se configura fuera del repositorio: esta sesión no tiene credenciales autenticadas de Google Cloud para crear esos recursos por vos.
+2. Crear el topic `google-play-rtdn`.
+3. En IAM del topic, agregar `google-play-developer-notifications@system.gserviceaccount.com` con el rol **Pub/Sub Publisher**.
+4. Crear una service account de push, por ejemplo `postpartum-rtdn-push@PROJECT_ID.iam.gserviceaccount.com`.
+5. Dar a `service-PROJECT_NUMBER@gcp-sa-pubsub.iam.gserviceaccount.com` el rol **Service Account Token Creator** sobre esa service account de push.
+6. Crear la suscripción push `google-play-rtdn-to-vercel`:
+   - Topic: `projects/PROJECT_ID/topics/google-play-rtdn`
+   - Endpoint: `https://postpartum-nextjs.vercel.app/api/billing/google-play/rtdn`
+   - Autenticación OIDC: activada
+   - Service account de push: `postpartum-rtdn-push@PROJECT_ID.iam.gserviceaccount.com`
+   - Audience: `https://postpartum-nextjs.vercel.app/api/billing/google-play/rtdn`
+   - No activar *payload unwrapping*; la ruta espera el envelope estándar de Pub/Sub.
+7. En Play Console: **Monetize → Monetization setup → Real-time developer notifications**, activar RTDN e ingresar `projects/PROJECT_ID/topics/google-play-rtdn`. Usar **Send test message**.
+8. En Vercel → Settings → Environment Variables → Production, crear:
+   - `GOOGLE_PUBSUB_PUSH_AUDIENCE=https://postpartum-nextjs.vercel.app/api/billing/google-play/rtdn`
+   - `GOOGLE_PUBSUB_PUSH_SERVICE_ACCOUNT=postpartum-rtdn-push@PROJECT_ID.iam.gserviceaccount.com`
+   Luego hacer un redeploy.
+
+Una prueba correcta deja un documento con `status: "test_received"` en `google_play_rtdn_events`. Las notificaciones de renovaciones/cancelaciones se guardan como `processed` y actualizan `billing_entitlements/{uid}`.
